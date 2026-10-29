@@ -1,0 +1,26 @@
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Node.js
+node_modules/
+dist/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Dataset - keep local
+Backend/data/transactions.csv
+
+# Temporary files
+*.log
+.pytest_cache/
+.vscode/
+.DS_Store
+Thumbs.db

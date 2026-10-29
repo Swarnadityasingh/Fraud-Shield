@@ -1,0 +1,22 @@
+{
+  "model_name": "Random Forest",
+  "dataset": "transactions.csv",
+  "sampling": "All fraud rows and up to 200000 legitimate rows",
+  "test_size": 0.2,
+  "random_state": 42,
+  "training_rows": 166570,
+  "test_rows": 41643,
+  "test_legitimate_rows": 40000,
+  "test_fraud_rows": 1643,
+  "accuracy": 0.9434718920346757,
+  "precision_fraud": 0.39098436062557496,
+  "recall_fraud": 0.776019476567255,
+  "f1_fraud": 0.5199836867862969,
+  "roc_auc": 0.9566620739500913,
+  "pr_auc": 0.7173097808230716,
+  "true_negatives": 38014,
+  "false_positives": 1986,
+  "false_negatives": 368,
+  "true_positives": 1275,
+  "false_positive_rate": 0.04965
+}
