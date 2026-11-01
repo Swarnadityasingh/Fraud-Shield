@@ -1,34 +1,27 @@
-
 import {
   UserRound,
-  Palette,
   BellRing,
   ShieldCheck,
   BrainCircuit,
   Info,
   RefreshCw,
-  Save,
-  Sun,
-  Moon,
   CheckCircle,
   XCircle,
 } from 'lucide-react'
 
-function Section({ icon: Icon, title, description, children }) {
+import './SettingsPanel.css'
+
+function SettingsSection({ icon: Icon, title, description, children }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors dark:border-slate-800 dark:bg-slate-900">
-      <div className="mb-5 flex items-start gap-3">
-        <div className="rounded-xl bg-blue-50 p-3 text-blue-600 dark:bg-blue-950 dark:text-blue-300">
-          <Icon size={21} />
+    <section className="settings-section">
+      <div className="settings-section-heading">
+        <div className="settings-section-icon">
+          <Icon size={19} />
         </div>
 
         <div>
-          <h2 className="font-semibold text-slate-900 dark:text-white">
-            {title}
-          </h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {description}
-          </p>
+          <h2>{title}</h2>
+          <p>{description}</p>
         </div>
       </div>
 
@@ -37,38 +30,36 @@ function Section({ icon: Icon, title, description, children }) {
   )
 }
 
-function Field({ label, value, onChange, type = 'text' }) {
+function SettingsField({ label, value, onChange, type = 'text', min, max }) {
   return (
-    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-      {label}
+    <label className="settings-field">
+      <span>{label}</span>
       <input
         type={type}
         value={value ?? ''}
+        min={min}
+        max={max}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-blue-950"
       />
     </label>
   )
 }
 
-function Toggle({ label, description, checked, onChange }) {
+function SettingsToggle({ label, description, checked, onChange }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-4 py-3">
-      <span>
-        <span className="block text-sm font-medium text-slate-800 dark:text-slate-200">
-          {label}
-        </span>
-        <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
-          {description}
-        </span>
+    <label className="settings-toggle">
+      <span className="settings-toggle-copy">
+        <strong>{label}</strong>
+        <small>{description}</small>
       </span>
 
       <input
         type="checkbox"
         checked={Boolean(checked)}
         onChange={(e) => onChange(e.target.checked)}
-        className="h-5 w-5 shrink-0 cursor-pointer accent-blue-600"
       />
+
+      <span className="settings-switch" aria-hidden="true" />
     </label>
   )
 }
@@ -78,7 +69,6 @@ export default function SettingsPanel({
   onChange,
   modelStatus,
   onRefreshModel,
-  onSave,
 }) {
   function update(key, value) {
     onChange({ ...settings, [key]: value })
@@ -105,37 +95,21 @@ export default function SettingsPanel({
           : 'Backend unavailable'
 
   return (
-    <div
-      id="settings"
-      className="mx-auto w-full max-w-5xl space-y-6 text-slate-900 dark:text-slate-100"
-    >
-      {/* Page heading */}
-      <div>
-        <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
-          PREFERENCES
-        </p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight">
-          Settings
-        </h1>
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-          Personalize your dashboard and configure transaction risk labels.
-        </p>
-      </div>
+    <div className="settings-panel" id="settings">
 
-      {/* Profile */}
-      <Section
+      <SettingsSection
         icon={UserRound}
-        title="Profile"
-        description="Manage your demo profile information."
+        title="General preferences"
+        description="Your FraudShield demo workspace information."
       >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
+        <div className="settings-fields-grid">
+          <SettingsField
             label="Display name"
             value={settings.profileName}
             onChange={(value) => update('profileName', value)}
           />
 
-          <Field
+          <SettingsField
             label="Email address"
             type="email"
             value={settings.email}
@@ -143,90 +117,80 @@ export default function SettingsPanel({
           />
         </div>
 
-        <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
-          Demo profile only. This does not create an account or change login
-          credentials.
+        <p className="settings-helper">
+          Demo profile only. These details do not change login credentials.
         </p>
-      </Section>
+      </SettingsSection>
 
-      {/* Appearance */}
-      <Section
-        icon={Palette}
-        title="Appearance"
-        description="Choose your preferred dashboard theme. The change applies immediately."
+      <SettingsSection
+        icon={ShieldCheck}
+        title="Risk & alerts"
+        description="Configure risk classification thresholds and alert preferences."
       >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <button
-            type="button"
-            aria-pressed={settings.theme === 'light'}
-            onClick={() => update('theme', 'light')}
-            className={`rounded-xl border p-4 text-left transition ${
-              settings.theme === 'light'
-                ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-100 dark:border-blue-500 dark:bg-blue-950 dark:ring-blue-900'
-                : 'border-slate-200 hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-500'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <Sun
-                size={23}
-                className="text-amber-500"
-              />
-              {settings.theme === 'light' && (
-                <CheckCircle size={19} className="text-blue-600 dark:text-blue-400" />
-              )}
-            </div>
+        <div className="settings-fields-grid">
+          <SettingsField
+            label="Medium risk starts at (%)"
+            type="number"
+            min="1"
+            max="99"
+            value={settings.mediumThreshold}
+            onChange={(value) => update('mediumThreshold', value)}
+          />
 
-            <p className="mt-3 font-semibold">Light mode</p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Bright backgrounds and dark text.
-            </p>
-          </button>
-
-          <button
-            type="button"
-            aria-pressed={settings.theme === 'dark'}
-            onClick={() => update('theme', 'dark')}
-            className={`rounded-xl border p-4 text-left transition ${
-              settings.theme === 'dark'
-                ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-100 dark:border-blue-500 dark:bg-blue-950 dark:ring-blue-900'
-                : 'border-slate-200 hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-500'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <Moon size={23} className="text-blue-500" />
-              {settings.theme === 'dark' && (
-                <CheckCircle size={19} className="text-blue-600 dark:text-blue-400" />
-              )}
-            </div>
-
-            <p className="mt-3 font-semibold">Dark mode</p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Dark backgrounds and lighter text.
-            </p>
-          </button>
+          <SettingsField
+            label="High risk starts at (%)"
+            type="number"
+            min="2"
+            max="100"
+            value={settings.highThreshold}
+            onChange={(value) => update('highThreshold', value)}
+          />
         </div>
 
-        <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-          Click a theme to switch instantly, then save to keep your choice
-          after refreshing.
-        </p>
-      </Section>
+        {!thresholdsValid && (
+          <p className="settings-validation">
+            Invalid thresholds. Medium must be at least 1%, high must be at
+            most 100%, and medium must be lower than high.
+          </p>
+        )}
 
-      {/* Notifications */}
-      <Section
-        icon={BellRing}
-        title="Notifications"
-        description="Choose which analysis results should display alert messages."
-      >
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
-          <Toggle
+        <div className="settings-risk-preview">
+          <strong>Current risk rules</strong>
+
+          <div className="settings-risk-row">
+            <span>
+              <i className="risk-dot low-dot" /> Low risk
+            </span>
+            <strong>Below {Number.isFinite(medium) ? medium : '—'}%</strong>
+          </div>
+
+          <div className="settings-risk-row">
+            <span>
+              <i className="risk-dot medium-dot" /> Medium risk
+            </span>
+            <strong>
+              {Number.isFinite(medium) ? medium : '—'}% to below{' '}
+              {Number.isFinite(high) ? high : '—'}%
+            </strong>
+          </div>
+
+          <div className="settings-risk-row">
+            <span>
+              <i className="risk-dot high-dot" /> High risk
+            </span>
+            <strong>{Number.isFinite(high) ? high : '—'}% and above</strong>
+          </div>
+        </div>
+
+        <div className="settings-toggle-list">
+          <SettingsToggle
             label="High-risk alerts"
-            description="Show an alert when a prediction is classified as high risk."
+            description="Show an alert when a transaction is classified as high risk."
             checked={settings.notifyHighRisk}
             onChange={(value) => update('notifyHighRisk', value)}
           />
 
-          <Toggle
+          <SettingsToggle
             label="Suspected-fraud alerts"
             description="Show an alert when the model predicts a fraudulent transaction."
             checked={settings.notifyFraud}
@@ -234,221 +198,109 @@ export default function SettingsPanel({
           />
         </div>
 
-        <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
-          These preferences affect messages shown during analysis. They do not
-          send emails or background push notifications.
+        <p className="settings-helper">
+          Thresholds change the displayed risk classification, not the model's
+          underlying fraud probability or accuracy. Alert preferences control
+          application messages; they do not send emails or push notifications.
         </p>
-      </Section>
+      </SettingsSection>
 
-      {/* Risk thresholds */}
-      <Section
-        icon={ShieldCheck}
-        title="Risk configuration"
-        description="Set the probability thresholds used to label prediction risk."
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            label="Medium risk starts at (%)"
-            type="number"
-            value={settings.mediumThreshold}
-            onChange={(value) => update('mediumThreshold', value)}
-          />
-
-          <Field
-            label="High risk starts at (%)"
-            type="number"
-            value={settings.highThreshold}
-            onChange={(value) => update('highThreshold', value)}
-          />
-        </div>
-
-        {!thresholdsValid && (
-          <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
-            Invalid thresholds. Use a medium threshold of at least 1%, a high
-            threshold of at most 100%, and ensure medium is lower than high.
-          </p>
-        )}
-
-        <div className="mt-4 rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
-          <p className="text-sm font-semibold">Current risk rules</p>
-
-          <div className="mt-3 space-y-2 text-sm">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-slate-600 dark:text-slate-300">
-                Low risk
-              </span>
-              <span className="font-medium">
-                Below {Number.isFinite(medium) ? medium : '—'}%
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-slate-600 dark:text-slate-300">
-                Medium risk
-              </span>
-              <span className="font-medium">
-                {Number.isFinite(medium) ? medium : '—'}% to below{' '}
-                {Number.isFinite(high) ? high : '—'}%
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-slate-600 dark:text-slate-300">
-                High risk
-              </span>
-              <span className="font-medium">
-                {Number.isFinite(high) ? high : '—'}% and above
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <p className="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
-          These thresholds change the displayed risk category, not the model's
-          underlying fraud probability or accuracy.
-        </p>
-      </Section>
-
-      {/* Model status */}
-      <Section
+      <SettingsSection
         icon={BrainCircuit}
-        title="Model information"
-        description="Check whether the API and trained model are available."
+        title="System & model"
+        description="Monitor backend connectivity and review the configured model."
       >
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div className="flex items-start gap-3">
+        <div className="settings-model-status">
+          <div className="settings-model-copy">
             {modelStatus.modelConnected ? (
-              <CheckCircle
-                size={22}
-                className="mt-0.5 text-green-600"
-              />
+              <CheckCircle size={21} className="model-connected-icon" />
             ) : (
-              <XCircle
-                size={22}
-                className="mt-0.5 text-amber-600"
-              />
+              <XCircle size={21} className="model-disconnected-icon" />
             )}
 
             <div>
-              <p className="font-medium">{statusText}</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Health check endpoint: /health
-              </p>
+              <strong>{statusText}</strong>
+              <small>Health check endpoint: /health</small>
             </div>
           </div>
 
           <button
             type="button"
+            className="settings-refresh-button"
             onClick={onRefreshModel}
             disabled={modelStatus.loading}
-            className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
           >
             <RefreshCw
-              size={16}
-              className={modelStatus.loading ? 'animate-spin' : ''}
+              size={15}
+              className={modelStatus.loading ? 'settings-spinning' : ''}
             />
             Refresh status
           </button>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Model type
-            </p>
-            <p className="mt-1 font-semibold">Random Forest</p>
+        <div className="settings-system-grid">
+          <div>
+            <span>Model type</span>
+            <strong>Random Forest</strong>
           </div>
 
-          <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Dataset
-            </p>
-            <p className="mt-1 font-semibold">PaySim synthetic data</p>
+          <div>
+            <span>Dataset</span>
+            <strong>PaySim synthetic data</strong>
           </div>
 
-          <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Input features
-            </p>
-            <p className="mt-1 font-semibold">Step, type, amount</p>
+          <div>
+            <span>Input features</span>
+            <strong>Step, type, amount</strong>
           </div>
 
-          <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Evaluation
-            </p>
-            <p className="mt-1 font-semibold">
-              See training output
-            </p>
+          <div>
+            <span>Evaluation</span>
+            <strong>See training output</strong>
           </div>
         </div>
 
-        <p className="mt-4 text-xs leading-5 text-slate-500 dark:text-slate-400">
-          Model details describe the expected project configuration. Confirm
-          the actual saved model and training metrics in your backend before
-          presenting them as verified results.
+        <p className="settings-helper">
+          These describe the expected project configuration. Verify the
+          backend model and training results before presenting them as
+          confirmed metrics.
         </p>
-      </Section>
+      </SettingsSection>
 
-      {/* About */}
-      <Section
+      <SettingsSection
         icon={Info}
         title="About FraudShield"
-        description="Machine Learning Based Financial Risk Assessment and Fraud Detection Framework."
+        description="Machine Learning-Based Financial Risk Assessment and Fraud Detection Framework."
       >
-        <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
-          <div className="flex justify-between gap-4">
+        <div className="settings-about-list">
+          <div>
             <span>Frontend</span>
-            <span className="text-right font-medium text-slate-900 dark:text-white">
-              React, Vite, Tailwind CSS
-            </span>
+            <strong>React, Vite, Tailwind CSS</strong>
           </div>
-
-          <div className="flex justify-between gap-4">
+          <div>
             <span>Backend</span>
-            <span className="text-right font-medium text-slate-900 dark:text-white">
-              Python, FastAPI
-            </span>
+            <strong>Python, FastAPI</strong>
           </div>
-
-          <div className="flex justify-between gap-4">
+          <div>
             <span>Machine learning</span>
-            <span className="text-right font-medium text-slate-900 dark:text-white">
-              scikit-learn
-            </span>
+            <strong>scikit-learn</strong>
           </div>
-
-          <div className="flex justify-between gap-4">
+          <div>
             <span>Project version</span>
-            <span className="font-medium text-slate-900 dark:text-white">
-              1.0.0
-            </span>
+            <strong>1.0.0</strong>
           </div>
         </div>
 
-        <div className="mt-5 rounded-xl bg-amber-50 p-4 text-xs leading-5 text-amber-800 dark:bg-amber-950 dark:text-amber-200">
+        <div className="settings-disclaimer">
           FraudShield is an educational project using synthetic transaction
           data. Predictions are experimental and must not be treated as proof
           of fraud or used as the sole basis for financial decisions.
         </div>
-      </Section>
+      </SettingsSection>
 
-      {/* Save button */}
-      <div className="flex flex-col justify-between gap-3 border-t border-slate-200 pt-5 dark:border-slate-800 sm:flex-row sm:items-center">
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          Save your preferences to keep them after a page refresh.
-        </p>
-
-        <button
-          type="button"
-          disabled={!thresholdsValid}
-          onClick={onSave}
-          className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Save size={17} />
-          Save settings
-        </button>
-      </div>
+      <p className="settings-autosave-note">
+        Your valid preference changes are saved automatically.
+      </p>
     </div>
   )
 }

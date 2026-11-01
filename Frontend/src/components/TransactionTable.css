@@ -1,0 +1,135 @@
+.transaction-table-panel {
+  min-width: 0;
+  padding: 23px;
+  color: var(--dashboard-text);
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  border-radius: 17px;
+}
+
+.transaction-table-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.transaction-table-heading h2 {
+  margin: 0;
+  color: var(--dashboard-text);
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.transaction-table-heading p {
+  margin: 5px 0 0;
+  color: var(--dashboard-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.sample-data-label {
+  flex-shrink: 0;
+  padding: 6px 9px;
+  color: var(--dashboard-muted);
+  background: var(--dashboard-bg);
+  border: 1px solid var(--dashboard-border);
+  border-radius: 7px;
+  font-size: 10px;
+}
+
+.transaction-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.transaction-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+
+.transaction-table th {
+  padding: 13px 12px;
+  color: var(--dashboard-muted);
+  background: var(--dashboard-bg);
+  border-bottom: 1px solid var(--dashboard-border);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.transaction-table td {
+  padding: 16px 12px;
+  color: var(--dashboard-text);
+  border-bottom: 1px solid var(--dashboard-border);
+  white-space: nowrap;
+}
+
+.transaction-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.transaction-table tbody tr:hover {
+  background: color-mix(in srgb, var(--dashboard-primary) 5%, transparent);
+}
+
+.transaction-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.transaction-id {
+  font-weight: 750;
+  letter-spacing: 0.2px;
+}
+
+.transaction-amount {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.risk-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.risk-low {
+  color: var(--dashboard-safe);
+  background: color-mix(in srgb, var(--dashboard-safe) 12%, transparent);
+}
+
+.risk-medium {
+  color: var(--dashboard-warning);
+  background: color-mix(in srgb, var(--dashboard-warning) 13%, transparent);
+}
+
+.risk-high {
+  color: var(--dashboard-danger);
+  background: color-mix(in srgb, var(--dashboard-danger) 12%, transparent);
+}
+
+.transaction-table-disclaimer {
+  margin: 15px 0 0;
+  color: var(--dashboard-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .transaction-table-panel {
+    padding: 16px;
+  }
+
+  .transaction-table-heading {
+    flex-direction: column;
+  }
+}

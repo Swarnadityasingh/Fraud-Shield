@@ -1,55 +1,108 @@
+import './TransactionTable.css'
 
-const transactions = [
+const sampleTransactions = [
   { id: 'TXN-1042', amount: 8500, type: 'PAYMENT', probability: 12, risk: 'Low' },
   { id: 'TXN-1043', amount: 85000, type: 'TRANSFER', probability: 92, risk: 'High' },
   { id: 'TXN-1044', amount: 12000, type: 'CASH_OUT', probability: 35, risk: 'Medium' },
   { id: 'TXN-1045', amount: 950, type: 'PAYMENT', probability: 8, risk: 'Low' },
 ]
 
-const riskStyle = {
-  Low: 'bg-green-50 text-green-700',
-  Medium: 'bg-amber-50 text-amber-700',
-  High: 'bg-red-50 text-red-700',
+function formatINR(amount) {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(amount)
 }
 
-export default function TransactionTable() {
+function formatTime(value) {
+  if (!value) return '—'
+
+  return new Date(value).toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+export default function TransactionTable({ history = [] }) {
+  const liveTransactions = history.map((tx) => ({
+    id: tx.transaction_id,
+    amount: tx.amount,
+    type: tx.transaction_type,
+    probability: Number(tx.fraud_probability) * 100,
+    risk: tx.risk_level,
+    createdAt: tx.created_at,
+    source: 'Live analysis',
+  }))
+
+  const rows = [
+    ...liveTransactions,
+    ...sampleTransactions.map((tx) => ({
+      ...tx,
+      source: 'Sample data',
+    })),
+  ]
+
   return (
-    <section id="transactions" className="rounded-2xl border border-slate-200 bg-white p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-semibold">Recent transactions</h2>
-        <span className="text-xs text-slate-400">Sample data</span>
+    <section className="transaction-table-panel">
+      <div className="transaction-table-heading">
+        <div>
+          <h2>Recent transactions</h2>
+          <p>Monitor transaction activity and risk classifications.</p>
+        </div>
+
+        <span className="sample-data-label">
+          {liveTransactions.length} live · {sampleTransactions.length} sample
+        </span>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[550px] text-left text-sm">
-          <thead className="bg-slate-50 text-xs text-slate-500">
+      <div className="transaction-table-scroll">
+        <table className="transaction-table">
+          <thead>
             <tr>
-              {['Transaction', 'Amount', 'Type', 'Fraud probability', 'Risk'].map(col => (
-                <th key={col} className="px-3 py-3 font-medium">{col}</th>
-              ))}
+              <th>Transaction</th>
+              <th>Amount</th>
+              <th>Type</th>
+              <th>Fraud probability</th>
+              <th>Risk</th>
+              <th>Source / Time</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
-            {transactions.map(tx => (
-              <tr key={tx.id} className="hover:bg-slate-50">
-                <td className="px-3 py-4 font-medium">{tx.id}</td>
-                <td className="px-3 py-4">
-                  {new Intl.NumberFormat('en-IN', {
-                    style: 'currency', currency: 'INR', maximumFractionDigits: 0
-                  }).format(tx.amount)}
-                </td>
-                <td className="px-3 py-4 text-slate-500">{tx.type}</td>
-                <td className="px-3 py-4">{tx.probability}%</td>
-                <td className="px-3 py-4">
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${riskStyle[tx.risk]}`}>
+
+          <tbody>
+            {rows.map((tx) => (
+              <tr key={tx.id}>
+                <td className="transaction-id">{tx.id}</td>
+                <td className="transaction-amount">{formatINR(tx.amount)}</td>
+                <td>{tx.type?.replace('_', ' ')}</td>
+                <td>{Number(tx.probability).toFixed(1)}%</td>
+                <td>
+                  <span className={`risk-badge risk-${tx.risk.toLowerCase()}`}>
                     {tx.risk}
                   </span>
+                </td>
+                <td>
+                  <span className="transaction-source">
+                    {tx.source}
+                  </span>
+                  {tx.createdAt && (
+                    <small className="transaction-time">
+                      {formatTime(tx.createdAt)}
+                    </small>
+                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <p className="transaction-table-disclaimer">
+        Live entries are predictions returned by the connected model.
+        Sample entries are illustrative and are not real transactions.
+      </p>
     </section>
   )
 }
