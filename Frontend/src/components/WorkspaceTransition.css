@@ -1,0 +1,29 @@
+.fs-page-transition {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 9999;
+  cursor: progress;
+}
+
+.fs-page-burst {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    #99F6E4 0%,
+    #2DD4BF 45%,
+    #0D9488 100%
+  );
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+html:not(.dark) .fs-page-burst {
+  background: radial-gradient(
+    circle at center,
+    #CCFBF1 0%,
+    #5EEAD4 45%,
+    #14B8A6 100%
+  );
+}

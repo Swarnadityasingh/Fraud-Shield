@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 
 import Login from './components/Login'
 import Dashboard from './Dashboard'
+import LandingPage from './components/LandingPage'
 
 import {
   predictTransaction,
@@ -37,9 +38,7 @@ export default function App() {
   )
 
   const [currentPath, setCurrentPath] = useState(
-    window.location.pathname === '/dashboard'
-      ? '/dashboard'
-      : '/login'
+    () => window.location.pathname
   )
 
   const [welcomeVisible, setWelcomeVisible] = useState(false)
@@ -65,11 +64,7 @@ export default function App() {
 
   useEffect(() => {
     function handlePopState() {
-      setCurrentPath(
-        window.location.pathname === '/dashboard'
-          ? '/dashboard'
-          : '/login'
-      )
+      setCurrentPath(window.location.pathname)
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -294,6 +289,20 @@ export default function App() {
   const dismissWelcome = useCallback(() => {
     setWelcomeVisible(false)
   }, [])
+
+  if (currentPath === '/') {
+    return (
+      <LandingPage
+        theme={settings.theme}
+        onThemeChange={(theme) =>
+          setSettings((previous) => ({
+            ...previous,
+            theme,
+          }))
+        }
+      />
+    )
+  }
 
   if (!isAuthenticated || currentPath !== '/dashboard') {
     return (
