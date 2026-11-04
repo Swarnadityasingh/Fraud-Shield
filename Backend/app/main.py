@@ -1,5 +1,6 @@
-
+from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 
 import joblib
 import pandas as pd
@@ -7,8 +8,37 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="FraudShield API", version="1.0.0")
+MODEL_PATH = Path(__file__).resolve().parent / "fraud_model.joblib"
 
+model: Any = None
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    global model
+
+    if MODEL_PATH.exists():
+        try:
+            model = joblib.load(MODEL_PATH)
+            print("ML Model loaded successfully.")
+        except Exception as e:
+            print(f"Error loading model: {e}")
+            model = None
+    else:
+        print(f"Warning: Model file not found at {MODEL_PATH}")
+
+    yield
+
+    model = None
+
+
+app = FastAPI(
+    title="FraudShield API",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+# noinspection PyTypeChecker
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -19,17 +49,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-MODEL_PATH = Path(__file__).resolve().parent / "fraud_model.joblib"
-model = None
-
-
-@app.on_event("startup")
-def load_model():
-    global model
-    if MODEL_PATH.exists():
-        model = joblib.load(MODEL_PATH)
-
 
 class Transaction(BaseModel):
     amount: float = Field(gt=0)
@@ -66,10 +85,16 @@ def predict(transaction: Transaction):
 
     try:
         prediction = int(model.predict(features)[0])
+
         probabilities = model.predict_proba(features)[0]
         classes = list(model.classes_)
+
+        if 1 not in classes:
+            raise ValueError("Fraud class 1 is missing from the trained model.")
+
         fraud_index = classes.index(1)
         probability = float(probabilities[fraud_index])
+
     except Exception as exc:
         raise HTTPException(
             status_code=422,
@@ -87,5 +112,7 @@ def predict(transaction: Transaction):
         "fraud_probability": round(probability, 4),
         "risk_level": risk,
         "model_connected": True,
-        "disclaimer": "Experimental prediction from a synthetic dataset.",
+        "disclaimer": (
+            "Experimental prediction from a synthetic dataset."
+        ),
     }
