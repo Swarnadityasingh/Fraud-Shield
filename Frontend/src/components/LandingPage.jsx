@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
 import {
+  SiReact,
+  SiVite,
+  SiTailwindcss,
+  SiFramer,
+  SiPython,
+  SiFastapi,
+  SiScikitlearn,
+} from 'react-icons/si'
+import {
   motion,
   AnimatePresence,
   useReducedMotion,
@@ -71,6 +80,45 @@ function WorkspaceLink({ children, className = '' }) {
     >
       {children}
     </a>
+  )
+}
+
+function TechStack() {
+  const technologies = [
+    { name: 'React', icon: SiReact },
+    { name: 'Vite', icon: SiVite },
+    { name: 'Tailwind CSS', icon: SiTailwindcss },
+    { name: 'Framer Motion', icon: SiFramer },
+    { name: 'Python', icon: SiPython },
+    { name: 'FastAPI', icon: SiFastapi },
+    { name: 'scikit-learn', icon: SiScikitlearn },
+  ]
+
+  return (
+    <section className="fs-tech-section" aria-label="Technologies used">
+      <div
+        className="fs-tech-window"
+        tabIndex={0}
+        aria-label="Technology logos. Focus or hover to pause scrolling."
+      >
+        <div className="fs-tech-track">
+          {[0, 1].map((copy) => (
+            <ul
+              className="fs-tech-group"
+              key={copy}
+              aria-hidden={copy === 1 ? true : undefined}
+            >
+              {technologies.map(({ name, icon: Icon }) => (
+                <li className="fs-tech-item" key={name}>
+                  <Icon aria-hidden="true" />
+                  <span>{name}</span>
+                </li>
+              ))}
+            </ul>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -493,13 +541,7 @@ export default function LandingPage({ theme }) {
           </div>
         </section>
 
-        <div className="fs-capabilities">
-          <div className="fs-container">
-            <span>TRANSACTION ANALYSIS</span>
-            <span>RISK CLASSIFICATION</span>
-            <span>CONFIGURABLE ALERTS</span>
-          </div>
-        </div>
+        <TechStack />
 
         <section id="features" className="fs-section fs-container">
           <Reveal>

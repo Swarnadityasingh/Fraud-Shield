@@ -262,19 +262,6 @@
 .fs-signal strong { display: block; font-size: 12px; }
 .fs-signal small { color: var(--fs-muted); font-size: 10px; }
 
-.fs-capabilities { border-block: 1px solid var(--fs-border); }
-
-.fs-capabilities > div {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 20px;
-  padding-block: 26px;
-  color: var(--fs-muted);
-  font-size: 10px;
-  letter-spacing: 2px;
-}
-
 .fs-landing h2 {
   margin-top: 18px;
   font-size: clamp(30px, 3.7vw, 48px);
@@ -429,7 +416,6 @@
   .fs-hero { grid-template-columns: 1fr; padding-block: 58px 35px; gap: 28px; }
   .fs-hero h1 { font-size: clamp(40px, 9vw, 60px); letter-spacing: -2px; }
   .fs-money-scene { max-width: 400px; }
-  .fs-capabilities > div { justify-content: center; text-align: center; }
   .fs-section { padding-block: 65px; }
 
   .fs-feature-grid,
@@ -955,3 +941,141 @@
   border-color: var(--fs-mint);
 }
 
+.fs-tech-section {
+  padding-block: 30px;
+  background: var(--fs-bg);
+}
+
+.fs-tech-window {
+  overflow: hidden;
+  padding-block: 10px;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 5%,
+    black 95%,
+    transparent
+  );
+}
+
+.fs-tech-window:focus-visible {
+  outline: 2px solid var(--fs-mint);
+  outline-offset: -2px;
+}
+
+.fs-tech-track {
+  display: flex;
+  width: max-content;
+  animation: fs-tech-scroll 35s linear infinite;
+}
+
+.fs-tech-window:hover .fs-tech-track,
+.fs-tech-window:focus-within .fs-tech-track {
+  animation-play-state: paused;
+}
+
+.fs-tech-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-shrink: 0;
+  gap: 72px;
+  min-width: 100vw;
+  margin: 0;
+  padding: 0 72px 0 0;
+  list-style: none;
+}
+
+.fs-tech-item {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 12px;
+  color: #8792AA;
+  white-space: nowrap;
+  transition: color 200ms ease;
+}
+
+.fs-tech-item svg {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.fs-tech-item span {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 29px;
+  font-weight: 650;
+  letter-spacing: -1px;
+  line-height: 1.2;
+}
+
+.fs-tech-item:hover {
+  color: var(--fs-text);
+}
+
+.fs-landing[data-theme="light"] .fs-tech-item {
+  color: #64748B;
+}
+
+.fs-landing[data-theme="light"] .fs-tech-item:hover {
+  color: var(--fs-text);
+}
+
+@keyframes fs-tech-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 720px) {
+  .fs-tech-section {
+    padding-block: 22px;
+  }
+
+  .fs-tech-group {
+    gap: 40px;
+    padding-right: 40px;
+  }
+
+  .fs-tech-item {
+    gap: 9px;
+  }
+
+  .fs-tech-item svg {
+    width: 27px;
+    height: 27px;
+  }
+
+  .fs-tech-item span {
+    font-size: 23px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-tech-window {
+    mask-image: none;
+  }
+
+  .fs-tech-track {
+    width: 100%;
+    animation: none;
+  }
+
+  .fs-tech-group {
+    min-width: 0;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 28px;
+    padding: 0 20px;
+  }
+
+  .fs-tech-group[aria-hidden="true"] {
+    display: none;
+  }
+}

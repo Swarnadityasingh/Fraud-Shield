@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import {
   ShieldCheck,
   Eye,
@@ -12,8 +13,10 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import './Login.css'
+import LoginMascot from './LoginMascot'
 
 export default function Login({ onLogin, theme, onThemeChange }) {
+  const reduceMotion = false
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -81,10 +84,9 @@ export default function Login({ onLogin, theme, onThemeChange }) {
     <main className="login-page" data-theme={theme}>
       <section className="login-visual">
         <div className="login-brand">
-          <div className="brand-icon">
-            <ShieldCheck size={25} />
-          </div>
+          <ShieldCheck size={24} aria-hidden="true" />
           <span>FraudShield</span>
+          <sup className="login-brand-mark">®</sup>
         </div>
 
         <div className="visual-content">
@@ -100,21 +102,98 @@ export default function Login({ onLogin, theme, onThemeChange }) {
             risk intelligence.
           </p>
 
-          <div className="security-visual">
-            <div className="security-glow" />
-            <div className="security-shield">
-              <ShieldCheck size={76} strokeWidth={1.3} />
-            </div>
-            <div className="floating-coin coin-one">₹</div>
-            <div className="floating-coin coin-two">₹</div>
-            <div className="floating-coin coin-three">₹</div>
-          </div>
-        </div>
+          <div className="login-depth-scene" aria-hidden="true">
+            <div className="login-depth-glow" />
+            <div className="login-depth-orbit" />
+            <div className="login-depth-orbit login-depth-orbit-inner" />
 
-        <div className="visual-footer">
-          <span>FRAUD DETECTION</span>
-          <span>RISK INTELLIGENCE</span>
-          <span>SECURE MONITORING</span>
+            {[
+              { value: '500', position: 'one', angle: -14 },
+              { value: '200', position: 'two', angle: 18 },
+              { value: '100', position: 'three', angle: -9 },
+            ].map((note, index) => (
+              <motion.div
+                key={note.value}
+                className={`login-depth-note login-depth-note-${note.position}`}
+                initial={{ x: 0, y: 0, rotate: note.angle, rotateX: 0, rotateY: 0 }}
+                animate={
+                  reduceMotion
+                    ? {
+                        x: 0,
+                        y: 0,
+                        rotate: note.angle,
+                        rotateX: 0,
+                        rotateY: 0,
+                      }
+                    : {
+                        x: [0, index === 1 ? -6 : 6, 0, index === 1 ? 6 : -6, 0],
+                        y: [0, -14, -5, -10, 0],
+                        rotate: [
+                          note.angle,
+                          note.angle + 4,
+                          note.angle,
+                          note.angle - 4,
+                          note.angle,
+                        ],
+                        rotateX: [0, 7, 0, -7, 0],
+                        rotateY: [0, -9, 0, 9, 0],
+                      }
+                }
+                transition={
+                  reduceMotion
+                    ? { duration: 0 }
+                    : {
+                        duration: 6 + index,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                        times: [0, 0.25, 0.5, 0.75, 1],
+                        delay: index * 0.4,
+                      }
+                }
+              >
+                <span>FRAUDSHIELD · DEMO</span>
+                <div>
+                  <b>₹</b>
+                  <strong>{note.value}</strong>
+                </div>
+                <span>ILLUSTRATIVE NOTE</span>
+              </motion.div>
+            ))}
+
+            <motion.div
+              className="login-depth-shield"
+              initial={{ x: 0, y: 0, rotate: 0, rotateX: 0, rotateY: 0 }}
+              animate={
+                reduceMotion
+                  ? {
+                      x: 0,
+                      y: 0,
+                      rotate: 0,
+                      rotateX: 0,
+                      rotateY: 0,
+                    }
+                  : {
+                      x: [0, 4, 0, -4, 0],
+                      y: [0, -12, -5, -10, 0],
+                      rotate: [0, 3, 0, -3, 0],
+                      rotateX: [0, 5, 0, -5, 0],
+                      rotateY: [0, -7, 0, 7, 0],
+                    }
+              }
+              transition={
+                reduceMotion
+                  ? { duration: 0 }
+                  : {
+                      duration: 7,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                      times: [0, 0.25, 0.5, 0.75, 1],
+                    }
+              }
+            >
+              <ShieldCheck size={76} strokeWidth={1.3} />
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -178,8 +257,9 @@ export default function Login({ onLogin, theme, onThemeChange }) {
 
         <div className="login-form-container">
           <div className="mobile-brand">
-            <ShieldCheck size={27} />
+            <ShieldCheck size={24} aria-hidden="true" />
             <span>FraudShield</span>
+            <sup className="login-brand-mark">®</sup>
           </div>
 
           <div className="form-heading">
@@ -205,26 +285,34 @@ export default function Login({ onLogin, theme, onThemeChange }) {
             </div>
 
             <label htmlFor="password">Password</label>
-            <div className="login-input">
-              <LockKeyhole size={18} />
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  if (['error', 'unavailable'].includes(status)) setStatus('idle')
-                }}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+            <div className="login-password-scene">
+              <LoginMascot covering={showPassword} />
+
+              <div className="login-input">
+                <LockKeyhole size={18} />
+
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    if (['error', 'unavailable'].includes(status)) {
+                      setStatus('idle')
+                    }
+                  }}
+                />
+
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <div className="login-options">
