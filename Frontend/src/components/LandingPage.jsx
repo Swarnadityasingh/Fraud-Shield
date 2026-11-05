@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import {
+  motion,
+  AnimatePresence,
+  useReducedMotion,
+} from 'framer-motion'
 import {
   ArrowRight,
   ShieldCheck,
@@ -9,9 +13,7 @@ import {
   BellRing,
   Menu,
   X,
-  Github,
-  Sun,
-  Moon,
+  Github
 } from 'lucide-react'
 import { useWorkspaceTransition } from './WorkspaceTransition'
 import './LandingPage.css'
@@ -21,16 +23,34 @@ const features = [
     icon: ScanLine,
     title: 'See the risk behind the payment.',
     text: 'Analyze transaction amounts and types with a machine-learning model.',
+    details: [
+      'Enter a transaction amount and select its type.',
+      'Get a machine-learning prediction.',
+      'Review the predicted class and fraud probability.',
+    ],
+    label: 'TRANSACTION ANALYSIS',
   },
   {
     icon: SlidersHorizontal,
     title: 'Your thresholds. Your perspective.',
     text: 'Adjust risk thresholds and notification preferences in your workspace.',
+    details: [
+      'Configure risk thresholds in the workspace.',
+      'Adjust notification preferences.',
+      'Explore how threshold settings affect risk interpretation.',
+    ],
+    label: 'RISK CONFIGURATION',
   },
   {
     icon: BellRing,
     title: 'Keep important signals in view.',
     text: 'Review flagged analyses, risk classifications, and session history.',
+    details: [
+      'Review flagged transaction analyses.',
+      'Understand risk classifications.',
+      'Refer back to previous analyses in your session history.',
+    ],
+    label: 'ALERTS & HISTORY',
   },
 ]
 
@@ -70,9 +90,9 @@ function Reveal({ children, className = '', delay = 0 }) {
   )
 }
 
-function MoneyVisual({ paused }) {
+function MoneyVisual() {
   const reducedMotion = useReducedMotion()
-  const animate = !paused && !reducedMotion
+  const animate = !reducedMotion
 
   return (
     <div className="fs-money-scene" aria-hidden="true">
@@ -146,8 +166,18 @@ function MoneyVisual({ paused }) {
   )
 }
 
-function Header({ theme, onThemeChange }) {
+function Header() {
   const [open, setOpen] = useState(false)
+
+  const handleNavigation = (event, targetId) => {
+    event.preventDefault()
+    setOpen(false)
+
+    document.getElementById(targetId)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+  }
 
   return (
     <header className="fs-header">
@@ -180,29 +210,26 @@ function Header({ theme, onThemeChange }) {
           }}
         >
           <div className="fs-nav-pill">
-            <a href="#features" onClick={() => setOpen(false)}>
+            <a
+              href="#features"
+              onClick={(e) => handleNavigation(e, 'features')}
+            >
               Features
             </a>
-            <a href="#how-it-works" onClick={() => setOpen(false)}>
+            <a
+              href="#how-it-works"
+              onClick={(e) => handleNavigation(e, 'how-it-works')}
+            >
               How it works
             </a>
-            <a href="#security" onClick={() => setOpen(false)}>
+            <a
+              href="#security"
+              onClick={(e) => handleNavigation(e, 'security')}
+            >
               Security
             </a>
           </div>
           <div className="fs-header-actions">
-            <button
-              type="button"
-              className="fs-theme-toggle"
-              onClick={() => onThemeChange(theme === 'dark' ? 'light' : 'dark')}
-              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-            >
-              {theme === 'dark'
-                ? <Sun size={20} aria-hidden="true" />
-                : <Moon size={20} aria-hidden="true" />}
-            </button>
-
             <WorkspaceLink className="fs-button-small">
               Open workspace <ArrowRight size={16} />
             </WorkspaceLink>
@@ -228,16 +255,16 @@ function Footer() {
           <a href="#features">Features</a>
           <a href="#how-it-works">How it works</a>
           <a href="/login">Workspace</a>
-           <a
-               className="fs-github-link"
-               href="https://github.com/Swarnadityasingh/Fraud-Shield"
-               target="_blank"
-               rel="noopener noreferrer"
-               aria-label="FraudShield on GitHub (opens in a new tab)"
-           >
-             <Github size={18} aria-hidden="true" />
-             GitHub
-           </a>
+          <a
+            className="fs-github-link"
+            href="https://github.com/Swarnadityasingh"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="FraudShield on GitHub (opens in a new tab)"
+          >
+            <Github size={18} aria-hidden="true" />
+            GitHub
+          </a>
         </nav>
       </div>
 
@@ -299,9 +326,9 @@ function TypewriterText() {
     : word.slice(0, typing.count)
 
   const effectsActive =
-  !reducedMotion &&
-  !typing.deleting &&
-  typing.count === word.length
+    !reducedMotion &&
+    !typing.deleting &&
+    typing.count === word.length
 
   return (
     <span
@@ -315,119 +342,119 @@ function TypewriterText() {
       <span className="fs-typewriter-visible" aria-hidden="true">
         Spot the{' '}
         <motion.span
-            className="fs-typewriter-word"
-            data-word={activeWord}
-            animate={
-              effectsActive && activeWord === 'fraud'
-                ? {
-                    x: [0, -3, 3, -2, 2, 0],
-                    rotate: [0, -2, 2, -1, 0],
-                    textShadow: [
-                      '0 0 0px #F8717100',
-                      '0 0 18px #F8717199',
-                      '0 0 0px #F8717100',
-                    ],
-                  }
-                : {
+          className="fs-typewriter-word"
+          data-word={activeWord}
+          animate={
+            effectsActive && activeWord === 'fraud'
+              ? {
+                  x: [0, -3, 3, -2, 2, 0],
+                  rotate: [0, -2, 2, -1, 0],
+                  textShadow: [
+                    '0 0 0px #F8717100',
+                    '0 0 18px #F8717199',
+                    '0 0 0px #F8717100',
+                  ],
+                }
+              : {
+                  x: 0,
+                  rotate: 0,
+                  textShadow: '0 0 0px #F8717100',
+                }
+          }
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+        >
+          {visibleWord}
+          <span className="fs-typewriter-cursor" />
+          .
+
+          {effectsActive && activeWord === 'fraud' && (
+            <span className="fs-falling-money">
+              {[
+                { left: '10%', drift: -16, angle: -22 },
+                { left: '32%', drift: 8, angle: 18 },
+                { left: '54%', drift: -6, angle: -12 },
+                { left: '76%', drift: 18, angle: 28 },
+              ].map((note, index) => (
+                <motion.span
+                  key={index}
+                  className="fs-falling-note"
+                  style={{ left: note.left }}
+                  initial={{
+                    opacity: 0,
                     x: 0,
+                    y: -12,
                     rotate: 0,
-                    textShadow: '0 0 0px #F8717100',
-                  }
-            }
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-          >
-            {visibleWord}
-            <span className="fs-typewriter-cursor" />
-            .
+                    scale: 0.65,
+                  }}
+                  animate={{
+                    opacity: [0, 1, 1, 0],
+                    x: note.drift,
+                    y: [-12, 0, 18, 38],
+                    rotate: note.angle,
+                    scale: [0.65, 1, 1, 0.85],
+                  }}
+                  transition={{
+                    duration: 1.15,
+                    delay: index * 0.12,
+                    ease: 'easeIn',
+                  }}
+                >
+                  ₹
+                </motion.span>
+              ))}
+            </span>
+          )}
 
-            {effectsActive && activeWord === 'fraud' && (
-              <span className="fs-falling-money">
-                {[
-                  { left: '10%', drift: -16, angle: -22 },
-                  { left: '32%', drift: 8, angle: 18 },
-                  { left: '54%', drift: -6, angle: -12 },
-                  { left: '76%', drift: 18, angle: 28 },
-                ].map((note, index) => (
-                  <motion.span
-                    key={index}
-                    className="fs-falling-note"
-                    style={{ left: note.left }}
-                    initial={{
-                      opacity: 0,
-                      x: 0,
-                      y: -12,
-                      rotate: 0,
-                      scale: 0.65,
-                    }}
-                    animate={{
-                      opacity: [0, 1, 1, 0],
-                      x: note.drift,
-                      y: [-12, 0, 18, 38],
-                      rotate: note.angle,
-                      scale: [0.65, 1, 1, 0.85],
-                    }}
-                    transition={{
-                      duration: 1.15,
-                      delay: index * 0.12,
-                      ease: 'easeIn',
-                    }}
-                  >
-                    ₹
-                  </motion.span>
-                ))}
-              </span>
-            )}
-
-            {effectsActive && activeWord === 'risk' && (
-                <>
-                  {[
-                    { left: '0%', x: 40, y: 0, angle: 20 },
-                    { left: '28%', x: -40, y: 0, angle: -20 },
-                    { left: '56%', x: 40, y: 0, angle: 20 },
-                  ].map((glass, index) => (
-                    <motion.span
-                      key={index}
-                      className="fs-risk-magnifier"
-                      style={{ left: glass.left }}
-                      initial={{
-                        opacity: 0,
-                        x: glass.x,
-                        y: glass.y,
-                        rotate: glass.angle,
-                        scale: 0.7,
-                      }}
-                      animate={{
-                        opacity: [0, 0.65, 0.65, 0],
-                        x: [glass.x, 0, 6, glass.x * 0.4],
-                        y: [glass.y, 0, 3, glass.y * 0.4],
-                        rotate: [glass.angle, -8, 8, 0],
-                        scale: [0.7, 1, 1, 0.85],
-                      }}
-                      transition={{
-                        duration: 1.1,
-                        delay: index * 0.3,
-                        ease: 'easeInOut',
-                        times: [0, 0.3, 0.75, 1],
-                      }}
-                    >
-                      <Search size={28} strokeWidth={2.4} />
-                    </motion.span>
-                  ))}
-                </>
-              )}
-          </motion.span>
+          {effectsActive && activeWord === 'risk' && (
+            <>
+              {[
+                { left: '0%', x: 40, y: 0, angle: 20 },
+                { left: '28%', x: -40, y: 0, angle: -20 },
+                { left: '56%', x: 40, y: 0, angle: 20 },
+              ].map((glass, index) => (
+                <motion.span
+                  key={index}
+                  className="fs-risk-magnifier"
+                  style={{ left: glass.left }}
+                  initial={{
+                    opacity: 0,
+                    x: glass.x,
+                    y: glass.y,
+                    rotate: glass.angle,
+                    scale: 0.7,
+                  }}
+                  animate={{
+                    opacity: [0, 0.65, 0.65, 0],
+                    x: [glass.x, 0, 6, glass.x * 0.4],
+                    y: [glass.y, 0, 3, glass.y * 0.4],
+                    rotate: [glass.angle, -8, 8, 0],
+                    scale: [0.7, 1, 1, 0.85],
+                  }}
+                  transition={{
+                    duration: 1.1,
+                    delay: index * 0.3,
+                    ease: 'easeInOut',
+                    times: [0, 0.3, 0.75, 1],
+                  }}
+                >
+                  <Search size={28} strokeWidth={2.4} />
+                </motion.span>
+              ))}
+            </>
+          )}
+        </motion.span>
       </span>
     </span>
   )
 }
 
-export default function LandingPage({ theme, onThemeChange }) {
-  const [paused, setPaused] = useState(false)
+export default function LandingPage({ theme }) {
+  const [activeFeature, setActiveFeature] = useState(null)
 
   return (
     <div className="fs-landing" data-theme={theme}>
       <a className="fs-skip-link" href="#fs-main">Skip to content</a>
-      <Header theme={theme} onThemeChange={onThemeChange} />
+      <Header />
 
       <main id="fs-main">
         <section className="fs-container fs-hero">
@@ -462,15 +489,7 @@ export default function LandingPage({ theme, onThemeChange }) {
           </Reveal>
 
           <div className="fs-hero-art">
-            <MoneyVisual paused={paused} />
-            <button
-              className="fs-motion-toggle"
-              type="button"
-              aria-pressed={paused}
-              onClick={() => setPaused(!paused)}
-            >
-              {paused ? 'Resume animation' : 'Pause animation'}
-            </button>
+            <MoneyVisual />
           </div>
         </section>
 
@@ -489,16 +508,75 @@ export default function LandingPage({ theme, onThemeChange }) {
           </Reveal>
 
           <div className="fs-feature-grid">
-            {features.map(({ icon: Icon, title, text }, index) => (
-              <Reveal key={title} delay={index * 0.08}>
-                <article className="fs-feature">
-                  <Icon size={26} aria-hidden="true" />
-                  <h3>{title}</h3>
-                  <p>{text}</p>
-                </article>
-              </Reveal>
-            ))}
-          </div>
+  {features.map((feature, index) => {
+    const Icon = feature.icon
+    const isActive = activeFeature === index
+
+    return (
+      <Reveal key={feature.title} delay={index * 0.08}>
+        <article
+          className={`fs-feature ${isActive ? 'fs-feature-active' : ''}`}
+        >
+          <button
+            type="button"
+            className="fs-feature-trigger"
+            aria-expanded={isActive}
+            onClick={() =>
+              setActiveFeature(isActive ? null : index)
+            }
+          >
+            <span className="fs-feature-icon">
+              <Icon size={26} aria-hidden="true" />
+            </span>
+
+            <span className="fs-feature-label">
+              {feature.label}
+            </span>
+
+            <h3>{feature.title}</h3>
+
+            <p>{feature.text}</p>
+
+            <span className="fs-feature-action">
+              {isActive ? 'Show less' : 'Explore feature'}
+              <motion.span
+                animate={{ rotate: isActive ? 180 : 0 }}
+                transition={{ duration: 0.25 }}
+              >
+                ↓
+              </motion.span>
+            </span>
+          </button>
+
+          <AnimatePresence initial={false}>
+            {isActive && (
+              <motion.div
+                className="fs-feature-details"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{
+                  duration: 0.35,
+                  ease: 'easeInOut',
+                }}
+              >
+                <div className="fs-feature-details-inner">
+                  <span>WHAT YOU CAN EXPLORE</span>
+
+                  <ul>
+                    {feature.details.map((detail) => (
+                      <li key={detail}>{detail}</li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </article>
+      </Reveal>
+    )
+  })}
+</div>
         </section>
 
         <section id="how-it-works" className="fs-workflow">
