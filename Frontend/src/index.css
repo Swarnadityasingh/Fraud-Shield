@@ -2,17 +2,31 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-
+/* Set global dark defaults to prevent initial white screen flash */
 :root {
   font-family: Inter, system-ui, sans-serif;
-  color: #0f172a;
-  background: #f8fafc;
+  color: #ffffff;
+  background-color: #0b111e;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  color-scheme: dark;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #0b111e;
+  color: #ffffff;
 }
 
 body {
@@ -27,17 +41,4 @@ button, input, select {
 
 button {
   cursor: pointer;
-}
-
-html,
-body,
-#root {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-}
-
-body {
-  min-width: 320px;
-  min-height: 100vh;
 }

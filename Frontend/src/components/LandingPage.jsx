@@ -22,7 +22,8 @@ import {
   BellRing,
   Menu,
   X,
-  Github
+  Github,
+  ChevronDown
 } from 'lucide-react'
 import { useWorkspaceTransition } from './WorkspaceTransition'
 import './LandingPage.css'
@@ -67,6 +68,33 @@ const steps = [
   ['Enter a transaction', 'Choose a transaction type and enter its amount.'],
   ['Let the model analyze', 'Get a predicted class and fraud probability.'],
   ['Review the signal', 'Explore the result alongside your risk thresholds.'],
+]
+const faqs = [
+  {
+    question: 'What does FraudShield offer?',
+    answer:
+      'FraudShield analyzes transaction amounts and types using a machine-learning model. It presents a predicted classification and fraud probability while helping you review risk thresholds, flagged analyses, and recent activity.',
+  },
+  {
+    question: 'How does FraudShield detect suspicious transactions?',
+    answer:
+      'The application sends transaction details to a trained machine-learning model, which examines patterns in the supplied data and returns a risk prediction with an estimated fraud probability.',
+  },
+  {
+    question: 'Are FraudShield predictions definitive proof of fraud?',
+    answer:
+      'No. Predictions are risk signals intended to support investigation and learning. A flagged transaction should be reviewed with additional information before any decision is made.',
+  },
+  {
+    question: 'Do I need to provide bank or card details?',
+    answer:
+      'No. FraudShield only requires the transaction information shown in the workspace, such as the amount and transaction type. It does not require bank credentials or card numbers.',
+  },
+  {
+    question: 'Who is FraudShield designed for?',
+    answer:
+      'FraudShield is designed for students, developers, analysts, and teams who want to explore how machine learning can support financial risk analysis through a clear and interactive interface.',
+  },
 ]
 
 function WorkspaceLink({ children, className = '' }) {
@@ -216,6 +244,32 @@ function MoneyVisual() {
 
 function Header() {
   const [open, setOpen] = useState(false)
+  const [hidden, setHidden] = useState(false)
+
+  useEffect(() => {
+    let previousY = Math.max(0, window.scrollY)
+
+    function handleScroll() {
+      const currentY = Math.max(0, window.scrollY)
+
+      if (currentY <= 80) {
+        setHidden(false)
+        previousY = currentY
+        return
+      }
+
+      if (Math.abs(currentY - previousY) < 8) return
+
+      setHidden(currentY > previousY)
+      previousY = currentY
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
 
   const handleNavigation = (event, targetId) => {
     event.preventDefault()
@@ -228,11 +282,11 @@ function Header() {
   }
 
   return (
-    <header className="fs-header">
+    <header className={`fs-header${hidden && !open ? ' fs-header-hidden' : ''}`}>
       <div className="fs-container fs-nav">
         <a className="fs-brand" href="/" aria-label="FraudShield home">
           <ShieldCheck aria-hidden="true" />
-          FraudShield<span>®</span>
+          FraudShield<span></span>
         </a>
 
         <button
@@ -271,10 +325,10 @@ function Header() {
               How it works
             </a>
             <a
-              href="#security"
-              onClick={(e) => handleNavigation(e, 'security')}
+              href="#faqs"
+              onClick={(e) => handleNavigation(e, 'faqs')}
             >
-              Security
+              FAQs
             </a>
           </div>
           <div className="fs-header-actions">
@@ -318,7 +372,6 @@ function Footer() {
 
       <div className="fs-container fs-footer-bottom">
         <span>© {new Date().getFullYear()} FraudShield</span>
-        <span>Educational prototype · Synthetic training data</span>
       </div>
     </footer>
   )
@@ -496,11 +549,12 @@ function TypewriterText() {
   )
 }
 
-export default function LandingPage({ theme }) {
+export default function LandingPage() {
   const [activeFeature, setActiveFeature] = useState(null)
+  const [openFaq, setOpenFaq] = useState(0)
 
   return (
-    <div className="fs-landing" data-theme={theme}>
+    <div className="fs-landing" data-theme="dark">
       <a className="fs-skip-link" href="#fs-main">Skip to content</a>
       <Header />
 
@@ -523,17 +577,10 @@ export default function LandingPage({ theme }) {
             </p>
 
             <div className="fs-actions">
-              <WorkspaceLink>
-                Explore the demo <ArrowRight size={18} />
-              </WorkspaceLink>
-              <a className="fs-text-link" href="#how-it-works">
-                See how it works <span>↗</span>
+              <a className="fs-button" href="#how-it-works">
+                See how it works <span aria-hidden="true">↗</span>
               </a>
             </div>
-
-            <p className="fs-caption">
-              Demo access available. No real payment details needed.
-            </p>
           </Reveal>
 
           <div className="fs-hero-art">
@@ -640,22 +687,55 @@ export default function LandingPage({ theme }) {
           </div>
         </section>
 
-        <section id="security" className="fs-section fs-container">
-          <Reveal className="fs-security">
-            <div className="fs-security-icon">
-              <ShieldCheck size={66} strokeWidth={1.3} aria-hidden="true" />
-            </div>
-            <div>
-              <p className="fs-eyebrow">EXPLORE WITH CONFIDENCE</p>
-              <h2>Understand the signal.<br />Know its limits.</h2>
-              <p>
-                Explore the demo with sample amounts and transaction types.
-                No bank connection or card details are required.
-                The model is trained on synthetic data: its predictions
-                support exploration and are not proof of fraud.
-              </p>
-            </div>
+        <section id="faqs" className="fs-section fs-container fs-faq-section">
+          <Reveal>
+            <p className="fs-eyebrow">FREQUENTLY ASKED QUESTIONS</p>
+            <h2>Everything you need to know.</h2>
           </Reveal>
+
+          <div className="fs-faq-list">
+            {faqs.map((faq, index) => {
+              const isOpen = openFaq === index
+
+              return (
+                <Reveal key={faq.question} delay={index * 0.05}>
+                  <div className={`fs-faq-item ${isOpen ? 'fs-faq-open' : ''}`}>
+                    <button
+                      type="button"
+                      className="fs-faq-question"
+                      aria-expanded={isOpen}
+                      aria-controls={`faq-answer-${index}`}
+                      onClick={() => setOpenFaq(isOpen ? null : index)}
+                    >
+                      <span>{faq.question}</span>
+                      <motion.span
+                        className="fs-faq-chevron"
+                        animate={{ rotate: isOpen ? 180 : 0 }}
+                        transition={{ duration: 0.25 }}
+                      >
+                        <ChevronDown size={22} aria-hidden="true" />
+                      </motion.span>
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.div
+                          id={`faq-answer-${index}`}
+                          className="fs-faq-answer"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        >
+                          <p>{faq.answer}</p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </Reveal>
+              )
+            })}
+          </div>
         </section>
 
         <section className="fs-container fs-cta">
@@ -663,7 +743,7 @@ export default function LandingPage({ theme }) {
             <p className="fs-eyebrow">SEE IT IN ACTION</p>
             <h2>Your next insight<br />starts with a transaction.</h2>
             <a className="fs-button" href="/login">
-              Open demo workspace <ArrowRight size={18} />
+              Open workspace <ArrowRight size={18} />
             </a>
           </Reveal>
         </section>

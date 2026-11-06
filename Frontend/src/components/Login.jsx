@@ -6,46 +6,61 @@ import {
   EyeOff,
   LockKeyhole,
   Mail,
+  User,
   ArrowRight,
-  Sun,
-  Moon,
+  ArrowLeft,
   Banknote,
   AlertTriangle,
+  Landmark,
+  Coins,
+  ReceiptText,
 } from 'lucide-react'
 import './Login.css'
-import LoginMascot from './LoginMascot'
+import ThemeToggle from './ThemeToggle'
 
 export default function Login({ onLogin, theme, onThemeChange }) {
   const reduceMotion = false
+
+  // Flip State: false = Login Side, true = Register Side
+  const [isFlipped, setIsFlipped] = useState(false)
+
+  // Login Form State
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
+
+  // Register Form State
+  const [regName, setRegName] = useState('')
+  const [regEmail, setRegEmail] = useState('')
+  const [regPassword, setRegPassword] = useState('')
+  const [showRegPassword, setShowRegPassword] = useState(false)
+
   const [status, setStatus] = useState('idle')
 
-  function toggleTheme() {
-    onThemeChange(theme === 'dark' ? 'light' : 'dark')
-  }
-
-  function handleSubmit(e) {
+  function handleLoginSubmit(e) {
     e.preventDefault()
-
     if (!email.trim() || !password.trim()) {
       setStatus('error')
       return
     }
+    setStatus('unavailable')
+  }
 
+  function handleRegisterSubmit(e) {
+    e.preventDefault()
+    if (!regName.trim() || !regEmail.trim() || !regPassword.trim()) {
+      setStatus('error')
+      return
+    }
     setStatus('unavailable')
   }
 
   function handleDemoAccess() {
     if (status === 'processing') return
-
     setStatus('processing')
-
     setTimeout(() => {
       setStatus('success')
-
       setTimeout(() => {
         onLogin?.()
       }, 3000)
@@ -60,21 +75,14 @@ export default function Login({ onLogin, theme, onThemeChange }) {
 
   useEffect(() => {
     function handleKeyboardShortcut(e) {
-      if (
-        e.ctrlKey &&
-        e.shiftKey &&
-        e.key.toLowerCase() === 'd'
-      ) {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
         e.preventDefault()
-
         if (!['processing', 'success'].includes(status)) {
           handleDemoAccess()
         }
       }
     }
-
     window.addEventListener('keydown', handleKeyboardShortcut)
-
     return () => {
       window.removeEventListener('keydown', handleKeyboardShortcut)
     }
@@ -83,17 +91,22 @@ export default function Login({ onLogin, theme, onThemeChange }) {
   return (
     <main className="login-page" data-theme={theme}>
       <section className="login-visual">
-        <div className="login-brand">
-          <ShieldCheck size={24} aria-hidden="true" />
-          <span>FraudShield</span>
-          <sup className="login-brand-mark">®</sup>
-        </div>
+        <button
+          type="button"
+          className="continue-exploring-btn"
+          onClick={() => {
+            window.location.href = '/'
+          }}
+        >
+          <ArrowLeft size={18} />
+          <span>Continue Exploring</span>
+        </button>
 
         <div className="visual-content">
           <p className="visual-eyebrow">FINANCIAL INTELLIGENCE PLATFORM</p>
 
           <h1>
-            Trust every transaction.
+            Trust every transaction
             <span> Detect every risk.</span>
           </h1>
 
@@ -118,13 +131,7 @@ export default function Login({ onLogin, theme, onThemeChange }) {
                 initial={{ x: 0, y: 0, rotate: note.angle, rotateX: 0, rotateY: 0 }}
                 animate={
                   reduceMotion
-                    ? {
-                        x: 0,
-                        y: 0,
-                        rotate: note.angle,
-                        rotateX: 0,
-                        rotateY: 0,
-                      }
+                    ? { x: 0, y: 0, rotate: note.angle, rotateX: 0, rotateY: 0 }
                     : {
                         x: [0, index === 1 ? -6 : 6, 0, index === 1 ? 6 : -6, 0],
                         y: [0, -14, -5, -10, 0],
@@ -165,13 +172,7 @@ export default function Login({ onLogin, theme, onThemeChange }) {
               initial={{ x: 0, y: 0, rotate: 0, rotateX: 0, rotateY: 0 }}
               animate={
                 reduceMotion
-                  ? {
-                      x: 0,
-                      y: 0,
-                      rotate: 0,
-                      rotateX: 0,
-                      rotateY: 0,
-                    }
+                  ? { x: 0, y: 0, rotate: 0, rotateX: 0, rotateY: 0 }
                   : {
                       x: [0, 4, 0, -4, 0],
                       y: [0, -12, -5, -10, 0],
@@ -198,24 +199,56 @@ export default function Login({ onLogin, theme, onThemeChange }) {
       </section>
 
       <section className="login-form-section">
+        {/* Multi-element Blurred Background */}
+        <div className="money-bg-particles" aria-hidden="true">
+          <div className="particle-item note-500 float-1 blur-sm"><span>₹500</span></div>
+          <div className="particle-item note-200 float-2 blur-md"><span>₹200</span></div>
+          <div className="particle-item note-100 float-3 blur-sm"><span>₹100</span></div>
+          <div className="particle-item note-500 float-4 blur-md"><span>₹500</span></div>
+          <div className="particle-item note-200 float-5 blur-sm"><span>₹200</span></div>
+
+          <div className="particle-item bank-cheque float-6 blur-sm">
+            <div className="cheque-header">BANK CHEQUE · ₹50,000</div>
+            <div className="cheque-line"></div>
+          </div>
+          <div className="particle-item bank-cheque float-7 blur-md">
+            <div className="cheque-header">PAYEE: FRAUDSHIELD</div>
+            <div className="cheque-line"></div>
+          </div>
+          <div className="particle-item bank-cheque float-8 blur-sm">
+            <div className="cheque-header">ACCOUNT VERIFIED</div>
+            <div className="cheque-line"></div>
+          </div>
+
+          <div className="particle-item coin-badge float-9 blur-sm"><Coins size={24} /></div>
+          <div className="particle-item coin-badge float-10 blur-md"><b>₹</b></div>
+          <div className="particle-item coin-badge float-11 blur-sm"><b>₹</b></div>
+          <div className="particle-item coin-badge float-12 blur-md"><Coins size={22} /></div>
+
+          <div className="particle-item atm-badge float-13 blur-sm">
+            <Landmark size={26} />
+            <span>ATM</span>
+          </div>
+          <div className="particle-item receipt-badge float-14 blur-md">
+            <ReceiptText size={24} />
+          </div>
+          <div className="particle-item atm-badge float-15 blur-sm">
+            <Landmark size={24} />
+            <span>SECURE</span>
+          </div>
+        </div>
+
         {status === 'success' && (
           <div className="atm-cash-slot" role="status" aria-live="polite">
             <div className="atm-machine-label">
               <ShieldCheck size={15} />
               FRAUDSHIELD SECURE ATM
             </div>
-
             <div className="slot-opening">
               <div className="cash-stack">
                 {[0, 1, 2].map((note) => (
                   <div className={`cash-note cash-note-${note + 1}`} key={note}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        justify: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span className="note-symbol">₹</span>
                       <Banknote size={16} strokeWidth={2.5} />
                     </div>
@@ -225,167 +258,254 @@ export default function Login({ onLogin, theme, onThemeChange }) {
                 ))}
               </div>
             </div>
-
             <div className="atm-receipt-success">
               <div className="success-receipt-header">
                 <ShieldCheck size={18} />
                 <strong>TRANSACTION APPROVED</strong>
               </div>
-
               <div className="success-receipt-body">
                 <p>FRAUDSHIELD DEMO ACCESS</p>
                 <strong>SESSION VERIFIED</strong>
                 <span>ACCESS GRANTED</span>
               </div>
-
-              <div className="receipt-footer">
-                SECURE FINANCIAL MONITORING
-              </div>
+              <div className="receipt-footer">SECURE FINANCIAL MONITORING</div>
             </div>
           </div>
         )}
 
-        <button
-          type="button"
-          className="theme-toggle"
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-        >
-          {theme === 'dark' ? <Moon size={19} /> : <Sun size={19} />}
-          <span>{theme === 'dark' ? 'Dark mode' : 'Light mode'}</span>
-        </button>
+        <ThemeToggle theme={theme} onThemeChange={onThemeChange} />
 
-        <div className="login-form-container">
-          <div className="mobile-brand">
-            <ShieldCheck size={24} aria-hidden="true" />
-            <span>FraudShield</span>
-            <sup className="login-brand-mark">®</sup>
-          </div>
+        {/* 3D Flip Wrapper Container */}
+        <div className="card-flip-perspective">
+          <div className={`card-flip-inner ${isFlipped ? 'flipped' : ''}`}>
 
-          <div className="form-heading">
-            <p>SECURE ACCESS</p>
-            <h2>Welcome back</h2>
-            <span>Sign in to access your monitoring workspace.</span>
-          </div>
+            {/* FRONT FACE: LOGIN */}
+            <div className="login-form-container card-face card-front">
+              <div className="mobile-brand">
+                <ShieldCheck size={35} aria-hidden="true" />
+                <span>FraudShield</span>
+              </div>
 
-          <form onSubmit={handleSubmit}>
-            <label htmlFor="email">Email address</label>
-            <div className="login-input">
-              <Mail size={18} />
-              <input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value)
-                  if (['error', 'unavailable'].includes(status)) setStatus('idle')
-                }}
-              />
-            </div>
+              <div className="form-heading">
+                <p>SECURE ACCESS</p>
+                <h2>Welcome back</h2>
+                <span>Sign in to access your monitoring workspace.</span>
+              </div>
 
-            <label htmlFor="password">Password</label>
-            <div className="login-password-scene">
-              <LoginMascot covering={showPassword} />
+              <form onSubmit={handleLoginSubmit}>
+                <label htmlFor="email">Email address</label>
+                <div className="login-input">
+                  <Mail size={18} />
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value)
+                      if (['error', 'unavailable'].includes(status)) setStatus('idle')
+                    }}
+                  />
+                </div>
 
-              <div className="login-input">
-                <LockKeyhole size={18} />
+                <label htmlFor="password">Password</label>
+                <div className="login-password-scene">
+                  <div className="login-input">
+                    <LockKeyhole size={18} />
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value)
+                        if (['error', 'unavailable'].includes(status)) setStatus('idle')
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
 
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value)
-                    if (['error', 'unavailable'].includes(status)) {
-                      setStatus('idle')
-                    }
-                  }}
-                />
+                <div className="login-options">
+                  <label className="remember-option">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                    />
+                    Remember me
+                  </label>
+                  <button
+                    type="button"
+                    className="demo-fill-button"
+                    onClick={fillDemoCredentials}
+                  >
+                    Fill Demo Details
+                  </button>
+                </div>
+
+                {['error', 'unavailable'].includes(status) && (
+                  <div className="atm-receipt-error" aria-live="polite">
+                    <div className="receipt-header">
+                      <AlertTriangle size={16} />
+                      <span>
+                        {status === 'error' ? 'TRANSACTION FAILED' : 'AUTHENTICATION UNAVAILABLE'}
+                      </span>
+                    </div>
+                    <div className="receipt-body">
+                      {status === 'error'
+                        ? 'Please fill all mandatory fields.'
+                        : 'Login service is not connected yet. Please use Demo Workspace.'}
+                    </div>
+                  </div>
+                )}
 
                 <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  type="submit"
+                  className="login-submit"
+                  disabled={status === 'processing' || status === 'success'}
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {status === 'processing'
+                    ? 'Processing Transaction...'
+                    : status === 'success'
+                    ? 'Session Verified!'
+                    : 'Sign in'}
+                  <ArrowRight size={18} />
+                </button>
+              </form>
+
+              <div className="flip-toggle-footer">
+                <span>Don't have an account?</span>
+                <button
+                  type="button"
+                  className="flip-switch-btn"
+                  onClick={() => {
+                    setStatus('idle')
+                    setIsFlipped(true)
+                  }}
+                >
+                  Create account
                 </button>
               </div>
             </div>
 
-            <div className="login-options">
-              <label className="remember-option">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                Remember me
-              </label>
+            {/* BACK FACE: CREATE ACCOUNT */}
+            <div className="login-form-container card-face card-back">
+              <div className="mobile-brand">
+                <ShieldCheck size={35} aria-hidden="true" />
+                <span>FraudShield</span>
+              </div>
 
-              <button
-                type="button"
-                className="demo-fill-button"
-                onClick={fillDemoCredentials}
-              >
-                Fill Demo Details
-              </button>
+              <div className="form-heading">
+                <p>JOIN PLATFORM</p>
+                <h2>Create account</h2>
+                <span>Get started with intelligent financial risk monitoring.</span>
+              </div>
 
-              <span className="forgot-password">Forgot password?</span>
+              <form onSubmit={handleRegisterSubmit}>
+                <label htmlFor="regName">Full Name</label>
+                <div className="login-input">
+                  <User size={18} />
+                  <input
+                    id="regName"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={regName}
+                    onChange={(e) => {
+                      setRegName(e.target.value)
+                      if (['error', 'unavailable'].includes(status)) setStatus('idle')
+                    }}
+                  />
+                </div>
+
+                <label htmlFor="regEmail">Work Email address</label>
+                <div className="login-input">
+                  <Mail size={18} />
+                  <input
+                    id="regEmail"
+                    type="email"
+                    placeholder="Enter work email"
+                    value={regEmail}
+                    onChange={(e) => {
+                      setRegEmail(e.target.value)
+                      if (['error', 'unavailable'].includes(status)) setStatus('idle')
+                    }}
+                  />
+                </div>
+
+                <label htmlFor="regPassword">Password</label>
+                <div className="login-input">
+                  <LockKeyhole size={18} />
+                  <input
+                    id="regPassword"
+                    type={showRegPassword ? 'text' : 'password'}
+                    placeholder="Create a strong password"
+                    value={regPassword}
+                    onChange={(e) => {
+                      setRegPassword(e.target.value)
+                      if (['error', 'unavailable'].includes(status)) setStatus('idle')
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowRegPassword(!showRegPassword)}
+                    aria-label={showRegPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                {['error', 'unavailable'].includes(status) && (
+                  <div className="atm-receipt-error" style={{ marginTop: '16px' }}>
+                    <div className="receipt-header">
+                      <AlertTriangle size={16} />
+                      <span>
+                        {status === 'error' ? 'REGISTRATION FAILED' : 'AUTHENTICATION UNAVAILABLE'}
+                      </span>
+                    </div>
+                    <div className="receipt-body">
+                      {status === 'error'
+                        ? 'Please fill all registration fields.'
+                        : 'Registration service is not connected yet. Please use Demo Workspace.'}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="login-submit"
+                  style={{ marginTop: '22px' }}
+                  disabled={status === 'processing' || status === 'success'}
+                >
+                  Create Account
+                  <ArrowRight size={18} />
+                </button>
+              </form>
+
+              <div className="flip-toggle-footer">
+                <span>Already have an account?</span>
+                <button
+                  type="button"
+                  className="flip-switch-btn"
+                  onClick={() => {
+                    setStatus('idle')
+                    setIsFlipped(false)
+                  }}
+                >
+                  Sign in
+                </button>
+              </div>
             </div>
 
-            {['error', 'unavailable'].includes(status) && (
-              <div className="atm-receipt-error" aria-live="polite">
-                <div className="receipt-header">
-                  <AlertTriangle size={16} />
-                  <span>
-                    {status === 'error'
-                      ? 'TRANSACTION FAILED'
-                      : 'AUTHENTICATION UNAVAILABLE'}
-                  </span>
-                </div>
-
-                <div className="receipt-body">
-                  {status === 'error'
-                    ? 'Please enter your email and password.'
-                    : 'Login service is not connected yet. Please use Demo Workspace.'}
-                </div>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="login-submit"
-              disabled={status === 'processing' || status === 'success'}
-            >
-              {status === 'processing'
-                ? 'Processing Transaction...'
-                : status === 'success'
-                ? 'Session Verified!'
-                : 'Sign in'}
-              <ArrowRight size={18} />
-            </button>
-          </form>
-
-          <div className="login-divider">
-            <span>OR</span>
           </div>
-
-          <button
-            type="button"
-            className="demo-access"
-            onClick={handleDemoAccess}
-            disabled={status === 'processing' || status === 'success'}
-          >
-            Enter Demo Workspace
-            <ArrowRight size={17} />
-          </button>
-
-          <p className="login-disclaimer">
-            Educational demonstration prototype · Synthetic financial data
-          </p>
         </div>
       </section>
     </main>

@@ -320,23 +320,73 @@
   font-weight: 300;
 }
 
-.fs-security {
-  display: grid;
-  grid-template-columns: 0.65fr 1.35fr;
-  gap: 80px;
-  align-items: center;
+.fs-faq-section > div:first-child {
+  text-align: center;
 }
 
-.fs-security-icon {
+.fs-faq-section .fs-eyebrow {
+  justify-content: center;
+}
+
+.fs-faq-section h2 {
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+.fs-faq-list {
+  display: grid;
+  gap: 14px;
+  max-width: 900px;
+  margin: 48px auto 0;
+}
+
+.fs-faq-item {
+  overflow: hidden;
+  border: 1px solid var(--fs-border);
+  border-radius: 16px;
+  background: var(--fs-surface);
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+
+.fs-faq-item:hover,
+.fs-faq-open {
+  border-color: var(--fs-mint);
+}
+
+.fs-faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 26px;
+  border: 0;
+  background: transparent;
+  color: var(--fs-text);
+  text-align: left;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fs-faq-chevron {
   display: grid;
   place-items: center;
-  min-height: 240px;
-  border-radius: 50%;
+  flex-shrink: 0;
   color: var(--fs-mint);
-  background: radial-gradient(circle, #B7C5D81A, #8192AA08 45%, transparent 67%);
 }
 
-.fs-security p { max-width: 590px; }
+.fs-faq-answer {
+  overflow: hidden;
+}
+
+.fs-faq-answer p {
+  max-width: 760px;
+  padding: 0 26px 26px;
+  color: var(--fs-muted);
+  font-size: 15px;
+  line-height: 1.75;
+}
 
 .fs-cta {
   padding: 64px 24px;
@@ -419,11 +469,10 @@
   .fs-section { padding-block: 65px; }
 
   .fs-feature-grid,
-  .fs-steps,
-  .fs-security { grid-template-columns: 1fr; gap: 24px; }
-
-  .fs-security-icon { min-height: 130px; }
-
+  .fs-steps {
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
   .fs-footer-top,
   .fs-footer-bottom { flex-direction: column; }
 
@@ -1077,5 +1126,26 @@
 
   .fs-tech-group[aria-hidden="true"] {
     display: none;
+  }
+}
+
+.fs-header {
+  transform: translateY(0);
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fs-header.fs-header-hidden {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+
+.fs-header:focus-within {
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-header {
+    transition: none;
   }
 }

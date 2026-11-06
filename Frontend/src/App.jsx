@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Login from './components/Login'
 import Dashboard from './Dashboard'
 import LandingPage from './components/LandingPage'
+import LandingPageIntro from './components/LandingPageIntro'
 
 import {
   predictTransaction,
@@ -33,6 +34,9 @@ function loadSettings() {
 }
 
 export default function App() {
+  // Always set showIntro to true initially so it plays on every page refresh or load
+  const [showIntro, setShowIntro] = useState(true)
+
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => sessionStorage.getItem('fraudshield-demo-session') === 'active'
   )
@@ -107,6 +111,10 @@ export default function App() {
     navigate('/login', true)
   }
 
+  function handleIntroComplete() {
+    setShowIntro(false)
+  }
+
   useEffect(() => {
     if (currentPath === '/dashboard' && !isAuthenticated) {
       navigate('/login', true)
@@ -114,12 +122,14 @@ export default function App() {
   }, [currentPath, isAuthenticated])
 
   useEffect(() => {
+    const activeTheme = currentPath === '/' ? 'dark' : settings.theme
+
     document.documentElement.classList.toggle(
       'dark',
-      settings.theme === 'dark'
+      activeTheme === 'dark'
     )
-    document.documentElement.style.colorScheme = settings.theme
-  }, [settings.theme])
+    document.documentElement.style.colorScheme = activeTheme
+  }, [currentPath, settings.theme])
 
   useEffect(() => {
     const medium = Number(settings.mediumThreshold)
@@ -291,17 +301,11 @@ export default function App() {
   }, [])
 
   if (currentPath === '/') {
-    return (
-      <LandingPage
-        theme={settings.theme}
-        onThemeChange={(theme) =>
-          setSettings((previous) => ({
-            ...previous,
-            theme,
-          }))
-        }
-      />
-    )
+    if (showIntro) {
+      return <LandingPageIntro onComplete={handleIntroComplete} />
+    }
+
+    return <LandingPage />
   }
 
   if (!isAuthenticated || currentPath !== '/dashboard') {
