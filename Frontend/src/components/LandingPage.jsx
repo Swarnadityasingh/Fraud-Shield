@@ -12,6 +12,8 @@ import {
   motion,
   AnimatePresence,
   useReducedMotion,
+  useScroll,
+  useTransform,
 } from 'framer-motion'
 import {
   ArrowRight,
@@ -191,8 +193,7 @@ function TechStack() {
     <section className="fs-tech-section" aria-label="Technologies used">
       <div
         className="fs-tech-window"
-        tabIndex={0}
-        aria-label="Technology logos. Focus or hover to pause scrolling."
+        aria-label="Technologies used to build FraudShield"
       >
         <div className="fs-tech-track">
           {[0, 1].map((copy) => (
@@ -231,11 +232,131 @@ function Reveal({ children, className = '', delay = 0 }) {
   )
 }
 
+const investigationSlides = [
+  {
+    image: '/images/fraud-investigation-hero.png',
+    eyebrow: 'FRAUD INVESTIGATION',
+    title: 'Trace the hidden pattern',
+    text: 'Every suspicious signal leaves a trail.',
+  },
+  {
+    image: '/images/fraudshield-transaction-network.png',
+    eyebrow: 'TRANSACTION NETWORK',
+    title: 'Connect every signal',
+    text: 'Follow relationships across financial activity.',
+  },
+  {
+    image: '/images/fraud-investigation-network.png',
+    eyebrow: 'RISK INTELLIGENCE',
+    title: 'See risk before it spreads',
+    text: 'Turn complex behavior into clearer insight.',
+  },
+]
+
 function FraudInvestigationScene() {
+  const reducedMotion = useReducedMotion()
+  const [activeSlide, setActiveSlide] = useState(0)
+
+  useEffect(() => {
+    if (reducedMotion) return undefined
+
+    const interval = window.setInterval(() => {
+      setActiveSlide((current) =>
+        (current + 1) % investigationSlides.length
+      )
+    }, 4500)
+
+    return () => window.clearInterval(interval)
+  }, [reducedMotion])
+
+  function getPosition(index) {
+    let position =
+      (index - activeSlide + investigationSlides.length) %
+      investigationSlides.length
+
+    if (position > 1) position -= investigationSlides.length
+
+    return position
+  }
+
   return (
-    <div className="fs-investigation-scene" aria-hidden="true">
-      <div className="fs-investigation-artwork" />
-      <div className="fs-investigation-vignette" />
+    <div
+      className="fs-case-slider"
+      role="region"
+      aria-label="FraudShield intelligence carousel"
+    >
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={investigationSlides[activeSlide].image}
+          className="fs-case-background"
+          style={{
+            backgroundImage: `url(${investigationSlides[activeSlide].image})`,
+          }}
+          initial={{ opacity: 0, scale: 1.08 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+        />
+      </AnimatePresence>
+
+      <div className="fs-case-shade" />
+
+      <div className="fs-case-cards">
+        {investigationSlides.map((slide, index) => {
+          const position = getPosition(index)
+          const isActive = position === 0
+
+          return (
+            <motion.button
+              type="button"
+              key={slide.image}
+              className={`fs-case-card ${
+                isActive ? 'fs-case-card-active' : ''
+              }`}
+              onClick={() => setActiveSlide(index)}
+              animate={{
+                x: `${position * 78}%`,
+                scale: isActive ? 1 : 0.78,
+                rotateY: position * -13,
+                opacity: isActive ? 1 : 0.58,
+                zIndex: isActive ? 3 : 1,
+              }}
+              transition={{
+                duration: reducedMotion ? 0 : 0.75,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              aria-label={`Show ${slide.title}`}
+            >
+              <img src={slide.image} alt="" />
+
+              <motion.div
+                className="fs-case-card-content"
+                animate={{
+                  opacity: isActive ? 1 : 0,
+                  y: isActive ? 0 : 14,
+                }}
+                transition={{ duration: 0.4, delay: isActive ? 0.25 : 0 }}
+              >
+                <span>{slide.eyebrow}</span>
+                <strong>{slide.title}</strong>
+                <p>{slide.text}</p>
+              </motion.div>
+            </motion.button>
+          )
+        })}
+      </div>
+
+      <div className="fs-case-dots">
+        {investigationSlides.map((slide, index) => (
+          <button
+            type="button"
+            key={slide.title}
+            className={index === activeSlide ? 'fs-case-dot-active' : ''}
+            aria-label={`Open slide ${index + 1}`}
+            onClick={() => setActiveSlide(index)}
+          />
+        ))}
+      </div>
     </div>
   )
 }
@@ -766,6 +887,11 @@ export default function LandingPage() {
   const featuresScrollY = useRef(0)
   const returningToFeatures = useRef(false)
   const reducedMotion = useReducedMotion()
+  const { scrollY } = useScroll()
+
+  const heroBackgroundY = useTransform(scrollY, [0, 850], reducedMotion ? [0, 0] : [0, 170])
+  const heroCopyY = useTransform(scrollY, [0, 850], reducedMotion ? [0, 0] : [0, -55])
+  const heroArtY = useTransform(scrollY, [0, 850], reducedMotion ? [0, 0] : [0, -105])
 
   useEffect(() => {
     if (selectedFeature) {
@@ -874,37 +1000,60 @@ export default function LandingPage() {
           </motion.section>
         ) : (
           <>
-            <section className="fs-container fs-hero">
-              <Reveal className="fs-hero-copy">
-                <p className="fs-eyebrow">
-                  <span className="fs-status-dot" /> FINANCIAL RISK INTELLIGENCE
-                </p>
+            <div className="fs-hero-stage">
+              <motion.div
+                className="fs-hero-parallax-background"
+                style={reducedMotion ? undefined : { y: heroBackgroundY }}
+                initial={reducedMotion ? false : { opacity: 0, scale: 1.06 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+              />
+              <section className="fs-container fs-hero">
+                <motion.div
+                  className="fs-hero-copy-motion"
+                  style={{ y: heroCopyY }}
+                  initial={reducedMotion ? false : { opacity: 0, x: -45 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 1, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <Reveal className="fs-hero-copy">
+                    <p className="fs-eyebrow">
+                      <span className="fs-status-dot" /> FINANCIAL RISK INTELLIGENCE
+                    </p>
 
-                <h1>
-                  Every transaction<br />
-                  tells a story.<br />
-                  <TypewriterText />
-                </h1>
+                    <h1>
+                      Every transaction<br />
+                      tells a story.<br />
+                      <TypewriterText />
+                    </h1>
 
-                <p className="fs-description">
-                  Turn transaction data into clearer risk signals.
-                  Explore machine-learning analysis in one focused workspace.
-                </p>
+                    <p className="fs-description">
+                      Turn transaction data into clearer risk signals.
+                      Explore machine-learning analysis in one focused workspace.
+                    </p>
 
-                <div className="fs-actions">
-                  <a className="fs-button" href="#how-it-works" onClick={(e) => {
-                    e.preventDefault()
-                    document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                  }}>
-                    Explore How It Works
-                  </a>
-                </div>
-              </Reveal>
+                    <div className="fs-actions">
+                      <a className="fs-button" href="#how-it-works" onClick={(e) => {
+                        e.preventDefault()
+                        document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                      }}>
+                        Explore How It Works
+                      </a>
+                    </div>
+                  </Reveal>
+                </motion.div>
 
-              <div className="fs-hero-art">
-                <FraudInvestigationScene />
-              </div>
-            </section>
+                <motion.div
+                  className="fs-hero-art"
+                  style={{ y: heroArtY }}
+                  initial={reducedMotion ? false : { opacity: 0, x: 55, scale: 0.94 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  transition={{ duration: 1.1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <FraudInvestigationScene />
+                </motion.div>
+              </section>
+            </div>
 
             <TechStack />
 

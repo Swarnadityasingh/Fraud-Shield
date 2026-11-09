@@ -120,7 +120,51 @@
 
 .fs-landing .fs-button-small { min-height: 43px; padding: 9px 17px; }
 
+.fs-hero-stage {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #070d18;
+}
+
+.fs-hero-parallax-background {
+  position: absolute;
+  inset: -12% 0;
+  z-index: 0;
+  background-image: url('/images/Landingpage-bg.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: blur(1px);
+  opacity: 0.82;
+  will-change: transform;
+}
+
+.fs-hero-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      #070d18b8 0%,
+      #070d186b 38%,
+      #070d1826 68%,
+      #070d1840 100%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 55%,
+      #070d1866 100%
+    );
+}
+
 .fs-hero {
+  position: relative;
+  z-index: 2;
   min-height: 700px;
   display: grid;
   grid-template-columns: 1.1fr 1fr;
@@ -171,7 +215,13 @@
 .fs-text-link { font-size: 14px; }
 .fs-text-link span { margin-left: 9px; color: var(--fs-blue); }
 .fs-hero .fs-caption { margin-top: 20px; font-size: 12px; color: var(--fs-muted); }
-.fs-hero-art { min-width: 0; text-align: center; }
+.fs-hero-copy-motion,
+.fs-hero-art {
+  min-width: 0;
+  will-change: transform;
+}
+
+.fs-hero-art { text-align: center; }
 
 .fs-landing h2 {
   margin-top: 18px;
@@ -825,11 +875,6 @@
   animation: fs-tech-scroll 35s linear infinite;
 }
 
-.fs-tech-window:hover .fs-tech-track,
-.fs-tech-window:focus-within .fs-tech-track {
-  animation-play-state: paused;
-}
-
 .fs-tech-group {
   display: flex;
   align-items: center;
@@ -938,56 +983,270 @@
   width: 100%;
   max-width: 680px;
   aspect-ratio: 16 / 9;
-  min-height: 0;
   margin-inline: auto;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
-
-  border: 1px solid #26364D;
-  border-radius: 16px;
-
-  background: #070D18;
-
-  box-shadow:
-    0 30px 80px #00000055,
-    inset 0 1px 0 #B7C5D815;
+  border: 0;
+  border-radius: 22px;
+  background: transparent;
+  box-shadow: none;
 }
 
 .fs-investigation-artwork {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-
-  background-image: url('/images/fraud-investigation-hero.png');
-  background-color: #070D18;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
+  display: none;
 }
 
 .fs-investigation-vignette {
   position: absolute;
-  inset: 0;
+  inset: 2%;
   z-index: 0;
   pointer-events: none;
-
-  background: linear-gradient(
-    90deg,
-    #070D1840 0%,
-    transparent 35%,
-    #070D1840 100%
-  ),
-  linear-gradient(
-    0deg,
-    #070D1855 0%,
-    transparent 30%
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    transparent 30%,
+    #070d1815 60%,
+    #070d1855 100%
   );
+}
+
+.fs-investigation-scene::before {
+  content: '';
+  position: absolute;
+  inset: 6%;
+  z-index: 1;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 240deg,
+    #22d3ee35 290deg,
+    #67e8f975 320deg,
+    transparent 360deg
+  );
+  mask: radial-gradient(
+    circle,
+    transparent 0%,
+    transparent 63%,
+    #000 64%,
+    #000 66%,
+    transparent 67%
+  );
+  animation: fs-radar-rotate 10s linear infinite;
+  filter: drop-shadow(0 0 12px #22d3ee55);
+}
+
+@keyframes fs-radar-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fs-investigation-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+}
+
+.fs-live-scanner {
+  position: relative;
+  width: 48%;
+  min-width: 230px;
+  overflow: hidden;
+  border: 1px solid #67e8f966;
+  border-radius: 18px;
+  background: #07132185;
+  box-shadow:
+    0 18px 45px #00000045,
+    inset 0 1px 0 #ffffff20,
+    0 0 38px #0891b235;
+  backdrop-filter: blur(18px);
+}
+
+.fs-scanner-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-bottom: 1px solid #67e8f925;
+  color: #a5f3fc;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+}
+
+.fs-scanner-header > span:last-child {
+  margin-left: auto;
+  color: #64748b;
+}
+
+.fs-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22d3ee;
+  box-shadow: 0 0 10px #22d3ee;
+}
+
+.fs-scanner-field {
+  position: relative;
+  min-height: 145px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.fs-scanner-shield {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  border: 1px solid #22d3ee55;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #15263e, #091321);
+  color: #67e8f9;
+}
+
+.fs-radar-ring {
+  position: absolute;
+  width: 105px;
+  height: 105px;
+  border: 1px solid #22d3ee70;
+  border-radius: 50%;
+}
+
+.fs-radar-ring-two {
+  width: 145px;
+  height: 145px;
+}
+
+.fs-scan-beam {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  z-index: 4;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #67e8f9, transparent);
+  box-shadow: 0 0 16px #22d3ee;
+}
+
+.fs-scanner-result {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  border-top: 1px solid #67e8f925;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 7px;
+  letter-spacing: 0.8px;
+}
+
+.fs-scanner-result span {
+  color: #64748b;
+}
+
+.fs-scanner-result strong {
+  color: #34d399;
+}
+
+.fs-floating-signal {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 112px;
+  padding: 10px 12px;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  background: #07111fdd;
+  box-shadow: 0 14px 30px #00000055;
+  backdrop-filter: blur(12px);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.fs-floating-signal span {
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.fs-floating-signal strong {
+  font-size: 7px;
+  letter-spacing: 1px;
+}
+
+.fs-floating-signal-1 {
+  top: 13%;
+  left: 5%;
+  transform: rotate(-5deg);
+}
+
+.fs-floating-signal-2 {
+  top: 18%;
+  right: 4%;
+  transform: rotate(5deg);
+}
+
+.fs-floating-signal-3 {
+  right: 8%;
+  bottom: 10%;
+  transform: rotate(-3deg);
+}
+
+.fs-signal-high {
+  color: #fb7185;
+}
+
+.fs-signal-review {
+  color: #fbbf24;
+}
+
+.fs-signal-safe {
+  color: #34d399;
 }
 
 @media (max-width: 720px) {
   .fs-investigation-scene {
     border-radius: 12px;
   }
+}
+
+.fs-hero-parallax-background {
+  background-position: 62% center;
+  opacity: 0.58;
+  filter: blur(2px);
+  }
+
+  .fs-hero-stage::after {
+    background: linear-gradient(
+      180deg,
+      #070d1899 0%,
+      #070d1855 48%,
+      #070d18aa 100%
+    );
+  }
+
+.fs-live-scanner {
+  width: 58%;
+  min-width: 190px;
+}
+
+.fs-floating-signal {
+  min-width: 88px;
+  padding: 8px 9px;
+}
+
+.fs-floating-signal span {
+  font-size: 10px;
+}
+
+.fs-floating-signal-3 {
+  display: none;
 }
 
 .fs-investigation-intro {
@@ -2147,4 +2406,146 @@
 .fs-hero {
   min-height: auto;
   padding-block: 40px 65px;
+}
+
+.fs-case-slider {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  aspect-ratio: 16 / 9;
+  margin-inline: auto;
+  overflow: visible;
+  isolation: isolate;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  perspective: 1200px;
+  box-shadow: none;
+}
+
+.fs-case-background,
+.fs-case-shade {
+  display: none;
+}
+
+.fs-case-cards {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transform-style: preserve-3d;
+}
+
+.fs-case-card {
+  position: absolute;
+  width: 42%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #64748b55;
+  border-radius: 0;
+  background: #0b1424;
+  color: #f1f5f9;
+  cursor: pointer;
+  box-shadow: 0 20px 45px #00000080;
+  transform-style: preserve-3d;
+}
+
+.fs-case-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.fs-case-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 25%,
+    #050a1240 52%,
+    #050a12e8 100%
+  );
+}
+
+.fs-case-card-active {
+  border-color: #67e8f980;
+  box-shadow:
+    0 28px 65px #00000099,
+    0 0 35px #22d3ee25;
+}
+
+.fs-case-card-content {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 17px;
+  z-index: 2;
+  text-align: center;
+}
+
+.fs-case-card-content span {
+  display: block;
+  margin-bottom: 5px;
+  color: #67e8f9;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.fs-case-card-content strong {
+  display: block;
+  color: #f8fafc;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(15px, 1.5vw, 22px);
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.fs-case-card-content p {
+  margin-top: 7px;
+  color: #cbd5e1;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.fs-case-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  z-index: 8;
+  display: flex;
+  gap: 7px;
+  transform: translateX(-50%);
+}
+
+.fs-case-dots button {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #64748b;
+  cursor: pointer;
+  transition:
+    width 250ms ease,
+    background 250ms ease;
+}
+
+.fs-case-dots .fs-case-dot-active {
+  width: 22px;
+  background: #22d3ee;
+}
+
+@media (max-width: 720px) {
+  .fs-case-card {
+    width: 46%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
 }

@@ -1,131 +1,153 @@
-import React, { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './LandingPageIntro.css'
 
-const diagnosticSteps = [
-  { progress: 15, tag: 'SYS_INIT', text: 'Booting FraudShield Risk Kernel...' },
-  { progress: 35, tag: 'NET_SCAN', text: 'Scanning financial transaction pipelines...' },
-  { progress: 60, tag: 'ML_ENGINE', text: 'Loading Scikit-Learn threat detection model...' },
-  { progress: 85, tag: 'SEC_AUTH', text: 'Establishing zero-trust encrypted workspace...' },
-  { progress: 100, tag: 'COMPLETE', text: 'System diagnostics clean. Access Granted.' }
+const words = ['Every', 'transaction', 'tells', 'a', 'story.']
+
+const sparkles = [
+  { x: '12%', y: '23%', size: 5, delay: '0s' },
+  { x: '22%', y: '67%', size: 3, delay: '0.4s' },
+  { x: '31%', y: '34%', size: 4, delay: '0.8s' },
+  { x: '42%', y: '75%', size: 6, delay: '0.2s' },
+  { x: '51%', y: '19%', size: 3, delay: '1s' },
+  { x: '61%', y: '62%', size: 5, delay: '0.6s' },
+  { x: '72%', y: '29%', size: 4, delay: '1.2s' },
+  { x: '81%', y: '70%', size: 3, delay: '0.3s' },
+  { x: '89%', y: '39%', size: 6, delay: '0.9s' },
+  { x: '17%', y: '48%', size: 3, delay: '1.4s' },
+  { x: '68%', y: '82%', size: 4, delay: '0.5s' },
+  { x: '38%', y: '13%', size: 3, delay: '1.1s' },
 ]
 
-const LandingPageIntro = ({ onComplete }) => {
-  const [progress, setProgress] = useState(0)
-  const [currentStepIndex, setCurrentStepIndex] = useState(0)
-  const [isFadingOut, setIsFadingOut] = useState(false)
+const moneyNotes = [
+  { x: '8%', y: '72%', rotate: '-18deg', delay: '0s' },
+  { x: '17%', y: '24%', rotate: '12deg', delay: '0.35s' },
+  { x: '28%', y: '81%', rotate: '-8deg', delay: '0.7s' },
+  { x: '39%', y: '18%', rotate: '20deg', delay: '0.2s' },
+  { x: '52%', y: '76%', rotate: '-15deg', delay: '0.55s' },
+  { x: '64%', y: '22%', rotate: '9deg', delay: '0.9s' },
+  { x: '74%', y: '79%', rotate: '16deg', delay: '0.4s' },
+  { x: '86%', y: '31%', rotate: '-12deg', delay: '0.75s' },
+  { x: '93%', y: '70%', rotate: '8deg', delay: '0.1s' },
+]
+
+export default function LandingPageIntro({ onComplete }) {
+  const [isLeaving, setIsLeaving] = useState(false)
+  const isFinishing = useRef(false)
+  const skipTimer = useRef(null)
 
   useEffect(() => {
-    const DURATION = 2800
-    const intervalTime = 25
-    const increment = 100 / (DURATION / intervalTime)
+    const leaveTimer = window.setTimeout(() => {
+      setIsLeaving(true)
+    }, 3200)
 
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        const next = prev + increment
-        if (next >= 100) {
-          clearInterval(timer)
-          return 100
-        }
-
-        const stepIdx = diagnosticSteps.findIndex((s, i) => {
-          const nextStep = diagnosticSteps[i + 1]
-          return next >= s.progress && (!nextStep || next < nextStep.progress)
-        })
-        if (stepIdx !== -1) setCurrentStepIndex(stepIdx)
-
-        return next
-      })
-    }, intervalTime)
-
-    const fadeOutTimer = setTimeout(() => {
-      setIsFadingOut(true)
-    }, 2300)
-
-    const completeTimer = setTimeout(() => {
-      if (onComplete) onComplete()
-    }, 2800)
+    const completeTimer = window.setTimeout(() => {
+      if (!isFinishing.current) {
+        isFinishing.current = true
+        onComplete?.()
+      }
+    }, 3800)
 
     return () => {
-      clearInterval(timer)
-      clearTimeout(fadeOutTimer)
-      clearTimeout(completeTimer)
+      window.clearTimeout(leaveTimer)
+      window.clearTimeout(completeTimer)
+      window.clearTimeout(skipTimer.current)
     }
   }, [onComplete])
 
-  const handleSkip = () => {
-    setIsFadingOut(true)
-    setTimeout(() => {
-      if (onComplete) onComplete()
-    }, 300)
+  function finishIntro() {
+    if (isFinishing.current || isLeaving) return
+
+    setIsLeaving(true)
+
+    skipTimer.current = window.setTimeout(() => {
+      if (!isFinishing.current) {
+        isFinishing.current = true
+        onComplete?.()
+      }
+    }, 600)
   }
 
-  const currentStep = diagnosticSteps[currentStepIndex]
+  function handleKeyDown(event) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      finishIntro()
+    }
+  }
 
   return (
     <div
-      className={`fs-intro-overlay ${isFadingOut ? 'fs-intro-fade' : ''}`}
-      onClick={handleSkip}
+      className={`fs-sparkle-intro ${
+        isLeaving ? 'fs-sparkle-intro-leaving' : ''
+      }`}
       role="button"
       tabIndex={0}
-      aria-label="Skip introduction screen"
+      aria-label="Every transaction tells a story. Press to continue."
+      onClick={finishIntro}
+      onKeyDown={handleKeyDown}
     >
-      <div className="fs-intro-grid" />
-      <div className="fs-intro-scanline" />
+      <div className="fs-intro-aurora" />
 
-      <div className="fs-intro-card">
-        <div className="fs-intro-shield-wrapper">
-          <div className="fs-intro-ring fs-ring-outer" />
-          <div className="fs-intro-ring fs-ring-inner" />
-
-          <svg
-            className="fs-intro-shield-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            <polyline points="9 12 11 14 15 10" />
-          </svg>
-        </div>
-
-        <div className="fs-intro-brand">
-          <h1>FraudShield</h1>
-          <span className="fs-intro-version">v1.0.0 · DIAGNOSTIC MODE</span>
-        </div>
-
-        <div className="fs-intro-telemetry">
-          <span className="fs-telemetry-tag">[{currentStep.tag}]</span>
-          <span className="fs-telemetry-text">{currentStep.text}</span>
-        </div>
-
-        <div className="fs-intro-progress-container">
-          <div
-            className="fs-intro-progress-bar"
-            style={{ width: `${progress}%` }}
+      <div className="fs-sparkle-field" aria-hidden="true">
+        {sparkles.map((sparkle, index) => (
+          <span
+            key={index}
+            className="fs-sparkle"
+            style={{
+              '--sparkle-x': sparkle.x,
+              '--sparkle-y': sparkle.y,
+              '--sparkle-size': `${sparkle.size}px`,
+              '--sparkle-delay': sparkle.delay,
+            }}
           />
-        </div>
+        ))}
+      </div>
 
-        <div className="fs-intro-meta">
-          <span className="fs-intro-status">
-            STATUS: <strong className={progress === 100 ? 'text-safe' : 'text-active'}>
-              {progress === 100 ? 'SECURE' : 'ANALYZING'}
-            </strong>
+      <div className="fs-money-field" aria-hidden="true">
+        {moneyNotes.map((note, index) => (
+          <span
+            key={index}
+            className="fs-intro-money-note"
+            style={{
+              '--money-x': note.x,
+              '--money-y': note.y,
+              '--money-rotate': note.rotate,
+              '--money-delay': note.delay,
+            }}
+          >
+            <b>₹</b>
+            <i />
           </span>
+        ))}
+      </div>
 
-          <span className="fs-intro-timer">
-            {Math.min(100, Math.floor(progress))}%
-          </span>
+      <div className="fs-intro-sentence">
+        <span className="fs-intro-kicker">
+          FRAUDSHIELD PRESENTS
+        </span>
+
+        <h1 aria-label="Every transaction tells a story.">
+          {words.map((word, index) => (
+            <span
+              key={word}
+              className="fs-intro-word"
+              style={{
+                '--word-delay': `${0.28 + index * 0.16}s`,
+              }}
+              aria-hidden="true"
+            >
+              {word}
+            </span>
+          ))}
+        </h1>
+
+        <div className="fs-intro-light-line" aria-hidden="true">
+          <span />
         </div>
       </div>
 
-      <div className="fs-intro-skip-hint">
-        Click anywhere to skip
-      </div>
+      <span className="fs-intro-continue">
+        Click anywhere to continue
+      </span>
     </div>
   )
 }
-
-export default LandingPageIntro
