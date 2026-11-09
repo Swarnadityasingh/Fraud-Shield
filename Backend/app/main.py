@@ -1,44 +1,125 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
+from app.database import engine, Base, get_db
+from app.database_models import PredictionHistory
 
 import joblib
+import math
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict
+from fastapi import FastAPI, HTTPException, Depends, Query
+from sqlalchemy.orm import Session
 
-MODEL_PATH = Path(__file__).resolve().parent / "fraud_model.joblib"
 
-model: Any = None
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_DIR = BASE_DIR / "models"
+
+FRAUD_MODEL_PATH = MODEL_DIR / "ieee_cis_model.joblib"
+CREDIT_MODEL_PATH = MODEL_DIR / "credit_risk_model.joblib"
+
+models: dict[str, Any] = {
+    "fraud": None,
+    "credit_risk": None,
+}
+
+class PredictionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    features: dict[str, Any]
+
+
+def validate_feature_values(model, features: dict[str, Any]):
+    preprocessor = model.named_steps["preprocessor"]
+
+    numeric_columns = set()
+    categorical_columns = set()
+
+    for name, transformer, columns in preprocessor.transformers_:
+        if name == "numeric":
+            numeric_columns.update(columns)
+        elif name == "categorical":
+            categorical_columns.update(columns)
+
+    errors = []
+
+    for column, value in features.items():
+
+        if value is None:
+            continue
+
+        if isinstance(value, bool):
+            errors.append(
+                f"{column} must not contain a boolean value."
+            )
+            continue
+
+        if column in numeric_columns:
+            if not isinstance(value, (int, float)):
+                errors.append(
+                    f"{column} must be a numeric value or null."
+                )
+            elif not math.isfinite(value):
+                errors.append(
+                    f"{column} must be a finite numeric value."
+                )
+
+        elif column in categorical_columns:
+            if not isinstance(value, (str, int, float)):
+                errors.append(
+                    f"{column} must be a string, number, or null."
+                )
+            elif isinstance(value, float) and not math.isfinite(value):
+                errors.append(
+                    f"{column} must be a finite categorical value."
+                )
+
+    if errors:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message": "Invalid feature values.",
+                "errors": errors,
+            },
+        )
+
+
+def load_model(name: str, path: Path):
+    if not path.exists():
+        print(f"{name} model not found: {path}")
+        return None
+
+    try:
+        loaded_model = joblib.load(path)
+        print(f"{name} model loaded successfully.")
+        return loaded_model
+    except Exception as exc:
+        print(f"Error loading {name} model: {exc}")
+        return None
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    global model
+    models["fraud"] = load_model("IEEE-CIS", FRAUD_MODEL_PATH)
+    models["credit_risk"] = load_model("Credit Risk", CREDIT_MODEL_PATH)
 
-    if MODEL_PATH.exists():
-        try:
-            model = joblib.load(MODEL_PATH)
-            print("ML Model loaded successfully.")
-        except Exception as e:
-            print(f"Error loading model: {e}")
-            model = None
-    else:
-        print(f"Warning: Model file not found at {MODEL_PATH}")
+    Base.metadata.create_all(bind=engine)
+    print("Database tables initialized successfully.")
 
     yield
 
-    model = None
+    models["fraud"] = None
+    models["credit_risk"] = None
 
 
 app = FastAPI(
     title="FraudShield API",
-    version="1.0.0",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
-# noinspection PyTypeChecker
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -50,69 +131,212 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class Transaction(BaseModel):
-    amount: float = Field(gt=0)
-    transaction_type: str
-    step: int = Field(default=1, ge=1, le=744)
-
 
 @app.get("/")
 def home():
-    return {"message": "FraudShield API is running"}
+    return {
+        "message": "FraudShield API is running",
+        "version": "2.0.0",
+        "models": ["fraud", "credit_risk"],
+    }
 
 
 @app.get("/health")
 def health():
     return {
         "status": "healthy",
-        "model_connected": model is not None,
+        "models": {
+            "fraud_detection": models["fraud"] is not None,
+            "credit_risk": models["credit_risk"] is not None,
+        },
     }
 
 
-@app.post("/predict")
-def predict(transaction: Transaction):
+def run_prediction(
+    model_name: str,
+    request: PredictionRequest,
+    db: Session,
+):
+    model = models[model_name]
+
     if model is None:
         raise HTTPException(
             status_code=503,
-            detail="Model not found. Run training/train.py first.",
+            detail=f"{model_name} model is not available.",
         )
 
-    features = pd.DataFrame([{
-        "step": transaction.step,
-        "type": transaction.transaction_type.upper(),
-        "amount": transaction.amount,
-    }])
-
     try:
+        expected_features = list(model.feature_names_in_)
+        supplied_features = request.features
+
+        missing = [
+            col for col in expected_features
+            if col not in supplied_features
+        ]
+
+        extra = [
+            col for col in supplied_features
+            if col not in expected_features
+        ]
+
+        if missing or extra:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "message": "Feature schema mismatch.",
+                    "missing_features": missing,
+                    "unexpected_features": extra,
+                },
+            )
+        validate_feature_values(model, supplied_features)
+
+        features = pd.DataFrame(
+            [supplied_features],
+            columns=expected_features,
+        )
+
         prediction = int(model.predict(features)[0])
 
         probabilities = model.predict_proba(features)[0]
         classes = list(model.classes_)
 
         if 1 not in classes:
-            raise ValueError("Fraud class 1 is missing from the trained model.")
+            raise ValueError("Positive class 1 is missing.")
 
-        fraud_index = classes.index(1)
-        probability = float(probabilities[fraud_index])
+        probability = float(probabilities[classes.index(1)])
+
+        risk_level = (
+            "High" if probability >= 0.70
+            else "Medium" if probability >= 0.30
+            else "Low"
+        )
+
+        try:
+            history = PredictionHistory(
+                model_type=model_name,
+                prediction=prediction,
+                probability=probability,
+                risk_level=risk_level,
+            )
+            db.add(history)
+            db.commit()
+            db.refresh(history)
+        except Exception as exc:
+            db.rollback()
+            raise HTTPException(
+                status_code=500,
+                detail="Prediction generated but history could not be saved.",
+            ) from exc
+
+        return {
+            "prediction": prediction,
+            "probability": round(probability, 4),
+            "risk_level": risk_level,
+            "model_connected": True,
+            "history_id": history.id,
+            "created_at": history.created_at,
+        }
+
+    except HTTPException:
+        raise
 
     except Exception as exc:
         raise HTTPException(
             status_code=422,
-            detail=f"Could not analyze transaction: {exc}",
+            detail=f"Could not process prediction: {exc}",
         ) from exc
 
-    risk = (
-        "High" if probability >= 0.70
-        else "Medium" if probability >= 0.30
-        else "Low"
+
+@app.post("/predict/fraud")
+def predict_fraud(
+    request: PredictionRequest,
+    db: Session = Depends(get_db),
+):
+    result = run_prediction("fraud", request, db)
+    return {
+        **result,
+        "prediction_label": (
+            "Fraudulent" if result["prediction"] == 1
+            else "Legitimate"
+        ),
+        "model": "IEEE-CIS Random Forest",
+    }
+
+
+@app.post("/predict/credit-risk")
+def predict_credit_risk(
+    request: PredictionRequest,
+    db: Session = Depends(get_db),
+):
+    result = run_prediction("credit_risk", request, db)
+    return {
+        **result,
+        "prediction_label": (
+            "Serious Delinquency" if result["prediction"] == 1
+            else "No Serious Delinquency"
+        ),
+        "model": "Give Me Some Credit Random Forest",
+    }
+
+
+@app.get("/history")
+def get_prediction_history(
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    model_type: str | None = None,
+    db: Session = Depends(get_db),
+):
+    query = db.query(PredictionHistory)
+
+    if model_type:
+        query = query.filter(PredictionHistory.model_type == model_type)
+
+    total = query.count()
+    records = (
+        query.order_by(PredictionHistory.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
     )
 
     return {
-        "prediction": "Fraudulent" if prediction == 1 else "Legitimate",
-        "fraud_probability": round(probability, 4),
-        "risk_level": risk,
-        "model_connected": True,
-        "disclaimer": (
-            "Experimental prediction from a synthetic dataset."
-        ),
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "records": [
+            {
+                "id": record.id,
+                "model_type": record.model_type,
+                "prediction": record.prediction,
+                "probability": record.probability,
+                "risk_level": record.risk_level,
+                "created_at": record.created_at,
+            }
+            for record in records
+        ],
+    }
+
+
+@app.get("/history/{history_id}")
+def get_prediction_by_id(
+    history_id: int,
+    db: Session = Depends(get_db),
+):
+    record = db.query(PredictionHistory).filter(
+        PredictionHistory.id == history_id
+    ).first()
+
+    if record is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Prediction history record not found.",
+        )
+
+    return {
+        "id": record.id,
+        "model_type": record.model_type,
+        "prediction": record.prediction,
+        "probability": record.probability,
+        "risk_level": record.risk_level,
+        "created_at": record.created_at,
     }

@@ -1,0 +1,19 @@
+{
+  "model_name": "Random Forest",
+  "dataset": "Give Me Some Credit",
+  "split_strategy": "Stratified 80/20",
+  "training_rows": 120000,
+  "validation_rows": 30000,
+  "features_after_removal": 10,
+  "constant_features_removed": [],
+  "accuracy": 0.8922333333333333,
+  "precision_positive": 0.3148371531966224,
+  "recall_positive": 0.5206982543640898,
+  "f1_positive": 0.39240744221011087,
+  "roc_auc": 0.8515514749472097,
+  "pr_auc": 0.34959177687128795,
+  "true_negatives": 25723,
+  "false_positives": 2272,
+  "false_negatives": 961,
+  "true_positives": 1044
+}

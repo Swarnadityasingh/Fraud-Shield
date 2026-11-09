@@ -1,0 +1,14 @@
+{
+  "features": {
+    "RevolvingUtilizationOfUnsecuredLines": 0.35,
+    "age": 35,
+    "NumberOfTime30-59DaysPastDueNotWorse": 0,
+    "DebtRatio": 0.25,
+    "MonthlyIncome": 50000,
+    "NumberOfOpenCreditLinesAndLoans": 8,
+    "NumberOfTimes90DaysLate": 0,
+    "NumberRealEstateLoansOrLines": 1,
+    "NumberOfTime60-89DaysPastDueNotWorse": 0,
+    "NumberOfDependents": 1
+  }
+}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   SiReact,
   SiVite,
@@ -15,60 +15,125 @@ import {
 } from 'framer-motion'
 import {
   ArrowRight,
+  ArrowLeft,
   ShieldCheck,
-  ScanLine,
+  ShieldAlert,
   Search,
-  SlidersHorizontal,
-  BellRing,
+  Landmark,
+  ChartNoAxesCombined,
+  History,
+  ListFilter,
+  FileSearch,
   Menu,
-  X,
+  Linkedin,
+  Mail,
   Github,
-  ChevronDown
+  ChevronDown,
+  CheckCircle2,
+  X
 } from 'lucide-react'
 import { useWorkspaceTransition } from './WorkspaceTransition'
 import './LandingPage.css'
 
 const features = [
   {
-    icon: ScanLine,
-    title: 'See the risk behind the payment.',
-    text: 'Analyze transaction amounts and types with a machine-learning model.',
-    details: [
-      'Enter a transaction amount and select its type.',
-      'Get a machine-learning prediction.',
-      'Review the predicted class and fraud probability.',
+    id: 'fraud-detection',
+    icon: ShieldAlert,
+    title: 'Intelligent Fraud Detection',
+    text: 'Identify potentially fraudulent transactions through machine-learning predictions.',
+    label: 'IEEE-CIS MODEL',
+    accent: 'blue',
+    cta: 'Run Fraud Analysis',
+    description: 'Powered by advanced Random Forest models trained on IEEE-CIS transaction benchmarks to catch anomalous payments instantly.',
+    highlights: [
+      'Real-time probability scoring and risk classification.',
+      'Automatic prediction record logging in PostgreSQL database.',
+      'Strict feature schema validation to prevent payload mismatches.',
+      'Detailed breakdown of suspicious vs. legitimate indicators.'
     ],
-    label: 'TRANSACTION ANALYSIS',
   },
   {
-    icon: SlidersHorizontal,
-    title: 'Your thresholds. Your perspective.',
-    text: 'Adjust risk thresholds and notification preferences in your workspace.',
-    details: [
-      'Configure risk thresholds in the workspace.',
-      'Adjust notification preferences.',
-      'Explore how threshold settings affect risk interpretation.',
+    id: 'credit-risk',
+    icon: Landmark,
+    title: 'Credit Risk Assessment',
+    text: 'Evaluate credit-related risk using a dedicated machine-learning model.',
+    label: 'CREDIT RISK MODEL',
+    accent: 'amber',
+    cta: 'Assess Credit Risk',
+    description: 'Assess borrower reliability and serious delinquency risks using benchmark financial datasets.',
+    highlights: [
+      'Give Me Some Credit dataset training architecture.',
+      'Granular risk-level tiering (Low, Medium, High).',
+      'Seamless database persistence with transaction rollback safety.',
+      'FastAPI backend endpoint integration.'
     ],
-    label: 'RISK CONFIGURATION',
   },
   {
-    icon: BellRing,
-    title: 'Keep important signals in view.',
-    text: 'Review flagged analyses, risk classifications, and session history.',
-    details: [
-      'Review flagged transaction analyses.',
-      'Understand risk classifications.',
-      'Refer back to previous analyses in your session history.',
+    id: 'prediction-insights',
+    icon: ChartNoAxesCombined,
+    title: 'Prediction Insights',
+    text: 'Understand prediction outcomes through probability scores and risk classifications.',
+    label: 'MODEL OUTPUTS',
+    accent: 'blue',
+    cta: 'Explore Performance Metrics',
+    description: 'Deep dive into probability metrics and model confidence thresholds for every executed prediction.',
+    highlights: [
+      'Precise probability percentage calculations.',
+      'Visual risk-level badges and labels.',
+      'Instant model status health verification.',
+      'Transparent feature importance mapping.'
     ],
-    label: 'ALERTS & HISTORY',
+  },
+  {
+    id: 'investigation-history',
+    icon: History,
+    title: 'Investigation History',
+    text: 'Revisit previously recorded fraud and credit risk prediction results.',
+    label: 'RECORD ARCHIVE',
+    accent: 'amber',
+    cta: 'View Investigation History',
+    description: 'Maintain a complete audit trail of all historical model predictions executed across your sessions.',
+    highlights: [
+      'Chronological record sorting by creation timestamp.',
+      'Model type segregation (Fraud vs. Credit Risk).',
+      'Quick retrieval of past history IDs and results.',
+      'Secure database state management.'
+    ],
+  },
+  {
+    id: 'history-filters',
+    icon: ListFilter,
+    title: 'Advanced History Filters',
+    text: 'Find relevant prediction records using filtering and pagination.',
+    label: 'RECORD MANAGEMENT',
+    accent: 'blue',
+    cta: 'Refine Your Investigation',
+    description: 'Easily navigate through extensive prediction logs using robust filtering parameters and pagination controls.',
+    highlights: [
+      'Customizable limits and offsets for record browsing.',
+      'Model-specific query filtering.',
+      'High-performance SQL query optimization.',
+      'Clean tabular data rendering.'
+    ],
+  },
+  {
+    id: 'analysis-records',
+    icon: FileSearch,
+    title: 'Detailed Analysis Records',
+    text: 'Open individual prediction records and inspect their stored results.',
+    label: 'CASE DETAILS',
+    accent: 'amber',
+    cta: 'Access Case Details',
+    description: 'Inspect individual investigation case files with complete metadata and probability breakdowns.',
+    highlights: [
+      'Direct endpoint lookups via unique history IDs.',
+      'Comprehensive JSON response payload inspection.',
+      'Detailed error handling and 404 safeguards.',
+      'Export-ready investigation logs.'
+    ],
   },
 ]
 
-const steps = [
-  ['Enter a transaction', 'Choose a transaction type and enter its amount.'],
-  ['Let the model analyze', 'Get a predicted class and fraud probability.'],
-  ['Review the signal', 'Explore the result alongside your risk thresholds.'],
-]
 const faqs = [
   {
     question: 'What does FraudShield offer?',
@@ -166,77 +231,162 @@ function Reveal({ children, className = '', delay = 0 }) {
   )
 }
 
-function MoneyVisual() {
-  const reducedMotion = useReducedMotion()
-  const animate = !reducedMotion
+function FraudInvestigationScene() {
+  return (
+    <div className="fs-investigation-scene" aria-hidden="true">
+      <div className="fs-investigation-artwork" />
+      <div className="fs-investigation-vignette" />
+    </div>
+  )
+}
+
+function FeatureVisual({ feature }) {
+  const visuals = {
+    'fraud-detection': {
+      eyebrow: 'TRANSACTION INTELLIGENCE',
+      heading: 'Transaction Signal Analysis',
+      type: 'network',
+      items: ['Transaction data', 'Feature validation', 'Fraud prediction'],
+    },
+    'credit-risk': {
+      eyebrow: 'CREDIT INTELLIGENCE',
+      heading: 'Borrower Risk Assessment',
+      type: 'risk',
+      items: ['Credit history', 'Financial indicators', 'Risk classification'],
+    },
+    'prediction-insights': {
+      eyebrow: 'MODEL OUTPUTS',
+      heading: 'Prediction Breakdown',
+      type: 'insights',
+      items: ['Predicted classification', 'Probability score', 'Risk level'],
+    },
+    'investigation-history': {
+      eyebrow: 'RECORD ARCHIVE',
+      heading: 'Prediction History',
+      type: 'history',
+      items: ['Fraud prediction', 'Credit risk prediction', 'Record retrieval'],
+    },
+    'history-filters': {
+      eyebrow: 'RECORD MANAGEMENT',
+      heading: 'Explore Prediction Records',
+      type: 'filters',
+      items: ['Model type filter', 'Record limits', 'Paginated results'],
+    },
+    'analysis-records': {
+      eyebrow: 'CASE DETAILS',
+      heading: 'Individual Case File',
+      type: 'case',
+      items: ['History ID', 'Prediction details', 'Stored result'],
+    },
+  }
+
+  const visual = visuals[feature.id]
+
+  if (!visual) return null
 
   return (
-    <div className="fs-money-scene" aria-hidden="true">
-      <div className="fs-orbit fs-orbit-outer" />
-      <div className="fs-orbit fs-orbit-inner" />
+    <div className={`fs-visual fs-visual-${visual.type}`}>
+      <div className="fs-visual-heading">
+        <span>{visual.eyebrow}</span>
+        <h3>{visual.heading}</h3>
+      </div>
 
-      {[
-        { value: '500', className: 'fs-note-one', rotation: -18 },
-        { value: '200', className: 'fs-note-two', rotation: 16 },
-        { value: '100', className: 'fs-note-three', rotation: -10 },
-      ].map((note, index) => (
-        <motion.div
-          key={note.value}
-          className={`fs-note ${note.className}`}
-          animate={
-            animate
-              ? {
-                  y: [0, -14, 0],
-                  rotate: [
-                    note.rotation,
-                    note.rotation + 5,
-                    note.rotation,
-                  ],
-                }
-              : { y: 0, rotate: note.rotation }
-          }
-          transition={
-            animate
-              ? {
-                  duration: 5 + index,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                  delay: index * 0.4,
-                }
-              : { duration: 0 }
-          }
-        >
-          <span>FRAUDSHIELD · DEMO</span>
-          <div>
-            <b>₹</b>
-            <strong>{note.value}</strong>
+      {visual.type === 'network' && (
+        <div className="fs-visual-network">
+          <div className="fs-network-node">TRANSACTION</div>
+          <div className="fs-network-lines">
+            <span />
+            <span />
+            <span />
           </div>
-          <span>ILLUSTRATIVE NOTE</span>
-        </motion.div>
-      ))}
-
-      <motion.div
-        className="fs-shield"
-        animate={
-          animate
-            ? { y: [0, -8, 0], rotate: [0, 2, 0] }
-            : { y: 0, rotate: 0 }
-        }
-        transition={
-          animate
-            ? { duration: 6, repeat: Infinity, ease: 'easeInOut' }
-            : { duration: 0 }
-        }
-      >
-        <ShieldCheck size={94} strokeWidth={1.2} />
-      </motion.div>
-
-      <div className="fs-signal">
-        <span className="fs-status-dot" />
-        <div>
-          <strong>Make every signal clearer.</strong>
-          <small>Transaction risk intelligence</small>
+          <div className="fs-network-results">
+            {['FEATURES', 'MODEL', 'OUTPUT'].map((item) => (
+              <div key={item}>{item}</div>
+            ))}
+          </div>
         </div>
+      )}
+
+      {visual.type === 'risk' && (
+        <div className="fs-visual-risk">
+          <div className="fs-risk-orbit">
+            <Landmark size={42} />
+          </div>
+          <div className="fs-risk-levels">
+            {['LOW', 'MEDIUM', 'HIGH'].map((item, index) => (
+              <div key={item} className={`fs-risk-level level-${index}`}>
+                <span />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {visual.type === 'insights' && (
+        <div className="fs-visual-insights">
+          <div className="fs-insight-card">
+            <ChartNoAxesCombined size={30} />
+            <span>PREDICTION OUTPUT</span>
+            <strong>Classification</strong>
+          </div>
+          <div className="fs-insight-card">
+            <ShieldCheck size={30} />
+            <span>RISK INDICATOR</span>
+            <strong>Risk level</strong>
+          </div>
+        </div>
+      )}
+
+      {visual.type === 'history' && (
+        <div className="fs-visual-history">
+          {visual.items.map((item, index) => (
+            <div className="fs-history-row" key={item}>
+              <History size={19} />
+              <span>{item}</span>
+              <small>{`0${index + 1}`}</small>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {visual.type === 'filters' && (
+        <div className="fs-visual-filters">
+          <div className="fs-filter-chip">
+            <ListFilter size={17} /> Model type
+          </div>
+          <div className="fs-filter-chip">
+            <History size={17} /> Records
+          </div>
+          <div className="fs-filter-results">
+            {visual.items.map((item) => (
+              <div key={item}>
+                <CheckCircle2 size={17} />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {visual.type === 'case' && (
+        <div className="fs-visual-case">
+          <div className="fs-case-icon">
+            <FileSearch size={42} />
+          </div>
+          {visual.items.map((item, index) => (
+            <div className="fs-case-row" key={item}>
+              <span>{`0${index + 1}`}</span>
+              <strong>{item}</strong>
+              <ArrowRight size={17} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="fs-visual-footer">
+        <span className="fs-status-dot" />
+        ILLUSTRATIVE INTERFACE PREVIEW
       </div>
     </div>
   )
@@ -285,8 +435,11 @@ function Header() {
     <header className={`fs-header${hidden && !open ? ' fs-header-hidden' : ''}`}>
       <div className="fs-container fs-nav">
         <a className="fs-brand" href="/" aria-label="FraudShield home">
-          <ShieldCheck aria-hidden="true" />
-          FraudShield<span></span>
+          <img
+            src="/branding/fraudshield-wordmark.png"
+            alt="FraudShield - Financial Risk Intelligence"
+            className="fs-brand-logo"
+          />
         </a>
 
         <button
@@ -332,10 +485,17 @@ function Header() {
             </a>
           </div>
           <div className="fs-header-actions">
-            <WorkspaceLink className="fs-button-small">
-              Open workspace <ArrowRight size={16} />
-            </WorkspaceLink>
-          </div>
+  <a href="/login" className="fs-login-link">
+    Login
+  </a>
+
+  <a
+    href="/login?mode=signup"
+    className="fs-button fs-button-small"
+  >
+    Open Workspace <ArrowRight size={16} />
+  </a>
+</div>
         </nav>
       </div>
     </header>
@@ -343,38 +503,89 @@ function Header() {
 }
 
 function Footer() {
+  const openWorkspace = useWorkspaceTransition()
+
+  const handleNavigation = (event, targetId) => {
+    event.preventDefault()
+    document.getElementById(targetId)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+  }
+
   return (
     <footer className="fs-footer">
       <div className="fs-container fs-footer-top">
-        <div>
-          <a className="fs-brand" href="/">
-            <ShieldCheck aria-hidden="true" /> FraudShield
-          </a>
-          <p>A clearer view of financial risk.</p>
+
+        <div className="fs-footer-brand">
+          <div className="fs-footer-brand-heading">
+            <a className="fs-brand" href="/">
+              <ShieldCheck aria-hidden="true" />
+              FraudShield
+            </a>
+            <span className="fs-version">Version 1.0.0</span>
+          </div>
+
+          <p>
+            A clearer view of financial risk and transaction intelligence.
+          </p>
+
+          <div className="fs-footer-socials">
+            <a
+              href="https://github.com/Swarnadityasingh"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="FraudShield GitHub"
+            >
+              <Github size={19} />
+            </a>
+
+            <a
+              href="https://www.linkedin.com/in/arpit-srivastava-wd"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn profile"
+            >
+              <Linkedin size={19} />
+            </a>
+
+            <a
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=arpitsrivastava1101@gmail.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Send an email"
+            >
+              <Mail size={19} />
+            </a>
+          </div>
         </div>
 
-        <nav aria-label="Footer navigation">
-          <a href="#features">Features</a>
-          <a href="#how-it-works">How it works</a>
-          <a href="/login">Workspace</a>
-          <a
-            className="fs-github-link"
-            href="https://github.com/Swarnadityasingh"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="FraudShield on GitHub (opens in a new tab)"
-          >
-            <Github size={18} aria-hidden="true" />
-            GitHub
-          </a>
-        </nav>
+        <div className="fs-footer-column">
+          <h4>EXPLORE</h4>
+          <nav aria-label="Explore navigation">
+            <a href="#features" onClick={(e) => handleNavigation(e, 'features')}>Features</a>
+            <a href="#how-it-works" onClick={(e) => handleNavigation(e, 'how-it-works')}>How it works</a>
+            <a href="/login" onClick={openWorkspace}>Workspace</a>
+          </nav>
+        </div>
+
+        <div className="fs-footer-column">
+          <h4>TECHNOLOGY</h4>
+          <div className="fs-footer-tech">
+            <span>React</span>
+            <span>FastAPI</span>
+            <span>PostgreSQL</span>
+          </div>
+        </div>
+
       </div>
 
       <div className="fs-container fs-footer-bottom">
         <span>© {new Date().getFullYear()} FraudShield</span>
+        <span>Proudly Built in India 🇮🇳</span>
       </div>
     </footer>
-  )
+  );
 }
 
 function TypewriterText() {
@@ -550,206 +761,451 @@ function TypewriterText() {
 }
 
 export default function LandingPage() {
-  const [activeFeature, setActiveFeature] = useState(null)
   const [openFaq, setOpenFaq] = useState(0)
+  const [selectedFeature, setSelectedFeature] = useState(null)
+  const featuresScrollY = useRef(0)
+  const returningToFeatures = useRef(false)
+  const reducedMotion = useReducedMotion()
+
+  useEffect(() => {
+    if (selectedFeature) {
+      window.scrollTo({ top: 0, behavior: 'instant' })
+      return
+    }
+
+    if (returningToFeatures.current) {
+      const frame = requestAnimationFrame(() => {
+        window.scrollTo(0, featuresScrollY.current)
+        returningToFeatures.current = false
+      })
+
+      return () => cancelAnimationFrame(frame)
+    }
+  }, [selectedFeature])
 
   return (
     <div className="fs-landing" data-theme="dark">
       <a className="fs-skip-link" href="#fs-main">Skip to content</a>
-      <Header />
+
+      {!selectedFeature && <Header />}
 
       <main id="fs-main">
-        <section className="fs-container fs-hero">
-          <Reveal className="fs-hero-copy">
-            <p className="fs-eyebrow">
-              <span className="fs-status-dot" /> FINANCIAL RISK INTELLIGENCE
-            </p>
-
-            <h1>
-              Every transaction<br />
-              tells a story.<br />
-              <TypewriterText />
-            </h1>
-
-            <p className="fs-description">
-              Turn transaction data into clearer risk signals.
-              Explore machine-learning analysis in one focused workspace.
-            </p>
-
-            <div className="fs-actions">
-              <a className="fs-button" href="#how-it-works">
-                See how it works <span aria-hidden="true">↗</span>
-              </a>
-            </div>
-          </Reveal>
-
-          <div className="fs-hero-art">
-            <MoneyVisual />
-          </div>
-        </section>
-
-        <TechStack />
-
-        <section id="features" className="fs-section fs-container">
-          <Reveal>
-            <p className="fs-eyebrow">A CLEARER PICTURE</p>
-            <h2>Less noise.<br />More understanding.</h2>
-          </Reveal>
-
-          <div className="fs-feature-grid">
-  {features.map((feature, index) => {
-    const Icon = feature.icon
-    const isActive = activeFeature === index
-
-    return (
-      <Reveal key={feature.title} delay={index * 0.08}>
-        <article
-          className={`fs-feature ${isActive ? 'fs-feature-active' : ''}`}
-        >
-          <button
-            type="button"
-            className="fs-feature-trigger"
-            aria-expanded={isActive}
-            onClick={() =>
-              setActiveFeature(isActive ? null : index)
+        {selectedFeature ? (
+          <motion.section
+            className="fs-section fs-container"
+            initial={
+              reducedMotion
+                ? false
+                : { opacity: 0, y: 28, scale: 0.985 }
             }
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{
+              duration: 0.65,
+              ease: [0.22, 1, 0.36, 1]
+            }}
+            style={{
+              minHeight: '85vh',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
+            }}
           >
-            <span className="fs-feature-icon">
-              <Icon size={26} aria-hidden="true" />
-            </span>
-
-            <span className="fs-feature-label">
-              {feature.label}
-            </span>
-
-            <h3>{feature.title}</h3>
-
-            <p>{feature.text}</p>
-
-            <span className="fs-feature-action">
-              {isActive ? 'Show less' : 'Explore feature'}
-              <motion.span
-                animate={{ rotate: isActive ? 180 : 0 }}
-                transition={{ duration: 0.25 }}
-              >
-                ↓
-              </motion.span>
-            </span>
-          </button>
-
-          <AnimatePresence initial={false}>
-            {isActive && (
-              <motion.div
-                className="fs-feature-details"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{
-                  duration: 0.35,
-                  ease: 'easeInOut',
+            <div style={{ marginBottom: '40px' }}>
+              <button
+                type="button"
+                className="fs-button fs-button-small"
+                onClick={() => {
+                  returningToFeatures.current = true
+                  setSelectedFeature(null)
                 }}
+                style={{ background: 'var(--fs-surface)', color: 'var(--fs-text)', border: '1px solid var(--fs-border)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
               >
-                <div className="fs-feature-details-inner">
-                  <span>WHAT YOU CAN EXPLORE</span>
-
-                  <ul>
-                    {feature.details.map((detail) => (
-                      <li key={detail}>{detail}</li>
-                    ))}
-                  </ul>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </article>
-      </Reveal>
-    )
-  })}
-</div>
-        </section>
-
-        <section id="how-it-works" className="fs-workflow">
-          <div className="fs-container fs-section">
-            <Reveal>
-              <p className="fs-eyebrow">FROM INPUT TO INSIGHT</p>
-              <h2>Three steps to a clearer signal.</h2>
-            </Reveal>
-
-            <div className="fs-steps">
-              {steps.map(([title, text], index) => (
-                <Reveal key={title} delay={index * 0.1}>
-                  <span className="fs-step-number">0{index + 1}</span>
-                  <h3>{title}</h3>
-                  <p>{text}</p>
-                </Reveal>
-              ))}
+                <ArrowLeft size={16} /> Back to Platform
+              </button>
             </div>
-          </div>
-        </section>
 
-        <section id="faqs" className="fs-section fs-container fs-faq-section">
-          <Reveal>
-            <p className="fs-eyebrow">FREQUENTLY ASKED QUESTIONS</p>
-            <h2>Everything you need to know.</h2>
-          </Reveal>
+            <div className="fs-faq-layout" style={{ alignItems: 'center' }}>
+              <div className="fs-faq-sidebar">
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', borderRadius: '999px', background: 'var(--fs-surface)', border: '1px solid var(--fs-border)', marginBottom: '20px' }}>
+                  <selectedFeature.icon size={18} style={{ color: 'var(--fs-mint)' }} />
+                  <span style={{ fontSize: '12px', fontFamily: 'ui-monospace, monospace', letterSpacing: '1px' }}>{selectedFeature.label}</span>
+                </div>
 
-          <div className="fs-faq-list">
-            {faqs.map((faq, index) => {
-              const isOpen = openFaq === index
+                <h1 style={{ fontSize: 'clamp(36px, 4.5vw, 54px)', lineHeight: '1.1', fontWeight: 600, margin: '0 0 20px 0', letterSpacing: '-2px' }}>
+                  {selectedFeature.title}
+                </h1>
 
-              return (
-                <Reveal key={faq.question} delay={index * 0.05}>
-                  <div className={`fs-faq-item ${isOpen ? 'fs-faq-open' : ''}`}>
-                    <button
-                      type="button"
-                      className="fs-faq-question"
-                      aria-expanded={isOpen}
-                      aria-controls={`faq-answer-${index}`}
-                      onClick={() => setOpenFaq(isOpen ? null : index)}
-                    >
-                      <span>{faq.question}</span>
-                      <motion.span
-                        className="fs-faq-chevron"
-                        animate={{ rotate: isOpen ? 180 : 0 }}
-                        transition={{ duration: 0.25 }}
-                      >
-                        <ChevronDown size={22} aria-hidden="true" />
-                      </motion.span>
-                    </button>
+                <p style={{ color: 'var(--fs-muted)', fontSize: '16px', lineHeight: '1.75', marginBottom: '32px' }}>
+                  {selectedFeature.description}
+                </p>
 
-                    <AnimatePresence initial={false}>
-                      {isOpen && (
-                        <motion.div
-                          id={`faq-answer-${index}`}
-                          className="fs-faq-answer"
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3, ease: 'easeInOut' }}
-                        >
-                          <p>{faq.answer}</p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                <div style={{ display: 'grid', gap: '16px', marginBottom: '40px' }}>
+                  {selectedFeature.highlights.map((item, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', color: 'var(--fs-text)', fontSize: '15px' }}>
+                      <CheckCircle2 size={20} style={{ color: '#34D399', flexShrink: 0, marginTop: '2px' }} />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <WorkspaceLink>
+                  {selectedFeature.cta} <ArrowRight size={18} />
+                </WorkspaceLink>
+              </div>
+
+              <div style={{ border: '1px solid var(--fs-border)', borderRadius: '16px', background: '#070D18', overflow: 'hidden', boxShadow: '0 30px 80px rgba(0,0,0,0.5)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'var(--fs-surface)', borderBottom: '1px solid var(--fs-border)' }}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#EF4444' }} />
+                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FBBF24' }} />
+                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#34D399' }} />
+                  </div>
+                  <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: '11px', color: 'var(--fs-muted)', letterSpacing: '1px' }}>
+                    fraudshield.io/features/{selectedFeature.id}
+                  </span>
+                  <div style={{ width: '36px' }} />
+                </div>
+
+                <div style={{ padding: '24px', background: 'radial-gradient(circle at center, #0B1424 0%, #070D18 100%)' }}>
+                  <FeatureVisual feature={selectedFeature} />
+                </div>
+              </div>
+            </div>
+          </motion.section>
+        ) : (
+          <>
+            <section className="fs-container fs-hero">
+              <Reveal className="fs-hero-copy">
+                <p className="fs-eyebrow">
+                  <span className="fs-status-dot" /> FINANCIAL RISK INTELLIGENCE
+                </p>
+
+                <h1>
+                  Every transaction<br />
+                  tells a story.<br />
+                  <TypewriterText />
+                </h1>
+
+                <p className="fs-description">
+                  Turn transaction data into clearer risk signals.
+                  Explore machine-learning analysis in one focused workspace.
+                </p>
+
+                <div className="fs-actions">
+                  <a className="fs-button" href="#how-it-works" onClick={(e) => {
+                    e.preventDefault()
+                    document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }}>
+                    Explore How It Works
+                  </a>
+                </div>
+              </Reveal>
+
+              <div className="fs-hero-art">
+                <FraudInvestigationScene />
+              </div>
+            </section>
+
+            <TechStack />
+
+            <section className="fs-section fs-container fs-investigation-intro">
+              <div className="fs-investigation-intro-grid">
+                <Reveal className="fs-investigation-intro-art">
+                  <img
+                    src="/images/fraudshield-transaction-network.png"
+                    alt="FraudShield global transaction network and real-time anomaly detection dashboard"
+                    loading="lazy"
+                  />
+                  <span className="fs-investigation-caption">
+                    INTELLIGENCE FILE · 001
+                  </span>
+                </Reveal>
+
+                <Reveal className="fs-investigation-intro-copy">
+                  <p className="fs-eyebrow">
+                    <span className="fs-status-dot" />
+                    THE INVESTIGATION BEGINS
+                  </p>
+
+                  <h2>
+                    Every clue has
+                    <br />
+                    a connection.
+                  </h2>
+
+                  <p>
+                    Financial activity can leave behind signals that deserve
+                    a closer look. FraudShield brings machine learning-based
+                    fraud detection and credit risk assessment into one
+                    financial intelligence workspace.
+                  </p>
+
+                  <div className="fs-investigation-signals">
+                    <div>
+                      <strong>01</strong>
+                      <span>Transaction Signals</span>
+                    </div>
+                    <div>
+                      <strong>02</strong>
+                      <span>Pattern Analysis</span>
+                    </div>
+                    <div>
+                      <strong>03</strong>
+                      <span>Risk Indicators</span>
+                    </div>
                   </div>
                 </Reveal>
-              )
-            })}
-          </div>
-        </section>
+              </div>
+            </section>
 
-        <section className="fs-container fs-cta">
-          <Reveal>
-            <p className="fs-eyebrow">SEE IT IN ACTION</p>
-            <h2>Your next insight<br />starts with a transaction.</h2>
-            <a className="fs-button" href="/login">
-              Open workspace <ArrowRight size={18} />
-            </a>
-          </Reveal>
-        </section>
+            <section id="features" className="fs-section fs-container">
+              <Reveal style={{ textAlign: 'center' }}>
+                <div style={{ display: 'inline-flex', padding: '6px 16px', borderRadius: '999px', border: '1px solid var(--fs-border)', background: 'var(--fs-surface)', color: 'var(--fs-mint)', fontSize: '11px', fontWeight: 650, letterSpacing: '2px', marginBottom: '20px' }}>
+                  FEATURES
+                </div>
+                <h2>Built for modern financial intelligence.</h2>
+                <p style={{ color: 'var(--fs-muted)', fontSize: '16px', marginTop: '12px' }}>
+                  Everything you need to analyze, track, and secure transactions with FraudShield.
+                </p>
+              </Reveal>
+
+              <div className="fs-feature-grid" style={{ marginTop: '50px' }}>
+                {features.map((feature, index) => {
+                  const Icon = feature.icon
+
+                  return (
+                    <Reveal key={feature.id} delay={index * 0.08}>
+                      <article className={`fs-feature fs-feature-${feature.accent}`}>
+                        <button
+                          type="button"
+                          className="fs-feature-trigger"
+                          onClick={() => {
+                            featuresScrollY.current = window.scrollY
+                            setSelectedFeature(feature)
+                          }}
+                          style={{ width: '100%', background: 'transparent', border: 0, textAlign: 'left', cursor: 'pointer', color: 'inherit', padding: 0 }}
+                        >
+                          <span className="fs-feature-icon">
+                            <Icon size={27} strokeWidth={2} aria-hidden="true" />
+                          </span>
+
+                          <span className="fs-feature-label">
+                            {feature.label}
+                          </span>
+
+                          <h3>{feature.title}</h3>
+
+                          <p>{feature.text}</p>
+
+                          <span className="fs-feature-action">
+                            <span className="fs-feature-arrow">
+                              <ArrowRight size={21} />
+                            </span>
+                          </span>
+                        </button>
+                      </article>
+                    </Reveal>
+                  )
+                })}
+              </div>
+            </section>
+
+            <section id="how-it-works" className="fs-workflow">
+              <div className="fs-container fs-section">
+                <Reveal>
+                  <p className="fs-eyebrow">FROM INPUT TO INSIGHT</p>
+                  <h2>Three steps to a clearer signal.</h2>
+                  <p style={{ color: 'var(--fs-muted)', fontSize: '16px', marginTop: '10px' }}>
+                    From selecting an analysis model to understanding its prediction, follow a clear path through financial risk intelligence.
+                  </p>
+                </Reveal>
+
+                <div className="fs-steps">
+                  <Reveal>
+                    <article className="fs-step">
+                      <div className="fs-step-header">
+                        <span className="fs-step-number">01</span>
+                        <ShieldAlert size={26} />
+                      </div>
+                      <p className="fs-step-label">SELECT MODEL</p>
+                      <h3>Choose your investigation.</h3>
+                      <p>Select the type of financial analysis you want to perform.</p>
+                      <div className="fs-step-models">
+                        <div className="fs-step-model">
+                          <ShieldAlert size={20} />
+                          <div>
+                            <strong>Fraud Detection</strong>
+                            <span>IEEE-CIS Model</span>
+                          </div>
+                        </div>
+                        <div className="fs-step-model">
+                          <Landmark size={20} />
+                          <div>
+                            <strong>Credit Risk</strong>
+                            <span>Give Me Some Credit</span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  </Reveal>
+
+                  <Reveal delay={0.1}>
+                    <article className="fs-step">
+                      <div className="fs-step-header">
+                        <span className="fs-step-number">02</span>
+                        <ChartNoAxesCombined size={26} />
+                      </div>
+                      <p className="fs-step-label">MODEL ANALYSIS</p>
+                      <h3>Let intelligence do the work.</h3>
+                      <p>Submit the required information. The selected model processes the input through its dedicated prediction pipeline.</p>
+                      <div className="fs-step-process">
+                        <div><span>01</span> Input validation</div>
+                        <div><span>02</span> Machine learning analysis</div>
+                        <div><span>03</span> Prediction generation</div>
+                      </div>
+                    </article>
+                  </Reveal>
+
+                  <Reveal delay={0.2}>
+                    <article className="fs-step">
+                      <div className="fs-step-header">
+                        <span className="fs-step-number">03</span>
+                        <ShieldCheck size={26} />
+                      </div>
+                      <p className="fs-step-label">REVIEW RESULTS</p>
+                      <h3>Turn predictions into insights.</h3>
+                      <p>Review the model's output and understand the risk signals generated by the analysis.</p>
+                      <div className="fs-step-results">
+                        <div><CheckCircle2 size={18} /> Predicted classification</div>
+                        <div><CheckCircle2 size={18} /> Probability score</div>
+                        <div><CheckCircle2 size={18} /> Risk level</div>
+                        <div><CheckCircle2 size={18} /> Recorded prediction</div>
+                      </div>
+                    </article>
+                  </Reveal>
+                </div>
+              </div>
+            </section>
+
+            <section id="faqs" className="fs-section fs-container fs-faq-section">
+              <div className="fs-faq-layout">
+                <Reveal className="fs-faq-sidebar">
+                  <p className="fs-eyebrow">
+                    <span className="fs-status-dot" />
+                    INSIDE THE INVESTIGATION
+                  </p>
+
+                  <h2>Frequently Asked Questions</h2>
+
+                  <p className="fs-faq-intro">
+                    Everything you need to know about FraudShield,
+                    its intelligence and financial risk analysis.
+                  </p>
+
+                  <div className="fs-faq-image-frame">
+                    <img
+                      src="/images/fraud-investigation-network.png"
+                      alt="FraudShield investigation board with connected financial evidence and transaction network"
+                      loading="lazy"
+                    />
+                    <div className="fs-faq-image-overlay">
+                      <span>INVESTIGATION BOARD</span>
+                      <strong>CASE FILE · 001</strong>
+                    </div>
+                  </div>
+                </Reveal>
+
+                <div className="fs-faq-content">
+                  <div className="fs-faq-list">
+                    {faqs.map((faq, index) => {
+                      const isOpen = openFaq === index
+
+                      return (
+                        <Reveal key={faq.question} delay={index * 0.05}>
+                          <div className={`fs-faq-item ${isOpen ? 'fs-faq-open' : ''}`}>
+                            <button
+                              type="button"
+                              className="fs-faq-question"
+                              aria-expanded={isOpen}
+                              aria-controls={`faq-answer-${index}`}
+                              onClick={() => setOpenFaq(isOpen ? null : index)}
+                            >
+                              <span>{faq.question}</span>
+
+                              <motion.span
+                                className="fs-faq-chevron"
+                                animate={{ rotate: isOpen ? 180 : 0 }}
+                                transition={{ duration: 0.25 }}
+                              >
+                                <ChevronDown size={22} aria-hidden="true" />
+                              </motion.span>
+                            </button>
+
+                            <AnimatePresence initial={false}>
+                              {isOpen && (
+                                <motion.div
+                                  id={`faq-answer-${index}`}
+                                  className="fs-faq-answer"
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                >
+                                  <p>{faq.answer}</p>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </Reveal>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="fs-container fs-cta">
+              <Reveal>
+                <p className="fs-eyebrow">THE NEXT MOVE IS YOURS</p>
+
+                <h2>
+                  See beyond the numbers.
+                  <br />
+                  Understand the risk.
+                </h2>
+
+                <p className="fs-cta-description">
+                  Explore intelligent fraud detection and credit risk
+                  assessment through one unified workspace.
+                </p>
+
+                <div className="fs-cta-highlights">
+                  <div>
+                    <ShieldAlert size={19} />
+                    <span>Two Independent Models</span>
+                  </div>
+
+                  <div>
+                    <ChartNoAxesCombined size={19} />
+                    <span>Machine Learning Intelligence</span>
+                  </div>
+
+                  <div>
+                    <ShieldCheck size={19} />
+                    <span>Prediction Insights</span>
+                  </div>
+                </div>
+
+                <WorkspaceLink style={{ marginTop: '30px' }}>
+                  Scan a Transaction <ArrowRight size={16} />
+                </WorkspaceLink>
+              </Reveal>
+            </section>
+          </>
+        )}
       </main>
 
-      <Footer />
+      {!selectedFeature && <Footer />}
     </div>
   )
 }

@@ -1,0 +1,22 @@
+{
+  "model_name": "Random Forest",
+  "dataset": "IEEE-CIS",
+  "split_strategy": "Chronological 70/15/15",
+  "training_rows": 413378,
+  "validation_rows": 88581,
+  "features_before_removal": 432,
+  "features_after_removal": 431,
+  "constant_features_removed": [
+    "V107"
+  ],
+  "accuracy": 0.9412063535069597,
+  "precision_fraud": 0.2992957746478873,
+  "recall_fraud": 0.5309007232084155,
+  "f1_fraud": 0.38279213083669117,
+  "roc_auc": 0.8663693406314181,
+  "pr_auc": 0.4432764777474799,
+  "true_negatives": 81758,
+  "false_positives": 3781,
+  "false_negatives": 1427,
+  "true_positives": 1615
+}
