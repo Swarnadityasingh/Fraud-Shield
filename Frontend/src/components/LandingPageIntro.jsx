@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './LandingPageIntro.css'
 
-const words = ['Every', 'transaction', 'tells', 'a', 'story.']
+const words = ['Check', 'before', 'you', 'trust.']
 
 const sparkles = [
   { x: '12%', y: '23%', size: 5, delay: '0s' },
@@ -32,6 +32,7 @@ const moneyNotes = [
 
 export default function LandingPageIntro({ onComplete }) {
   const [isLeaving, setIsLeaving] = useState(false)
+
   const isFinishing = useRef(false)
   const skipTimer = useRef(null)
 
@@ -125,7 +126,7 @@ export default function LandingPageIntro({ onComplete }) {
           FRAUDSHIELD PRESENTS
         </span>
 
-        <h1 aria-label="Every transaction tells a story.">
+        <h1 aria-label="Check before you trust.">
           {words.map((word, index) => (
             <span
               key={word}

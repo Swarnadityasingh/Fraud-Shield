@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { GoogleLogin } from '@react-oauth/google'
 import {
   ShieldCheck,
   Eye,
@@ -9,84 +10,207 @@ import {
   User,
   ArrowRight,
   ArrowLeft,
-  Banknote,
-  AlertTriangle,
-  Landmark,
-  Coins,
-  ReceiptText,
+  AlertTriangle
 } from 'lucide-react'
 import './Login.css'
 import ThemeToggle from './ThemeToggle'
+import ForgotPassword from './ForgotPassword'
+import ReceiptPrinter from './ReceiptPrinter'
 
-export default function Login({ onLogin, theme, onThemeChange }) {
+export default function Login({
+  onLogin,
+  theme,
+  onThemeChange,
+  onNavigateForgot
+}) {
   const reduceMotion = false
 
-  // Flip State: false = Login Side, true = Register Side
   const [isFlipped, setIsFlipped] = useState(false)
+  const [showForgot, setShowForgot] = useState(false)
 
-  // Login Form State
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
 
-  // Register Form State
   const [regName, setRegName] = useState('')
   const [regEmail, setRegEmail] = useState('')
   const [regPassword, setRegPassword] = useState('')
   const [showRegPassword, setShowRegPassword] = useState(false)
 
   const [status, setStatus] = useState('idle')
+  const [authError, setAuthError] = useState('')
+  const [loginFailure, setLoginFailure] = useState(false)
 
-  function handleLoginSubmit(e) {
+  const isLoginView = !isFlipped && !showForgot
+
+  const printerStage = !isLoginView
+    ? 'idle'
+    : status === 'processing'
+    ? 'processing'
+    : status === 'success'
+    ? 'complete'
+    : loginFailure && ['error', 'unavailable'].includes(status)
+    ? 'printing'
+    : 'idle'
+
+  async function handleLoginSubmit(e) {
     e.preventDefault()
+
     if (!email.trim() || !password.trim()) {
+      setLoginFailure(true)
       setStatus('error')
       return
     }
-    setStatus('unavailable')
+
+    setLoginFailure(false)
+    setStatus('processing')
+    setAuthError('')
+
+    try {
+      const response = await fetch('http://localhost:8000/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Login failed.')
+      }
+
+      if (!data.access_token || !data.user) {
+        throw new Error('Invalid authentication response.')
+      }
+
+      setStatus('success')
+
+      if (reduceMotion) {
+        onLogin?.(data)
+      } else {
+        window.setTimeout(() => {
+          onLogin?.(data)
+        }, 1800)
+      }
+
+    } catch (error) {
+      console.error('Login error:', error)
+      setLoginFailure(true)
+      setStatus('unavailable')
+      setAuthError(
+        error.message || 'Could not connect to the authentication server.'
+      )
+    }
   }
 
-  function handleRegisterSubmit(e) {
+  async function handleRegisterSubmit(e) {
     e.preventDefault()
+
     if (!regName.trim() || !regEmail.trim() || !regPassword.trim()) {
       setStatus('error')
       return
     }
-    setStatus('unavailable')
-  }
 
-  function handleDemoAccess() {
-    if (status === 'processing') return
     setStatus('processing')
-    setTimeout(() => {
-      setStatus('success')
-      setTimeout(() => {
-        onLogin?.()
-      }, 3000)
-    }, 1200)
-  }
+    setAuthError('')
 
-  function fillDemoCredentials() {
-    setEmail('admin@fraudshield.io')
-    setPassword('demo-only')
-    setStatus('idle')
-  }
+    try {
+      const response = await fetch('http://localhost:8000/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          full_name: regName.trim(),
+          email: regEmail.trim(),
+          password: regPassword,
+        }),
+      })
 
-  useEffect(() => {
-    function handleKeyboardShortcut(e) {
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
-        e.preventDefault()
-        if (!['processing', 'success'].includes(status)) {
-          handleDemoAccess()
-        }
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Registration failed.')
       }
+
+      setAuthError(
+        'Account created! Please check your email and verify your account before signing in.'
+      )
+      setStatus('verification-sent')
+
+    } catch (error) {
+      console.error('Registration error:', error)
+      setStatus('unavailable')
+      setAuthError(
+        error.message || 'Could not connect to the authentication server.'
+      )
     }
-    window.addEventListener('keydown', handleKeyboardShortcut)
-    return () => {
-      window.removeEventListener('keydown', handleKeyboardShortcut)
+  }
+
+  async function handleGoogleOAuth(credentialResponse) {
+    const credential = credentialResponse?.credential
+
+    if (!credential) {
+      setLoginFailure(true)
+      setStatus('unavailable')
+      setAuthError('Google did not provide an authentication credential.')
+      return
     }
-  }, [status])
+
+    setLoginFailure(false)
+    setStatus('processing')
+    setAuthError('')
+
+    try {
+      const response = await fetch('http://localhost:8000/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ credential }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          data.detail || 'Google authentication failed.'
+        )
+      }
+
+      if (!data.access_token || !data.user) {
+        throw new Error('Invalid authentication response from server.')
+      }
+
+      setStatus('success')
+
+      if (reduceMotion) {
+        onLogin?.(data)
+      } else {
+        window.setTimeout(() => {
+          onLogin?.(data)
+        }, 1800)
+      }
+
+    } catch (error) {
+      console.error('Google authentication error:', error)
+
+      setLoginFailure(true)
+      setStatus('unavailable')
+      setAuthError(
+        error.message || 'Could not connect to the authentication server.'
+      )
+    }
+  }
 
   return (
     <main className="login-page" data-theme={theme}>
@@ -158,7 +282,7 @@ export default function Login({ onLogin, theme, onThemeChange }) {
                       }
                 }
               >
-                <span>FRAUDSHIELD · DEMO</span>
+                <span>FRAUDSHIELD · SECURITY</span>
                 <div>
                   <b>₹</b>
                   <strong>{note.value}</strong>
@@ -199,314 +323,319 @@ export default function Login({ onLogin, theme, onThemeChange }) {
       </section>
 
       <section className="login-form-section">
-        {/* Multi-element Blurred Background */}
-        <div className="money-bg-particles" aria-hidden="true">
-          <div className="particle-item note-500 float-1 blur-sm"><span>₹500</span></div>
-          <div className="particle-item note-200 float-2 blur-md"><span>₹200</span></div>
-          <div className="particle-item note-100 float-3 blur-sm"><span>₹100</span></div>
-          <div className="particle-item note-500 float-4 blur-md"><span>₹500</span></div>
-          <div className="particle-item note-200 float-5 blur-sm"><span>₹200</span></div>
+        {showForgot ? (
+          <ForgotPassword
+            theme={theme}
+            onThemeChange={onThemeChange}
+            onBackToLogin={() => setShowForgot(false)}
+          />
+        ) : (
+          <div className="card-flip-perspective">
+            <div className={`card-flip-inner ${isFlipped ? 'flipped' : ''}`}>
 
-          <div className="particle-item bank-cheque float-6 blur-sm">
-            <div className="cheque-header">BANK CHEQUE · ₹50,000</div>
-            <div className="cheque-line"></div>
-          </div>
-          <div className="particle-item bank-cheque float-7 blur-md">
-            <div className="cheque-header">PAYEE: FRAUDSHIELD</div>
-            <div className="cheque-line"></div>
-          </div>
-          <div className="particle-item bank-cheque float-8 blur-sm">
-            <div className="cheque-header">ACCOUNT VERIFIED</div>
-            <div className="cheque-line"></div>
-          </div>
+              <div className="login-form-container card-face card-front">
+                <ThemeToggle theme={theme} onThemeChange={onThemeChange} />
 
-          <div className="particle-item coin-badge float-9 blur-sm"><Coins size={24} /></div>
-          <div className="particle-item coin-badge float-10 blur-md"><b>₹</b></div>
-          <div className="particle-item coin-badge float-11 blur-sm"><b>₹</b></div>
-          <div className="particle-item coin-badge float-12 blur-md"><Coins size={22} /></div>
+                <div className="mobile-brand">
+                  <ShieldCheck size={35} aria-hidden="true" />
+                  <span>FraudShield</span>
+                </div>
 
-          <div className="particle-item atm-badge float-13 blur-sm">
-            <Landmark size={26} />
-            <span>ATM</span>
-          </div>
-          <div className="particle-item receipt-badge float-14 blur-md">
-            <ReceiptText size={24} />
-          </div>
-          <div className="particle-item atm-badge float-15 blur-sm">
-            <Landmark size={24} />
-            <span>SECURE</span>
-          </div>
-        </div>
+                <div className="form-heading">
+                  <p>SECURE ACCESS</p>
+                  <h2>Welcome back</h2>
+                  <span>Sign in to access your monitoring workspace.</span>
+                </div>
 
-        {status === 'success' && (
-          <div className="atm-cash-slot" role="status" aria-live="polite">
-            <div className="atm-machine-label">
-              <ShieldCheck size={15} />
-              FRAUDSHIELD SECURE ATM
-            </div>
-            <div className="slot-opening">
-              <div className="cash-stack">
-                {[0, 1, 2].map((note) => (
-                  <div className={`cash-note cash-note-${note + 1}`} key={note}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span className="note-symbol">₹</span>
-                      <Banknote size={16} strokeWidth={2.5} />
-                    </div>
-                    <span className="note-label">INDIA</span>
-                    <span className="note-value">₹ 500</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="atm-receipt-success">
-              <div className="success-receipt-header">
-                <ShieldCheck size={18} />
-                <strong>TRANSACTION APPROVED</strong>
-              </div>
-              <div className="success-receipt-body">
-                <p>FRAUDSHIELD DEMO ACCESS</p>
-                <strong>SESSION VERIFIED</strong>
-                <span>ACCESS GRANTED</span>
-              </div>
-              <div className="receipt-footer">SECURE FINANCIAL MONITORING</div>
-            </div>
-          </div>
-        )}
-
-        <ThemeToggle theme={theme} onThemeChange={onThemeChange} />
-
-        {/* 3D Flip Wrapper Container */}
-        <div className="card-flip-perspective">
-          <div className={`card-flip-inner ${isFlipped ? 'flipped' : ''}`}>
-
-            {/* FRONT FACE: LOGIN */}
-            <div className="login-form-container card-face card-front">
-              <div className="mobile-brand">
-                <ShieldCheck size={35} aria-hidden="true" />
-                <span>FraudShield</span>
-              </div>
-
-              <div className="form-heading">
-                <p>SECURE ACCESS</p>
-                <h2>Welcome back</h2>
-                <span>Sign in to access your monitoring workspace.</span>
-              </div>
-
-              <form onSubmit={handleLoginSubmit}>
-                <label htmlFor="email">Email address</label>
-                <div className="login-input">
-                  <Mail size={18} />
-                  <input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value)
-                      if (['error', 'unavailable'].includes(status)) setStatus('idle')
+                <div className="oauth-google-btn">
+                  <GoogleLogin
+                    onSuccess={handleGoogleOAuth}
+                    onError={() => {
+                      setLoginFailure(true)
+                      setStatus('unavailable')
+                      setAuthError('Google Sign-In was cancelled or failed.')
                     }}
+                    theme="filled_black"
+                    size="large"
+                    shape="pill"
+                    text="continue_with"
+                    width="400"
                   />
                 </div>
 
-                <label htmlFor="password">Password</label>
-                <div className="login-password-scene">
+                <div className="auth-divider">
+                  <span>or sign in with email</span>
+                </div>
+
+                <form onSubmit={handleLoginSubmit}>
+                  <label htmlFor="email">Email address</label>
+                  <div className="login-input">
+                    <Mail size={18} />
+                    <input
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value)
+                        if (['error', 'unavailable'].includes(status)) {
+                          setStatus('idle')
+                          setLoginFailure(false)
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <label htmlFor="password">Password</label>
+                  <div className="login-password-scene">
+                    <div className="login-input">
+                      <LockKeyhole size={18} />
+                      <input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => {
+                          setPassword(e.target.value)
+                          if (['error', 'unavailable'].includes(status)) {
+                            setStatus('idle')
+                            setLoginFailure(false)
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="login-options">
+                    <label className="remember-option">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
+                      Remember me
+                    </label>
+                    <button
+                      type="button"
+                      className="forgot-password"
+                      onClick={onNavigateForgot}
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="login-submit"
+                    disabled={status === 'processing' || status === 'success'}
+                  >
+                    {status === 'processing'
+                      ? 'Processing Transaction...'
+                      : status === 'success'
+                      ? 'Session Verified!'
+                      : 'Sign in'}
+                    <ArrowRight size={18} />
+                  </button>
+                </form>
+
+                <div className="flip-toggle-footer">
+                  <span>Don't have an account?</span>
+                  <button
+                    type="button"
+                    className="flip-switch-btn"
+                    onClick={() => {
+                      setStatus('idle')
+                      setLoginFailure(false)
+                      setIsFlipped(true)
+                    }}
+                  >
+                    Create account
+                  </button>
+                </div>
+              </div>
+
+              <div className="login-form-container card-face card-back">
+                <ThemeToggle theme={theme} onThemeChange={onThemeChange} />
+
+                <div className="mobile-brand">
+                  <ShieldCheck size={35} aria-hidden="true" />
+                  <span>FraudShield</span>
+                </div>
+
+                <div className="form-heading">
+                  <p>JOIN PLATFORM</p>
+                  <h2>Create account</h2>
+                  <span>Get started with intelligent financial risk monitoring.</span>
+                </div>
+
+                <div className="oauth-google-btn">
+                  <GoogleLogin
+                    onSuccess={handleGoogleOAuth}
+                    onError={() => {
+                      setLoginFailure(true)
+                      setStatus('unavailable')
+                      setAuthError('Google Sign-In was cancelled or failed.')
+                    }}
+                    theme="filled_black"
+                    size="large"
+                    shape="pill"
+                    text="signup_with"
+                    width="400"
+                  />
+                </div>
+
+                <div className="auth-divider">
+                  <span>or register with email</span>
+                </div>
+
+                <form onSubmit={handleRegisterSubmit}>
+                  <label htmlFor="regName">Full Name</label>
+                  <div className="login-input">
+                    <User size={18} />
+                    <input
+                      id="regName"
+                      type="text"
+                      placeholder="Enter your full name"
+                      value={regName}
+                      onChange={(e) => {
+                        setRegName(e.target.value)
+                        if (['error', 'unavailable', 'verification-sent'].includes(status)) {
+                          setStatus('idle')
+                          setLoginFailure(false)
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <label htmlFor="regEmail">Work Email address</label>
+                  <div className="login-input">
+                    <Mail size={18} />
+                    <input
+                      id="regEmail"
+                      type="email"
+                      placeholder="Enter work email"
+                      value={regEmail}
+                      onChange={(e) => {
+                        setRegEmail(e.target.value)
+                        if (['error', 'unavailable', 'verification-sent'].includes(status)) {
+                          setStatus('idle')
+                          setLoginFailure(false)
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <label htmlFor="regPassword">Password</label>
                   <div className="login-input">
                     <LockKeyhole size={18} />
                     <input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Enter your password"
-                      value={password}
+                      id="regPassword"
+                      type={showRegPassword ? 'text' : 'password'}
+                      placeholder="Create a strong password"
+                      value={regPassword}
                       onChange={(e) => {
-                        setPassword(e.target.value)
-                        if (['error', 'unavailable'].includes(status)) setStatus('idle')
+                        setRegPassword(e.target.value)
+                        if (['error', 'unavailable', 'verification-sent'].includes(status)) {
+                          setStatus('idle')
+                          setLoginFailure(false)
+                        }
                       }}
                     />
                     <button
                       type="button"
                       className="password-toggle"
-                      onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      onClick={() => setShowRegPassword(!showRegPassword)}
+                      aria-label={showRegPassword ? 'Hide password' : 'Show password'}
                     >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
-                </div>
 
-                <div className="login-options">
-                  <label className="remember-option">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                    />
-                    Remember me
-                  </label>
+                  {['error', 'unavailable', 'verification-sent'].includes(status) && (
+                    <div className="atm-receipt-error" style={{ marginTop: '16px' }}>
+                      <div className="receipt-header">
+                        <AlertTriangle size={16} />
+                        <span>
+                          {status === 'error'
+                            ? 'REGISTRATION FAILED'
+                            : status === 'verification-sent'
+                            ? 'CHECK YOUR EMAIL'
+                            : 'AUTHENTICATION UNAVAILABLE'}
+                        </span>
+                      </div>
+                      <div className="receipt-body">
+                        {status === 'error'
+                          ? 'Please fill all registration fields.'
+                          : status === 'verification-sent'
+                          ? authError
+                          : authError || 'Authentication failed. Please try again.'}
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    className="login-submit"
+                    style={{ marginTop: '22px' }}
+                    disabled={status === 'processing' || status === 'success'}
+                  >
+                    Create Account
+                    <ArrowRight size={18} />
+                  </button>
+                </form>
+
+                <div className="flip-toggle-footer">
+                  <span>Already have an account?</span>
                   <button
                     type="button"
-                    className="demo-fill-button"
-                    onClick={fillDemoCredentials}
+                    className="flip-switch-btn"
+                    onClick={() => {
+                      setStatus('idle')
+                      setLoginFailure(false)
+                      setIsFlipped(false)
+                    }}
                   >
-                    Fill Demo Details
+                    Sign in
                   </button>
                 </div>
-
-                {['error', 'unavailable'].includes(status) && (
-                  <div className="atm-receipt-error" aria-live="polite">
-                    <div className="receipt-header">
-                      <AlertTriangle size={16} />
-                      <span>
-                        {status === 'error' ? 'TRANSACTION FAILED' : 'AUTHENTICATION UNAVAILABLE'}
-                      </span>
-                    </div>
-                    <div className="receipt-body">
-                      {status === 'error'
-                        ? 'Please fill all mandatory fields.'
-                        : 'Login service is not connected yet. Please use Demo Workspace.'}
-                    </div>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="login-submit"
-                  disabled={status === 'processing' || status === 'success'}
-                >
-                  {status === 'processing'
-                    ? 'Processing Transaction...'
-                    : status === 'success'
-                    ? 'Session Verified!'
-                    : 'Sign in'}
-                  <ArrowRight size={18} />
-                </button>
-              </form>
-
-              <div className="flip-toggle-footer">
-                <span>Don't have an account?</span>
-                <button
-                  type="button"
-                  className="flip-switch-btn"
-                  onClick={() => {
-                    setStatus('idle')
-                    setIsFlipped(true)
-                  }}
-                >
-                  Create account
-                </button>
               </div>
+
             </div>
-
-            {/* BACK FACE: CREATE ACCOUNT */}
-            <div className="login-form-container card-face card-back">
-              <div className="mobile-brand">
-                <ShieldCheck size={35} aria-hidden="true" />
-                <span>FraudShield</span>
-              </div>
-
-              <div className="form-heading">
-                <p>JOIN PLATFORM</p>
-                <h2>Create account</h2>
-                <span>Get started with intelligent financial risk monitoring.</span>
-              </div>
-
-              <form onSubmit={handleRegisterSubmit}>
-                <label htmlFor="regName">Full Name</label>
-                <div className="login-input">
-                  <User size={18} />
-                  <input
-                    id="regName"
-                    type="text"
-                    placeholder="Enter your full name"
-                    value={regName}
-                    onChange={(e) => {
-                      setRegName(e.target.value)
-                      if (['error', 'unavailable'].includes(status)) setStatus('idle')
-                    }}
-                  />
-                </div>
-
-                <label htmlFor="regEmail">Work Email address</label>
-                <div className="login-input">
-                  <Mail size={18} />
-                  <input
-                    id="regEmail"
-                    type="email"
-                    placeholder="Enter work email"
-                    value={regEmail}
-                    onChange={(e) => {
-                      setRegEmail(e.target.value)
-                      if (['error', 'unavailable'].includes(status)) setStatus('idle')
-                    }}
-                  />
-                </div>
-
-                <label htmlFor="regPassword">Password</label>
-                <div className="login-input">
-                  <LockKeyhole size={18} />
-                  <input
-                    id="regPassword"
-                    type={showRegPassword ? 'text' : 'password'}
-                    placeholder="Create a strong password"
-                    value={regPassword}
-                    onChange={(e) => {
-                      setRegPassword(e.target.value)
-                      if (['error', 'unavailable'].includes(status)) setStatus('idle')
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="password-toggle"
-                    onClick={() => setShowRegPassword(!showRegPassword)}
-                    aria-label={showRegPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-
-                {['error', 'unavailable'].includes(status) && (
-                  <div className="atm-receipt-error" style={{ marginTop: '16px' }}>
-                    <div className="receipt-header">
-                      <AlertTriangle size={16} />
-                      <span>
-                        {status === 'error' ? 'REGISTRATION FAILED' : 'AUTHENTICATION UNAVAILABLE'}
-                      </span>
-                    </div>
-                    <div className="receipt-body">
-                      {status === 'error'
-                        ? 'Please fill all registration fields.'
-                        : 'Registration service is not connected yet. Please use Demo Workspace.'}
-                    </div>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="login-submit"
-                  style={{ marginTop: '22px' }}
-                  disabled={status === 'processing' || status === 'success'}
-                >
-                  Create Account
-                  <ArrowRight size={18} />
-                </button>
-              </form>
-
-              <div className="flip-toggle-footer">
-                <span>Already have an account?</span>
-                <button
-                  type="button"
-                  className="flip-switch-btn"
-                  onClick={() => {
-                    setStatus('idle')
-                    setIsFlipped(false)
-                  }}
-                >
-                  Sign in
-                </button>
-              </div>
-            </div>
-
           </div>
-        </div>
+        )}
+
+        {isLoginView && (
+          <ReceiptPrinter
+            stage={printerStage}
+            title={
+              status === 'success'
+                ? 'TRANSACTION APPROVED'
+                : status === 'unavailable'
+                ? 'AUTHENTICATION UNAVAILABLE'
+                : 'TRANSACTION DECLINED'
+            }
+            reason={
+              status === 'success'
+                ? 'IDENTITY VERIFIED'
+                : status === 'error'
+                ? 'MISSING CREDENTIALS'
+                : 'AUTHENTICATION FAILED'
+            }
+            message={
+              status === 'success'
+                ? 'Your secure session has been established.'
+                : authError || 'Please verify your credentials and try again.'
+            }
+          />
+        )}
       </section>
     </main>
   )

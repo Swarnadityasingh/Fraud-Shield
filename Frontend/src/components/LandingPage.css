@@ -887,27 +887,65 @@
   list-style: none;
 }
 
+.fs-tech-section {
+  padding-block: 30px;
+  background: var(--fs-bg);
+  border-block: 1px solid var(--fs-border);
+}
+
+.fs-tech-window {
+  overflow: hidden;
+  padding-block: 10px;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 5%,
+    black 95%,
+    transparent
+  );
+}
+
+.fs-tech-track {
+  display: flex;
+  width: max-content;
+  animation: fs-tech-scroll 35s linear infinite;
+}
+
+.fs-tech-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-shrink: 0;
+  gap: 64px;
+  min-width: 100vw;
+  margin: 0;
+  padding: 0 64px 0 0;
+  list-style: none;
+}
+
 .fs-tech-item {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
-  gap: 12px;
-  color: #8792AA;
+  gap: 16px;
+  color: var(--fs-muted);
   white-space: nowrap;
   transition: color 200ms ease;
 }
 
-.fs-tech-item svg {
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
+.fs-ticker-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fs-mint);
+  box-shadow: 0 0 10px var(--fs-mint);
 }
 
-.fs-tech-item span {
-  font-family: Inter, system-ui, sans-serif;
-  font-size: 29px;
-  font-weight: 650;
-  letter-spacing: -1px;
+.fs-tech-item span:not(.fs-ticker-dot) {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 2px;
   line-height: 1.2;
 }
 
@@ -919,7 +957,6 @@
   from {
     transform: translateX(0);
   }
-
   to {
     transform: translateX(-50%);
   }
@@ -931,21 +968,16 @@
   }
 
   .fs-tech-group {
-    gap: 40px;
-    padding-right: 40px;
+    gap: 36px;
+    padding-right: 36px;
   }
 
   .fs-tech-item {
-    gap: 9px;
+    gap: 12px;
   }
 
-  .fs-tech-item svg {
-    width: 27px;
-    height: 27px;
-  }
-
-  .fs-tech-item span {
-    font-size: 23px;
+  .fs-tech-item span:not(.fs-ticker-dot) {
+    font-size: 16px;
   }
 }
 
@@ -964,7 +996,7 @@
     width: 100%;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 28px;
+    gap: 24px;
     padding: 0 20px;
   }
 
@@ -2547,5 +2579,43 @@
     width: 46%;
     height: auto;
     aspect-ratio: 1 / 1;
+  }
+}
+
+.fs-footer-brand-name {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  text-decoration: none;
+  color: #F1F5F9;
+  background: linear-gradient(
+    110deg,
+    #FFFFFF 0%,
+    #CBD5E1 35%,
+    #94A3B8 60%,
+    #E2E8F0 100%
+  );
+  background-size: 220% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.15));
+  animation: fs-footer-shimmer 6s linear infinite;
+}
+
+@keyframes fs-footer-shimmer {
+  from {
+    background-position: 100% center;
+  }
+  to {
+    background-position: -120% center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-footer-brand-name {
+    animation: none;
+    background-position: center;
   }
 }

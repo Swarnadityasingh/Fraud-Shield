@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 from app.database import engine, Base, get_db
 from app.database_models import PredictionHistory
+from app.auth import router as auth_router
 
 import joblib
 import math
@@ -119,6 +120,8 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan,
 )
+
+app.include_router(auth_router)
 
 app.add_middleware(
     CORSMiddleware,

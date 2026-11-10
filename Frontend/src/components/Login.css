@@ -11,17 +11,15 @@
     radial-gradient(circle at 50% 55%, #134E4A 0%, transparent 42%),
     linear-gradient(145deg, #0F172A, #102A3A);
 
-  transition: background-color 0.3s ease, color 0.3s ease;
-
   width: 100%;
-  height: 100vh;
-  min-height: 100dvh;
-  overflow: hidden;
+  min-height: 100vh;
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  overflow: hidden;
   font-family: Inter, system-ui, sans-serif;
   background: var(--login-bg);
   color: var(--login-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .login-page[data-theme="light"] {
@@ -72,7 +70,6 @@
   color: var(--login-text);
 }
 
-/* Continue Exploring Back Button Styling */
 .continue-exploring-btn {
   align-self: flex-start;
   margin-left: 0;
@@ -324,160 +321,24 @@
 
 .login-form-section {
   position: relative;
-  display: grid;
-  place-items: center;
-  padding: 45px 25px;
-  min-height: 0;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  padding: 32px 24px;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: var(--login-bg);
   color: var(--login-text);
 }
 
-/* Multi-Element Blurred Financial Background */
-.money-bg-particles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.particle-item {
-  position: absolute;
-  user-select: none;
-  animation: floatBankItem 13s infinite ease-in-out;
-}
-
-/* Depth-of-Field Blurs */
-.blur-sm {
-  filter: blur(1px);
-  opacity: 0.6;
-}
-
-.blur-md {
-  filter: blur(2px);
-  opacity: 0.4;
-}
-
-/* Rupee Banknotes */
-.note-500, .note-200, .note-100 {
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 800;
-  font-size: 13px;
-  letter-spacing: 1px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-}
-
-.note-500 {
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.45), rgba(13, 148, 136, 0.3));
-  border: 1px solid rgba(20, 184, 166, 0.6);
-  color: #2DD4BF;
-}
-
-.note-200 {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.45), rgba(180, 83, 9, 0.3));
-  border: 1px solid rgba(245, 158, 11, 0.6);
-  color: #FBBF24;
-}
-
-.note-100 {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.45), rgba(37, 99, 235, 0.3));
-  border: 1px solid rgba(59, 130, 246, 0.6);
-  color: #60A5FA;
-}
-
-/* Bank Cheques */
-.bank-cheque {
-  padding: 8px 16px;
-  background: rgba(30, 41, 59, 0.85);
-  border: 1px dashed rgba(255, 255, 255, 0.35);
-  border-radius: 6px;
-  color: var(--login-muted);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-}
-
-.cheque-header {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--login-primary);
-}
-
-.cheque-line {
-  height: 2px;
-  background: rgba(255, 255, 255, 0.2);
-  margin-top: 4px;
-  border-radius: 2px;
-}
-
-/* Metallic Rupee Coins */
-.coin-badge {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #FBBF24, #B45309);
-  color: #78350F;
-  font-size: 20px;
-  font-weight: 900;
-  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
-}
-
-/* ATM & Receipt Badges */
-.atm-badge, .receipt-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid var(--login-primary);
-  color: var(--login-primary);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
-}
-
-/* 15 Spread Out Floating Positions */
-.float-1 { top: 6%; left: 6%; animation-duration: 11s; animation-delay: 0s; }
-.float-2 { top: 12%; right: 8%; animation-duration: 14s; animation-delay: 1.5s; }
-.float-3 { bottom: 10%; left: 8%; animation-duration: 12s; animation-delay: 2s; }
-.float-4 { top: 78%; right: 6%; animation-duration: 15s; animation-delay: 0.5s; }
-.float-5 { top: 5%; right: 30%; animation-duration: 16s; animation-delay: 3s; }
-
-.float-6 { top: 40%; left: 4%; animation-duration: 13s; animation-delay: 1s; }
-.float-7 { top: 60%; right: 4%; animation-duration: 12.5s; animation-delay: 2.2s; }
-.float-8 { bottom: 6%; left: 32%; animation-duration: 14.5s; animation-delay: 0.8s; }
-
-.float-9 { top: 25%; left: 14%; animation-duration: 10s; animation-delay: 0.3s; }
-.float-10 { bottom: 24%; right: 12%; animation-duration: 13s; animation-delay: 1.8s; }
-.float-11 { top: 50%; right: 28%; animation-duration: 11.5s; animation-delay: 2.7s; }
-.float-12 { top: 70%; left: 16%; animation-duration: 15.5s; animation-delay: 0.6s; }
-
-.float-13 { top: 18%; left: 28%; animation-duration: 17s; animation-delay: 0.4s; }
-.float-14 { bottom: 38%; left: 8%; animation-duration: 13.5s; animation-delay: 1.2s; }
-.float-15 { top: 32%; right: 12%; animation-duration: 12s; animation-delay: 2.1s; }
-
-@keyframes floatBankItem {
-  0% {
-    transform: translateY(0px) rotate(0deg) scale(1);
-  }
-  50% {
-    transform: translateY(-26px) rotate(8deg) scale(1.08);
-  }
-  100% {
-    transform: translateY(0px) rotate(0deg) scale(1);
-  }
-}
-
 .theme-toggle {
   position: absolute;
-  top: 24px;
-  right: 28px;
+  top: 18px;
+  right: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -488,9 +349,8 @@
   border-radius: 999px;
   background: var(--login-surface);
   cursor: pointer;
-  z-index: 5;
+  z-index: 10;
   isolation: isolate;
-  transition: background-color 350ms ease-in-out, border-color 350ms ease-in-out;
 }
 
 .theme-toggle-thumb {
@@ -552,21 +412,17 @@
   }
 }
 
-/* Glassmorphism Form Container */
 .login-form-container {
   position: relative;
-  z-index: 1;
   width: 100%;
-  max-width: 440px;
-  padding: 38px 36px;
+  max-width: 460px;
+  padding: 70px 30px 26px;
+  box-sizing: border-box;
   background: rgba(30, 41, 59, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 24px;
   backdrop-filter: blur(18px);
-  box-shadow:
-    0 20px 40px -15px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
-  transition: all 0.3s ease;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
 }
 
 .login-page[data-theme="light"] .login-form-container {
@@ -941,7 +797,7 @@
   font-size: 15px;
 }
 
-.receipt-footer {
+.atm-receipt-success .receipt-footer {
   padding-top: 8px;
   border-top: 1px dashed #6EE7B7;
   text-align: center;
@@ -1250,11 +1106,10 @@
   opacity: 0.22;
 }
 
-/* 3D Card Flip Animation System */
 .card-flip-perspective {
   position: relative;
   width: 100%;
-  max-width: 440px;
+  max-width: 460px;
   perspective: 1200px;
   z-index: 1;
 }
@@ -1290,7 +1145,6 @@
   transform: rotateY(180deg);
 }
 
-/* Bottom Flip Switch Button Styling */
 .flip-toggle-footer {
   display: flex;
   align-items: center;
@@ -1314,4 +1168,413 @@
 .flip-switch-btn:hover {
   text-decoration: underline;
   color: #2DD4BF;
+}
+
+.oauth-google-btn {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+
+  margin-bottom: 18px;
+  overflow: hidden;
+  position: relative;
+  transition: none;
+}
+
+.oauth-google-btn iframe,
+.oauth-google-btn > div {
+  width: 100% !important;
+  max-width: 100% !important;
+  border-radius: 999px !important;
+}
+
+.oauth-google-btn:hover {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.oauth-google-btn:hover iframe,
+.oauth-google-btn:hover > div {
+  opacity: 1;
+}
+
+.oauth-google-btn:active {
+  transform: translateY(0);
+}
+
+.oauth-google-btn svg {
+  flex-shrink: 0;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+  color: var(--login-muted);
+  font-size: 11.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--login-border);
+}
+
+@media (min-width: 851px) and (max-height: 800px) {
+  .login-form-section {
+    padding-top: 68px;
+    padding-bottom: 20px;
+  }
+
+  .login-form-container {
+    padding: 24px 30px;
+  }
+
+  .form-heading {
+    margin-bottom: 18px;
+  }
+
+  .login-form-container form > label {
+    margin-top: 12px;
+  }
+
+  .login-options {
+    margin: 12px 0;
+  }
+
+  .oauth-google-btn {
+    margin-bottom: 16px;
+  }
+
+  .auth-divider {
+    margin-bottom: 16px;
+  }
+
+  .flip-toggle-footer {
+    margin-top: 16px;
+  }
+}
+
+@media (min-width: 851px) {
+  .login-form-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 76px 36px 24px;
+    box-sizing: border-box;
+    min-height: 100dvh;
+    height: 100dvh;
+    overflow-y: auto;
+  }
+
+  .card-flip-perspective {
+    width: 100%;
+    max-width: 460px;
+    margin: auto;
+  }
+
+  .card-flip-inner {
+    height: auto;
+    min-height: 0;
+  }
+
+  .login-form-container {
+    height: auto;
+    min-height: 0;
+  }
+}
+
+@media (min-width: 851px) and (max-height: 850px) {
+  .login-form-section {
+    padding-top: 64px;
+    padding-bottom: 20px;
+  }
+
+  .login-form-container {
+    padding-top: 58px;
+    padding-bottom: 24px;
+  }
+
+  .form-heading {
+    margin-bottom: 14px;
+  }
+
+  .form-heading h2 {
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-height: 920px) and (min-width: 851px) {
+  .login-form-section {
+    padding: 20px 24px;
+    align-items: center;
+  }
+
+  .login-form-container {
+    max-width: 420px;
+    padding: 26px 24px 22px;
+  }
+
+  .login-form-container .theme-toggle {
+    top: 20px;
+    right: 22px;
+    width: 78px;
+    height: 38px;
+  }
+
+  .login-form-container .theme-toggle .theme-toggle-thumb {
+    width: 30px;
+    height: 30px;
+    top: 3px;
+    left: 3px;
+  }
+
+  .login-form-container .theme-toggle[data-theme="dark"] .theme-toggle-thumb {
+    transform: translateX(38px);
+  }
+
+  .form-heading {
+    margin-bottom: 12px;
+    padding-right: 55px;
+  }
+
+  .form-heading h2 {
+    font-size: 24px;
+    margin: 2px 0 4px;
+  }
+
+  .form-heading > span {
+    font-size: 12px;
+  }
+
+  .oauth-google-btn {
+    min-height: 44px;
+    margin-bottom: 12px;
+  }
+
+  .auth-divider {
+    margin-bottom: 12px;
+  }
+
+  .login-form-container form > label {
+    margin: 8px 0 3px 2px;
+    font-size: 11.5px;
+  }
+
+  .login-input {
+    min-height: 44px;
+  }
+
+  .login-options {
+    margin: 10px 0;
+  }
+
+  .login-submit {
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .flip-toggle-footer {
+    margin-top: 10px;
+    font-size: 11.5px;
+  }
+}
+
+.login-form-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  height: auto;
+  padding: 32px 24px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.card-flip-perspective {
+  width: 100%;
+  max-width: 480px;
+  margin: auto;
+}
+
+.card-flip-inner {
+  width: 100%;
+  height: auto;
+}
+
+.login-form-container {
+  width: 100%;
+  max-width: 480px;
+  height: auto;
+  min-height: 0;
+  padding: 56px 32px 30px;
+  box-sizing: border-box;
+  border-radius: 24px;
+}
+
+.form-heading {
+  margin-bottom: 22px;
+}
+
+.form-heading h2 {
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.oauth-google-btn {
+  min-height: 52px;
+  margin-bottom: 18px;
+}
+
+.auth-divider {
+  margin-bottom: 18px;
+}
+
+.login-form-container form > label {
+  margin: 14px 0 7px 2px;
+}
+
+.login-input {
+  min-height: 52px;
+  border-radius: 15px;
+}
+
+.login-options {
+  margin: 15px 0 19px;
+  font-size: 13px;
+}
+
+.login-submit {
+  min-height: 54px;
+  border-radius: 15px;
+}
+
+.flip-toggle-footer {
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.login-form-container .theme-toggle {
+  top: 18px;
+  right: 20px;
+}
+
+@media (max-width: 850px) {
+  .login-form-section {
+    width: 100%;
+    min-height: 100dvh;
+    padding: 28px 20px;
+  }
+
+  .login-form-container {
+    max-width: 480px;
+    padding: 64px 28px 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-form-section {
+    padding: 20px 14px;
+  }
+
+  .login-form-container {
+    padding: 62px 20px 26px;
+    border-radius: 20px;
+  }
+
+  .form-heading h2 {
+    font-size: 26px;
+  }
+
+  .login-options {
+    gap: 8px;
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-input,
+  .login-submit,
+  .oauth-google-btn {
+    transition: none;
+  }
+}
+
+@media (min-width: 1200px) {
+  .login-form-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 76px 20px 24px;
+  overflow-x: hidden;
+}
+
+  .card-flip-perspective {
+  flex: 0 1 460px;
+  width: 100%;
+  max-width: 460px;
+  min-width: 0;
+  margin: 0;
+}
+
+  .login-form-container {
+    width: 100%;
+    max-width: 460px;
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+
+  .receipt-printer {
+  flex: 0 0 220px;
+  width: 220px;
+  min-width: 0;
+}
+
+  .printer-machine {
+    width: 100%;
+    max-width: 220px;
+    padding: 12px 10px 9px;
+  }
+}
+
+.lhs-passbook-container {
+  width: 100%;
+  max-width: 360px;
+  margin: 16px auto 0;
+  z-index: 5;
+}
+
+.login-visual {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 24px 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--login-visual-bg);
+  color: var(--login-text);
+}
+
+@media (max-width: 850px) {
+  .lhs-passbook-container {
+    display: none;
+  }
 }

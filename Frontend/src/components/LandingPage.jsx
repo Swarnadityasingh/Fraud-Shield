@@ -179,21 +179,22 @@ function WorkspaceLink({ children, className = '' }) {
 }
 
 function TechStack() {
-  const technologies = [
-    { name: 'React', icon: SiReact },
-    { name: 'Vite', icon: SiVite },
-    { name: 'Tailwind CSS', icon: SiTailwindcss },
-    { name: 'Framer Motion', icon: SiFramer },
-    { name: 'Python', icon: SiPython },
-    { name: 'FastAPI', icon: SiFastapi },
-    { name: 'scikit-learn', icon: SiScikitlearn },
+  const marketingPhrases = [
+    'INVESTIGATE',
+    'VALIDATE',
+    'ANALYZE',
+    'UNDERSTAND',
+    'DETECT ANOMALIES',
+    'ASSESS RISK',
+    'SECURE TRANSACTIONS'
   ]
 
   return (
-    <section className="fs-tech-section" aria-label="Technologies used">
+    <section className="fs-tech-section" aria-label="Platform highlights">
       <div
         className="fs-tech-window"
-        aria-label="Technologies used to build FraudShield"
+        tabIndex={0}
+        aria-label="Platform highlights ticker. Focus or hover to pause scrolling."
       >
         <div className="fs-tech-track">
           {[0, 1].map((copy) => (
@@ -202,10 +203,10 @@ function TechStack() {
               key={copy}
               aria-hidden={copy === 1 ? true : undefined}
             >
-              {technologies.map(({ name, icon: Icon }) => (
-                <li className="fs-tech-item" key={name}>
-                  <Icon aria-hidden="true" />
-                  <span>{name}</span>
+              {marketingPhrases.map((phrase, index) => (
+                <li className="fs-tech-item" key={index}>
+                  <span className="fs-ticker-dot" />
+                  <span>{phrase}</span>
                 </li>
               ))}
             </ul>
@@ -640,8 +641,7 @@ function Footer() {
 
         <div className="fs-footer-brand">
           <div className="fs-footer-brand-heading">
-            <a className="fs-brand" href="/">
-              <ShieldCheck aria-hidden="true" />
+            <a className="fs-footer-brand-name" href="/">
               FraudShield
             </a>
             <span className="fs-version">Version 1.0.0</span>

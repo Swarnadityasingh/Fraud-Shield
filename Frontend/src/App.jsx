@@ -1,9 +1,11 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 
 import Login from './components/Login'
 import Dashboard from './Dashboard'
 import LandingPage from './components/LandingPage'
 import LandingPageIntro from './components/LandingPageIntro'
+import ForgotPassword from './components/ForgotPassword'
+import ResetPassword from './components/ResetPassword'
 
 import {
   predictTransaction,
@@ -34,12 +36,17 @@ function loadSettings() {
 }
 
 export default function App() {
-  // Always set showIntro to true initially so it plays on every page refresh or load
-  const [showIntro, setShowIntro] = useState(true)
 
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => sessionStorage.getItem('fraudshield-demo-session') === 'active'
-  )
+  const [showIntro, setShowIntro] = useState(() => {
+  return !sessionStorage.getItem('fraudshield-intro-seen')
+})
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [accessToken, setAccessToken] = useState(null)
+  const [currentUser, setCurrentUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+
+  const sessionRestoreStarted = useRef(false)
 
   const [currentPath, setCurrentPath] = useState(
     () => window.location.pathname
@@ -88,38 +95,126 @@ export default function App() {
     setCurrentPath(path)
   }
 
-  function handleLogin() {
-    sessionStorage.setItem('fraudshield-demo-session', 'active')
+  function handleLogin(authData) {
+    if (!authData?.access_token || !authData?.user) {
+      return
+    }
+
+    setAccessToken(authData.access_token)
+    setCurrentUser(authData.user)
     setIsAuthenticated(true)
     setWelcomeVisible(true)
+
+    setSettings((previous) => ({
+      ...previous,
+      profileName: authData.user.full_name,
+      email: authData.user.email,
+    }))
+
     navigate('/dashboard')
   }
 
-  function handleLogout() {
-    sessionStorage.removeItem('fraudshield-demo-session')
+  useEffect(() => {
+    if (sessionRestoreStarted.current) return
 
-    setIsAuthenticated(false)
-    setWelcomeVisible(false)
+    sessionRestoreStarted.current = true
 
-    setAmount('')
-    setType('TRANSFER')
-    setResult(null)
-    setMessage('')
-    setHistory([])
-    setNotifications([])
+    async function restoreSession() {
+      try {
 
-    navigate('/login', true)
+        const refreshResponse = await fetch(
+          'http://localhost:8000/auth/refresh',
+          {
+            method: 'POST',
+            credentials: 'include',
+          }
+        )
+
+        if (!refreshResponse.ok) {
+          return
+        }
+
+        const refreshData = await refreshResponse.json()
+
+        if (!refreshData.access_token) {
+          return
+        }
+
+        const userResponse = await fetch(
+          'http://localhost:8000/auth/me',
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${refreshData.access_token}`,
+            },
+          }
+        )
+
+        if (!userResponse.ok) {
+          return
+        }
+
+        const user = await userResponse.json()
+
+        setAccessToken(refreshData.access_token)
+        setCurrentUser(user)
+        setIsAuthenticated(true)
+
+        setSettings((previous) => ({
+          ...previous,
+          profileName: user.full_name,
+          email: user.email,
+        }))
+
+      } catch (error) {
+        console.error('Session restoration failed:', error)
+      } finally {
+        setAuthLoading(false)
+      }
+    }
+
+    restoreSession()
+  }, [])
+
+  async function handleLogout() {
+    try {
+      await fetch('http://localhost:8000/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch (error) {
+      console.error('Backend logout failed:', error)
+    } finally {
+      setIsAuthenticated(false)
+      setAccessToken(null)
+      setCurrentUser(null)
+      setWelcomeVisible(false)
+
+      setAmount('')
+      setType('TRANSFER')
+      setResult(null)
+      setMessage('')
+      setHistory([])
+      setNotifications([])
+
+      navigate('/login', true)
+    }
   }
 
   function handleIntroComplete() {
-    setShowIntro(false)
-  }
+  sessionStorage.setItem('fraudshield-intro-seen', 'true')
+  setShowIntro(false)
+}
 
   useEffect(() => {
-    if (currentPath === '/dashboard' && !isAuthenticated) {
+    if (
+      !authLoading &&
+      currentPath === '/dashboard' &&
+      !isAuthenticated
+    ) {
       navigate('/login', true)
     }
-  }, [currentPath, isAuthenticated])
+  }, [currentPath, isAuthenticated, authLoading])
 
   useEffect(() => {
     const activeTheme = currentPath === '/' ? 'dark' : settings.theme
@@ -300,12 +395,45 @@ export default function App() {
     setWelcomeVisible(false)
   }, [])
 
+  if (authLoading && currentPath !== '/') {
+    return (
+      <div className="auth-loading">
+        Restoring secure session...
+      </div>
+    )
+  }
+
   if (currentPath === '/') {
     if (showIntro) {
       return <LandingPageIntro onComplete={handleIntroComplete} />
     }
 
     return <LandingPage />
+  }
+
+  if (currentPath === '/forgot-password') {
+    return (
+      <ForgotPassword
+        theme={settings.theme}
+        onThemeChange={(theme) =>
+          setSettings((previous) => ({ ...previous, theme }))
+        }
+        onNavigateLogin={() => navigate('/login')}
+      />
+    )
+  }
+
+  if (currentPath.startsWith('/reset-password')) {
+    const queryParams = new URLSearchParams(window.location.search)
+    const token = queryParams.get('token') || ''
+
+    return (
+      <ResetPassword
+        theme={settings.theme}
+        token={token}
+        onNavigateLogin={() => navigate('/login')}
+      />
+    )
   }
 
   if (!isAuthenticated || currentPath !== '/dashboard') {
@@ -319,12 +447,15 @@ export default function App() {
           }))
         }
         onLogin={handleLogin}
+        onNavigateForgot={() => navigate('/forgot-password')}
       />
     )
   }
 
   return (
     <Dashboard
+      accessToken={accessToken}
+      currentUser={currentUser}
       activePage={activePage}
       setActivePage={setActivePage}
       settings={settings}
