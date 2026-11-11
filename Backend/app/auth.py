@@ -10,6 +10,7 @@ from google.auth.transport.requests import Request as GoogleRequest
 from google.oauth2 import id_token
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.database import get_db
 from app.database_models import (
@@ -307,19 +308,13 @@ def resend_verification(
 
     return generic_response
 
-@router.post("/google")
-def google_login(
-    request: GoogleLoginRequest,
-    response: Response,
-    db: Session = Depends(get_db),
-):
-    client_id = GOOGLE_CLIENT_ID
 
+def verify_google_credential(credential: str):
     try:
         google_user = id_token.verify_oauth2_token(
-            request.credential,
+            credential,
             GoogleRequest(),
-            client_id,
+            GOOGLE_CLIENT_ID,
         )  # type: ignore[arg-type]
 
     except ValueError:
@@ -333,18 +328,29 @@ def google_login(
     google_user_id = google_user.get("sub")
 
     if (
-            not isinstance(email, str)
-            or not email.strip()
-            or email_verified is not True
-            or not isinstance(google_user_id, str)
-            or not google_user_id
+        not isinstance(email, str)
+        or not email.strip()
+        or email_verified is not True
+        or not isinstance(google_user_id, str)
+        or not google_user_id
     ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Google account email could not be verified.",
         )
 
-    email = email.strip().lower()
+    return google_user, email.strip().lower(), google_user_id
+
+
+@router.post("/google")
+def google_login(
+    request: GoogleLoginRequest,
+    response: Response,
+    db: Session = Depends(get_db),
+):
+    _, email, google_user_id = verify_google_credential(
+        request.credential
+    )
 
     identity = (
         db.query(AuthIdentity)
@@ -355,77 +361,31 @@ def google_login(
         .first()
     )
 
-    if identity:
-        user = identity.user
-
-        if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="This account has been disabled.",
-            )
-
-    else:
-
-        user = (
-            db.query(User)
-            .filter(User.email == email)
-            .first()
+    # Login must never create or link an account.
+    if identity is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "FraudShield membership required. "
+                "Please create an account before signing in."
+            ),
         )
 
-        if user:
-            if not user.is_active:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="This account has been disabled.",
-                )
+    user = identity.user
 
-            user.is_email_verified = True
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This account has been disabled.",
+        )
 
-            identity = AuthIdentity(
-                user_id=user.id,
-                provider="google",
-                provider_user_id=google_user_id,
-            )
-
-            db.add(identity)
-
-        else:
-
-            user = User(
-                email=email,
-                full_name=(
-                    google_user.get("name")
-                    or email.split("@")[0]
-                ),
-                profile_picture=google_user.get("picture"),
-                is_email_verified=True,
-                is_active=True,
-            )
-
-            db.add(user)
-            db.flush()
-
-            identity = AuthIdentity(
-                user_id=user.id,
-                provider="google",
-                provider_user_id=google_user_id,
-            )
-
-            db.add(identity)
-
-        try:
-            db.commit()
-            db.refresh(user)
-
-        except Exception:
-            db.rollback()
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Account could not be created or linked. Please try again.",
-            )
+    if user.email != email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Google account identity mismatch.",
+        )
 
     access_token = create_access_token(user.id)
-
     refresh_token = generate_refresh_token()
 
     refresh_session = RefreshSession(
@@ -467,6 +427,99 @@ def google_login(
             "is_email_verified": user.is_email_verified,
         },
     }
+
+
+@router.post("/google/register", status_code=status.HTTP_201_CREATED)
+def google_register(
+    request: GoogleLoginRequest,
+    db: Session = Depends(get_db),
+):
+    google_user, email, google_user_id = verify_google_credential(
+        request.credential
+    )
+
+    existing_identity = (
+        db.query(AuthIdentity)
+        .filter(
+            AuthIdentity.provider == "google",
+            AuthIdentity.provider_user_id == google_user_id,
+        )
+        .first()
+    )
+
+    if existing_identity:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This Google account is already registered. Please sign in.",
+        )
+
+    existing_user = (
+        db.query(User)
+        .filter(User.email == email)
+        .first()
+    )
+
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "An account with this email already exists. "
+                "Please sign in using your existing account."
+            ),
+        )
+
+    user = User(
+        email=email,
+        full_name=(
+            google_user.get("name")
+            or email.split("@")[0]
+        ),
+        profile_picture=google_user.get("picture"),
+        is_email_verified=True,
+        is_active=True,
+    )
+
+    try:
+        db.add(user)
+        db.flush()
+
+        db.add(
+            AuthIdentity(
+                user_id=user.id,
+                provider="google",
+                provider_user_id=google_user_id,
+            )
+        )
+
+        db.commit()
+        db.refresh(user)
+
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this Google identity or email already exists.",
+        )
+
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not create your account. Please try again.",
+        )
+
+    return {
+        "message": "Account created successfully. Please sign in with Google.",
+        "requires_login": True,
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "profile_picture": user.profile_picture,
+            "is_email_verified": user.is_email_verified,
+        },
+    }
+
 
 @router.post("/login")
 def login(

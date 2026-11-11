@@ -13,16 +13,27 @@ import {
   Sun,
   Moon,
   LogOut,
+  ArrowUpRight,
+  Download,
+  TrendingUp,
+  ShieldCheck,
+  Clock3,
 } from 'lucide-react'
 
 import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   Tooltip,
-  ResponsiveContainer,
   CartesianGrid,
+  Legend,
 } from 'recharts'
 
 import StatCard from './components/StatCard'
@@ -31,15 +42,43 @@ import SettingsPanel from './components/SettingsPanel'
 
 import './Dashboard.css'
 
-const chartData = [
-  { day: 'Mon', legitimate: 210, flagged: 18 },
-  { day: 'Tue', legitimate: 260, flagged: 24 },
-  { day: 'Wed', legitimate: 225, flagged: 15 },
-  { day: 'Thu', legitimate: 290, flagged: 31 },
-  { day: 'Fri', legitimate: 245, flagged: 22 },
-  { day: 'Sat', legitimate: 180, flagged: 12 },
-  { day: 'Sun', legitimate: 205, flagged: 19 },
-]
+const getGreeting = () => {
+  const hour = new Date().getHours()
+
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
+const getLastSevenDays = (history = []) => {
+  const safeHistory = Array.isArray(history) ? history : []
+  const days = []
+
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date()
+    date.setDate(date.getDate() - i)
+
+    const key = date.toLocaleDateString('en-CA')
+
+    const transactions = safeHistory.filter(
+      (item) =>
+        item.created_at &&
+        new Date(item.created_at).toLocaleDateString('en-CA') === key
+    )
+
+    days.push({
+      day: date.toLocaleDateString('en-IN', { weekday: 'short' }),
+      legitimate: transactions.filter(
+        (item) => item.prediction !== 'Fraudulent'
+      ).length,
+      flagged: transactions.filter(
+        (item) => item.prediction === 'Fraudulent'
+      ).length,
+    })
+  }
+
+  return days
+}
 
 export default function Dashboard({
   activePage,
@@ -57,8 +96,8 @@ export default function Dashboard({
   loading,
   message,
   result,
-  history,
-  notifications,
+  history = [],
+  notifications = [],
   markNotificationRead,
   markAllNotificationsRead,
   welcomeVisible,
@@ -66,6 +105,50 @@ export default function Dashboard({
   onLogout,
 }) {
   const isFraud = result?.prediction === 'Fraudulent'
+
+  const safeHistory = Array.isArray(history) ? history : []
+  const safeNotifications = Array.isArray(notifications) ? notifications : []
+
+  const totalTransactions = safeHistory.length
+
+  const flaggedTransactions = safeHistory.filter(
+    (item) => item.prediction === 'Fraudulent'
+  ).length
+
+  const legitimateTransactions =
+    totalTransactions - flaggedTransactions
+
+  const highRiskCases = safeHistory.filter(
+    (item) => item.risk_level === 'High'
+  ).length
+
+  const activityData = getLastSevenDays(safeHistory)
+
+  const riskData = [
+    {
+      name: 'Low',
+      value: safeHistory.filter((item) => item.risk_level === 'Low').length,
+      color: '#477653',
+    },
+    {
+      name: 'Medium',
+      value: safeHistory.filter((item) => item.risk_level === 'Medium').length,
+      color: '#B7791F',
+    },
+    {
+      name: 'High',
+      value: highRiskCases,
+      color: '#9F263B',
+    },
+  ].filter((item) => item.value > 0)
+
+  const transactionDistribution = [
+    { name: 'Legitimate', value: legitimateTransactions, color: '#477653' },
+    { name: 'Flagged', value: flaggedTransactions, color: '#9F263B' },
+  ].filter((item) => item.value > 0)
+
+  const userName =
+    settings.profileName?.split(' ')[0] || 'there'
 
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [themeToast, setThemeToast] = useState('')
@@ -291,7 +374,7 @@ export default function Dashboard({
               >
                 <Bell size={20} />
 
-                {notifications.some((item) => !item.read) && (
+                {safeNotifications.some((item) => !item.read) && (
                   <span className="notification-indicator" />
                 )}
               </button>
@@ -302,7 +385,7 @@ export default function Dashboard({
                     <div>
                       <h3>Notifications</h3>
                       <p>
-                        {notifications.filter((item) => !item.read).length} unread
+                        {safeNotifications.filter((item) => !item.read).length} unread
                       </p>
                     </div>
 
@@ -311,7 +394,7 @@ export default function Dashboard({
                     </button>
                   </div>
 
-                  {notifications.length === 0 ? (
+                  {safeNotifications.length === 0 ? (
                     <div className="notification-empty">
                       <Bell size={22} />
                       <strong>You're all caught up</strong>
@@ -319,7 +402,7 @@ export default function Dashboard({
                     </div>
                   ) : (
                     <div className="notification-list">
-                      {notifications.map((item) => (
+                      {safeNotifications.map((item) => (
                         <button
                           type="button"
                           key={item.id}
@@ -373,41 +456,87 @@ export default function Dashboard({
           </section>
         ) : (
           <>
+            <section className="dashboard-welcome">
+              <div>
+                <span className="dashboard-eyebrow">
+                  YOUR FINANCIAL COMMAND CENTRE
+                </span>
+
+                <h1>
+                  {getGreeting()}, {userName} 👋🏻
+                </h1>
+
+                <p>
+                  Here's what's happening with your financial security.
+                </p>
+              </div>
+
+              <div className="welcome-date">
+                <Clock3 size={16} />
+                {new Date().toLocaleDateString('en-IN', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </div>
+            </section>
+
+            <section className="dashboard-quick-actions">
+              <button onClick={() => navigateTo('Analyze', 'analyze')}>
+                <ShieldAlert size={18} />
+                Financial Fraud
+                <ArrowUpRight size={16} />
+              </button>
+
+              <button onClick={() => navigateTo('Risk Analysis')}>
+                <TrendingUp size={18} />
+                Risk Analysis
+                <ArrowUpRight size={16} />
+              </button>
+
+              <button onClick={() => navigateTo('Unified Intelligence')}>
+                <Activity size={18} />
+                Unified Intelligence
+                <ArrowUpRight size={16} />
+              </button>
+
+              <button onClick={() => window.print()}>
+                <Download size={18} />
+                Export Report
+              </button>
+            </section>
+
             <section id="overview" className="dashboard-stats-grid">
               <StatCard
-                title="Total transactions"
-                value="12,480"
+                title="Transactions Analysed"
+                value={totalTransactions.toLocaleString('en-IN')}
                 icon={CreditCard}
               />
 
               <StatCard
-                title="Flagged transactions"
-                value="186"
+                title="Legitimate Transactions"
+                value={legitimateTransactions.toLocaleString('en-IN')}
+                icon={ShieldCheck}
+                color="blue"
+              />
+
+              <StatCard
+                title="Flagged Transactions"
+                value={flaggedTransactions.toLocaleString('en-IN')}
                 icon={ShieldAlert}
                 color="red"
               />
 
               <StatCard
-                title="Flagged rate"
-                value="1.49%"
-                icon={Percent}
-                color="violet"
-              />
-
-              <StatCard
-                title="High-risk cases"
-                value="42"
+                title="High Risk Cases"
+                value={highRiskCases.toLocaleString('en-IN')}
                 icon={AlertTriangle}
                 color="amber"
               />
             </section>
 
-            <p className="dashboard-data-note">
-              <span className="data-note-indicator" />
-              Dashboard cards and chart use illustrative sample data.
-            </p>
-
-            <section className="dashboard-content-grid">
+            <section className="dashboard-analytics">
               <article className="dashboard-panel activity-panel">
                 <div className="panel-heading">
                   <div className="panel-heading-icon">
@@ -415,197 +544,318 @@ export default function Dashboard({
                   </div>
 
                   <div>
-                    <h2>Transaction activity</h2>
-                    <p>Last 7 days · sample data</p>
+                    <h2>Transaction Activity</h2>
+                    <p>Transaction trends over the last 7 days</p>
                   </div>
                 </div>
 
-                <div className="activity-chart">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} barGap={5}>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="var(--dashboard-chart-grid)"
-                      />
+                {totalTransactions > 0 ? (
+                  <div className="activity-chart">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={activityData}>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          vertical={false}
+                          stroke="var(--dashboard-chart-grid)"
+                        />
 
-                      <XAxis
-                        dataKey="day"
-                        tick={{ fontSize: 12 }}
-                        stroke="var(--dashboard-muted)"
-                        axisLine={false}
-                        tickLine={false}
-                      />
+                        <XAxis dataKey="day" />
 
-                      <YAxis
-                        tick={{ fontSize: 12 }}
-                        stroke="var(--dashboard-muted)"
-                        axisLine={false}
-                        tickLine={false}
-                      />
+                        <YAxis allowDecimals={false} />
 
-                      <Tooltip
-                        contentStyle={{
-                          background: 'var(--dashboard-surface)',
-                          border: '1px solid var(--dashboard-border)',
-                          borderRadius: '12px',
-                          color: 'var(--dashboard-text)',
-                        }}
-                      />
+                        <Tooltip />
 
-                      <Bar
-                        dataKey="legitimate"
-                        name="Legitimate"
-                        fill="var(--dashboard-chart-primary)"
-                        radius={[5, 5, 0, 0]}
-                      />
+                        <Legend />
 
-                      <Bar
-                        dataKey="flagged"
-                        name="Flagged"
-                        fill="var(--dashboard-chart-secondary)"
-                        radius={[5, 5, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                        <Line
+                          type="monotone"
+                          dataKey="legitimate"
+                          name="Legitimate"
+                          stroke="#477653"
+                          strokeWidth={3}
+                          dot={false}
+                        />
 
-                <div className="chart-legend">
-                  <span>
-                    <i className="legend-legitimate" />
-                    Legitimate
-                  </span>
-
-                  <span>
-                    <i className="legend-flagged" />
-                    Flagged
-                  </span>
-                </div>
+                        <Line
+                          type="monotone"
+                          dataKey="flagged"
+                          name="Flagged"
+                          stroke="#9F263B"
+                          strokeWidth={3}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="dashboard-chart-empty">
+                    <Activity size={30} />
+                    <strong>No transaction activity yet</strong>
+                    <span>Analyse your first transaction to see trends.</span>
+                  </div>
+                )}
               </article>
 
-              <article id="analyze" className="dashboard-panel analyze-panel">
+              <article className="dashboard-panel">
                 <div className="panel-heading">
                   <div className="panel-heading-icon">
                     <ShieldAlert size={19} />
                   </div>
 
                   <div>
-                    <h2>Analyze a transaction</h2>
-                    <p>ML-powered financial risk assessment</p>
+                    <h2>Risk Distribution</h2>
+                    <p>Breakdown of assessed transactions</p>
                   </div>
                 </div>
 
-                <form onSubmit={analyze} className="analysis-form">
-                  <label>
-                    <span>Transaction amount</span>
+                {riskData.length > 0 ? (
+                  <div className="activity-chart">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={riskData}
+                          dataKey="value"
+                          nameKey="name"
+                          innerRadius={65}
+                          outerRadius={95}
+                          paddingAngle={4}
+                        >
+                          {riskData.map((item) => (
+                            <Cell key={item.name} fill={item.color} />
+                          ))}
+                        </Pie>
 
-                    <div className="analysis-input-wrapper">
-                      <span className="currency-symbol">₹</span>
-
-                      <input
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        required
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        placeholder="Enter transaction amount"
-                      />
-                    </div>
-                  </label>
-
-                  <label>
-                    <span>Transaction type</span>
-
-                    <select
-                      value={type}
-                      onChange={(e) => setType(e.target.value)}
-                    >
-                      {[
-                        'TRANSFER',
-                        'PAYMENT',
-                        'CASH_OUT',
-                        'CASH_IN',
-                        'DEBIT',
-                      ].map((item) => (
-                        <option key={item} value={item}>
-                          {item.replace('_', ' ')}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="analyze-button"
-                  >
-                    <Search size={18} />
-                    {loading
-                      ? 'Analyzing transaction...'
-                      : 'Analyze transaction'}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="clear-analysis-button"
-                    onClick={clearAnalysis}
-                    disabled={loading}
-                  >
-                    Clear / Reset
-                  </button>
-                </form>
-
-                {message && (
-                  <div role="status" className="analysis-message">
-                    {message}
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="dashboard-chart-empty">
+                    <ShieldCheck size={30} />
+                    <strong>No risk data available</strong>
+                    <span>Your risk distribution will appear here.</span>
                   </div>
                 )}
+              </article>
 
-                {result && (
-                  <div
-                    className={`analysis-result ${
-                      isFraud ? 'result-danger' : 'result-safe'
-                    }`}
-                  >
-                    <div className="analysis-result-heading">
-                      {isFraud ? (
-                        <XCircle size={22} />
-                      ) : (
-                        <CheckCircle size={22} />
-                      )}
+              <article className="dashboard-panel">
+                <div className="panel-heading">
+                  <div className="panel-heading-icon">
+                    <Percent size={19} />
+                  </div>
 
-                      <div>
-                        <span>MODEL PREDICTION</span>
-                        <h3>{result.prediction}</h3>
-                      </div>
-                    </div>
+                  <div>
+                    <h2>Transaction Distribution</h2>
+                    <p>Legitimate versus flagged transactions</p>
+                  </div>
+                </div>
 
-                    <div className="analysis-result-grid">
-                      <div>
-                        <span>Fraud probability</span>
-                        <strong>
-                          {(Number(result.fraud_probability) * 100).toFixed(1)}%
-                        </strong>
-                      </div>
+                {transactionDistribution.length > 0 ? (
+                  <div className="activity-chart">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={transactionDistribution}
+                          dataKey="value"
+                          nameKey="name"
+                          outerRadius={95}
+                          paddingAngle={4}
+                        >
+                          {transactionDistribution.map((item) => (
+                            <Cell key={item.name} fill={item.color} />
+                          ))}
+                        </Pie>
 
-                      <div>
-                        <span>Risk classification</span>
-                        <strong>{result.risk_level}</strong>
-                      </div>
-                    </div>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="dashboard-chart-empty">
+                    <Percent size={30} />
+                    <strong>No distribution data yet</strong>
+                    <span>Your transaction breakdown will appear here.</span>
+                  </div>
+                )}
+              </article>
 
-                    <p>
-                      Experimental prediction from a model trained on
-                      synthetic data. It is not proof of fraud.
-                    </p>
+              <article className="dashboard-panel">
+                <div className="panel-heading">
+                  <div className="panel-heading-icon">
+                    <TrendingUp size={19} />
+                  </div>
+
+                  <div>
+                    <h2>Daily Transaction Volume</h2>
+                    <p>Number of analysed transactions per day</p>
+                  </div>
+                </div>
+
+                {totalTransactions > 0 ? (
+                  <div className="activity-chart">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={activityData}>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          vertical={false}
+                        />
+
+                        <XAxis dataKey="day" />
+
+                        <YAxis allowDecimals={false} />
+
+                        <Tooltip />
+
+                        <Bar
+                          dataKey="legitimate"
+                          stackId="a"
+                          fill="#477653"
+                          name="Legitimate"
+                        />
+
+                        <Bar
+                          dataKey="flagged"
+                          stackId="a"
+                          fill="#9F263B"
+                          name="Flagged"
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="dashboard-chart-empty">
+                    <TrendingUp size={30} />
+                    <strong>Waiting for transactions</strong>
+                    <span>Volume analytics will appear here.</span>
                   </div>
                 )}
               </article>
             </section>
 
+            <section id="analyze" className="dashboard-panel analyze-panel" style={{ marginTop: '24px', marginBottom: '24px' }}>
+              <div className="panel-heading">
+                <div className="panel-heading-icon">
+                  <ShieldAlert size={19} />
+                </div>
+
+                <div>
+                  <h2>Analyze a transaction</h2>
+                  <p>ML-powered financial risk assessment</p>
+                </div>
+              </div>
+
+              <form onSubmit={analyze} className="analysis-form">
+                <label>
+                  <span>Transaction amount</span>
+
+                  <div className="analysis-input-wrapper">
+                    <span className="currency-symbol">₹</span>
+
+                    <input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      required
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="Enter transaction amount"
+                    />
+                  </div>
+                </label>
+
+                <label>
+                  <span>Transaction type</span>
+
+                  <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                  >
+                    {[
+                      'TRANSFER',
+                      'PAYMENT',
+                      'CASH_OUT',
+                      'CASH_IN',
+                      'DEBIT',
+                    ].map((item) => (
+                      <option key={item} value={item}>
+                        {item.replace('_', ' ')}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="analyze-button"
+                >
+                  <Search size={18} />
+                  {loading
+                    ? 'Analyzing transaction...'
+                    : 'Analyze transaction'}
+                </button>
+
+                <button
+                  type="button"
+                  className="clear-analysis-button"
+                  onClick={clearAnalysis}
+                  disabled={loading}
+                >
+                  Clear / Reset
+                </button>
+              </form>
+
+              {message && (
+                <div role="status" className="analysis-message">
+                  {message}
+                </div>
+              )}
+
+              {result && (
+                <div
+                  className={`analysis-result ${
+                    isFraud ? 'result-danger' : 'result-safe'
+                  }`}
+                >
+                  <div className="analysis-result-heading">
+                    {isFraud ? (
+                      <XCircle size={22} />
+                    ) : (
+                      <CheckCircle size={22} />
+                    )}
+
+                    <div>
+                      <span>MODEL PREDICTION</span>
+                      <h3>{result.prediction}</h3>
+                    </div>
+                  </div>
+
+                  <div className="analysis-result-grid">
+                    <div>
+                      <span>Fraud probability</span>
+                      <strong>
+                        {(Number(result.fraud_probability) * 100).toFixed(1)}%
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>Risk classification</span>
+                      <strong>{result.risk_level}</strong>
+                    </div>
+                  </div>
+
+                  <p>
+                    Experimental prediction from a model trained on
+                    synthetic data. It is not proof of fraud.
+                  </p>
+                </div>
+              )}
+            </section>
+
             <section id="transactions" className="dashboard-transactions">
-              <TransactionTable history={history} />
+              <TransactionTable history={safeHistory} />
             </section>
           </>
         )}

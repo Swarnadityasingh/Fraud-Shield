@@ -6,6 +6,7 @@ import LandingPage from './components/LandingPage'
 import LandingPageIntro from './components/LandingPageIntro'
 import ForgotPassword from './components/ForgotPassword'
 import ResetPassword from './components/ResetPassword'
+import VerifyEmail from './components/VerifyEmail'
 
 import {
   predictTransaction,
@@ -409,6 +410,14 @@ export default function App() {
     }
 
     return <LandingPage />
+  }
+
+  if (currentPath === '/verify-email') {
+    return (
+      <VerifyEmail
+        onNavigateLogin={() => navigate('/login', true)}
+      />
+    )
   }
 
   if (currentPath === '/forgot-password') {

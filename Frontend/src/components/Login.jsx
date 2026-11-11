@@ -7,16 +7,42 @@ import {
   ShieldCheck,
   Eye,
   EyeOff,
+  Ban,
+  LoaderCircle,
   LockKeyhole,
   Mail,
   User,
   ArrowRight,
   ArrowLeft,
   AlertTriangle,
+  Check,
 } from 'lucide-react'
 import './Login.css'
 import ThemeToggle from './ThemeToggle'
 import ForgotPassword from './ForgotPassword'
+
+const PASSWORD_REQUIREMENTS = [
+  {
+    label: 'At least 8 characters',
+    test: (password) => password.length >= 8,
+  },
+  {
+    label: 'One uppercase letter (A–Z)',
+    test: (password) => /[A-Z]/.test(password),
+  },
+  {
+    label: 'One lowercase letter (a–z)',
+    test: (password) => /[a-z]/.test(password),
+  },
+  {
+    label: 'One number (0–9)',
+    test: (password) => /[0-9]/.test(password),
+  },
+  {
+    label: 'At least one special character',
+    test: (password) => /[^A-Za-z0-9]/.test(password),
+  },
+]
 
 export default function Login({
   onLogin,
@@ -33,24 +59,32 @@ export default function Login({
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
+  const [googleMessage, setGoogleMessage] = useState('')
 
   const [regName, setRegName] = useState('')
   const [regEmail, setRegEmail] = useState('')
   const [regPassword, setRegPassword] = useState('')
   const [showRegPassword, setShowRegPassword] = useState(false)
 
+  const passedPasswordRequirements = PASSWORD_REQUIREMENTS.filter((requirement) =>
+    requirement.test(regPassword)
+  ).length
+  const isRegPasswordStrong =
+    passedPasswordRequirements === PASSWORD_REQUIREMENTS.length
+
   const [status, setStatus] = useState('idle')
   const [authError, setAuthError] = useState('')
   const [loginFailure, setLoginFailure] = useState(false)
+
   useEffect(() => {
-  if (status !== 'error') return undefined
+    if (status !== 'error') return undefined
 
-  const timer = window.setTimeout(() => {
-    setStatus('idle')
-  }, 2500)
+    const timer = window.setTimeout(() => {
+      setStatus('idle')
+    }, 2500)
 
-  return () => window.clearTimeout(timer)
-}, [status])
+    return () => window.clearTimeout(timer)
+  }, [status])
 
   const isLoginView = !isFlipped && !showForgot
 
@@ -115,6 +149,15 @@ export default function Login({
 
     if (!regName.trim() || !regEmail.trim() || !regPassword.trim()) {
       setStatus('error')
+      setAuthError('Please fill all registration fields.')
+      return
+    }
+
+    if (!isRegPasswordStrong) {
+      setStatus('error')
+      setAuthError(
+        'Please meet all five password requirements before creating your account.'
+      )
       return
     }
 
@@ -155,19 +198,21 @@ export default function Login({
     }
   }
 
-  async function handleGoogleOAuth(credentialResponse) {
+  async function handleGoogleLogin(credentialResponse) {
     const credential = credentialResponse?.credential
 
     if (!credential) {
       setLoginFailure(true)
       setStatus('error')
-      setAuthError('Google did not provide an authentication credential.')
+      setGoogleMessage('Google did not provide an authentication credential.')
+      setAuthError('Google authentication credential is missing.')
       return
     }
 
     setLoginFailure(false)
     setStatus('processing')
     setAuthError('')
+    setGoogleMessage('')
 
     try {
       const response = await fetch('http://localhost:8000/auth/google', {
@@ -182,9 +227,7 @@ export default function Login({
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(
-          data.detail || 'Google authentication failed.'
-        )
+        throw new Error(data.detail || 'Google authentication failed.')
       }
 
       if (!data.access_token || !data.user) {
@@ -202,41 +245,92 @@ export default function Login({
       }
 
     } catch (error) {
-      console.error('Google authentication error:', error)
+      console.error('Google login error:', error)
       setLoginFailure(true)
       setStatus('error')
+      setAuthError(error.message || 'Google authentication was denied.')
+      setGoogleMessage(error.message || 'Google authentication failed.')
+    }
+  }
+
+  async function handleGoogleRegister(credentialResponse) {
+    const credential = credentialResponse?.credential
+
+    if (!credential) {
+      setStatus('unavailable')
+      setAuthError('Google did not provide an authentication credential.')
+      return
+    }
+
+    setStatus('processing')
+    setAuthError('')
+    setGoogleMessage('')
+
+    try {
+      const response = await fetch(
+        'http://localhost:8000/auth/google/register',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ credential }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Google registration failed.')
+      }
+
+      if (!data.requires_login || !data.user) {
+        throw new Error('Invalid registration response from server.')
+      }
+
+      setIsFlipped(false)
+      setStatus('idle')
+      setLoginFailure(false)
+      setGoogleMessage(
+        'Account created successfully! Please continue with Google to sign in.'
+      )
+
+    } catch (error) {
+      console.error('Google registration error:', error)
+      setStatus('unavailable')
       setAuthError(
-        error.message || 'Google authentication was denied.'
+        error.message || 'Could not create your account.'
       )
     }
   }
 
   function handleCardPointerMove(event) {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return
+    }
+
+    const card = event.currentTarget
+    const bounds = card.getBoundingClientRect()
+    const pointerX = (event.clientX - bounds.left) / bounds.width
+    const pointerY = (event.clientY - bounds.top) / bounds.height
+    const rotateX = (0.5 - pointerY) * 10
+    const rotateY = (pointerX - 0.5) * 10
+
+    card.style.setProperty('--card-rotate-x', `${rotateX}deg`)
+    card.style.setProperty('--card-rotate-y', `${rotateY}deg`)
+    card.style.setProperty('--card-pointer-x', `${pointerX * 100}%`)
+    card.style.setProperty('--card-pointer-y', `${pointerY * 100}%`)
   }
 
-  const card = event.currentTarget
-  const bounds = card.getBoundingClientRect()
-  const pointerX = (event.clientX - bounds.left) / bounds.width
-  const pointerY = (event.clientY - bounds.top) / bounds.height
-  const rotateX = (0.5 - pointerY) * 10
-  const rotateY = (pointerX - 0.5) * 10
+  function handleCardPointerLeave(event) {
+    const card = event.currentTarget
 
-  card.style.setProperty('--card-rotate-x', `${rotateX}deg`)
-  card.style.setProperty('--card-rotate-y', `${rotateY}deg`)
-  card.style.setProperty('--card-pointer-x', `${pointerX * 100}%`)
-  card.style.setProperty('--card-pointer-y', `${pointerY * 100}%`)
-}
-
-function handleCardPointerLeave(event) {
-  const card = event.currentTarget
-
-  card.style.setProperty('--card-rotate-x', '0deg')
-  card.style.setProperty('--card-rotate-y', '0deg')
-  card.style.setProperty('--card-pointer-x', '50%')
-  card.style.setProperty('--card-pointer-y', '50%')
-}
+    card.style.setProperty('--card-rotate-x', '0deg')
+    card.style.setProperty('--card-rotate-y', '0deg')
+    card.style.setProperty('--card-pointer-x', '50%')
+    card.style.setProperty('--card-pointer-y', '50%')
+  }
 
   return (
     <main
@@ -276,10 +370,7 @@ function handleCardPointerLeave(event) {
             risk intelligence.
           </p>
 
-          <div className="login-ticket-wrapper">
-
-          </div>
-
+          <div className="login-ticket-wrapper"></div>
         </div>
       </section>
 
@@ -312,6 +403,7 @@ function handleCardPointerLeave(event) {
                   <ShieldCheck size={35} aria-hidden="true" />
                   <span>FraudShield</span>
                 </div>
+
                 {(status === 'success' || status === 'error') && (
                   <motion.div
                     className={`success-ticket-overlay ${
@@ -319,12 +411,8 @@ function handleCardPointerLeave(event) {
                         ? 'success-ticket-granted'
                         : 'success-ticket-denied'
                     }`}
-                    initial={{
-                      opacity: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{
                       duration: reduceMotion ? 0 : 0.45,
                       ease: 'easeOut',
@@ -335,15 +423,9 @@ function handleCardPointerLeave(event) {
                       initial={
                         reduceMotion
                           ? false
-                          : {
-                              opacity: 0,
-                              scale: 0.7,
-                            }
+                          : { opacity: 0, scale: 0.7 }
                       }
-                      animate={{
-                        opacity: 1,
-                        scale: 1,
-                      }}
+                      animate={{ opacity: 1, scale: 1 }}
                       transition={{
                         duration: reduceMotion ? 0 : 1.1,
                         delay: 0.45,
@@ -356,28 +438,16 @@ function handleCardPointerLeave(event) {
                       initial={
                         reduceMotion
                           ? false
-                          : {
-                              y: '-115%',
-                              opacity: 0,
-                              rotateX: 10,
-                            }
+                          : { y: '-115%', opacity: 0, rotateX: 10 }
                       }
-                      animate={{
-                        y: '0%',
-                        opacity: 1,
-                        rotateX: 0,
-                      }}
+                      animate={{ y: '0%', opacity: 1, rotateX: 0 }}
                       transition={{
                         y: {
                           duration: reduceMotion ? 0 : 1.55,
                           ease: [0.16, 1, 0.3, 1],
                         },
-                        opacity: {
-                          duration: reduceMotion ? 0 : 0.25,
-                        },
-                        rotateX: {
-                          duration: reduceMotion ? 0 : 1.2,
-                        },
+                        opacity: { duration: reduceMotion ? 0 : 0.25 },
+                        rotateX: { duration: reduceMotion ? 0 : 1.2 },
                       }}
                     >
                       <div className="success-ticket-scale">
@@ -389,15 +459,34 @@ function handleCardPointerLeave(event) {
                     </motion.div>
                   </motion.div>
                 )}
+
                 <div className="form-heading">
                   <p>SECURE ACCESS</p>
                   <h2>Welcome back</h2>
                   <span>Sign in to access your monitoring workspace.</span>
                 </div>
 
+                {googleMessage && (
+                  <div
+                    role="status"
+                    style={{
+                      marginBottom: '16px',
+                      padding: '12px 14px',
+                      border: '1px solid #16a34a',
+                      borderRadius: '10px',
+                      color: '#16a34a',
+                      fontSize: '13px',
+                      lineHeight: 1.5,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {googleMessage}
+                  </div>
+                )}
+
                 <div className="oauth-google-btn">
                   <GoogleLogin
-                    onSuccess={handleGoogleOAuth}
+                    onSuccess={handleGoogleLogin}
                     onError={() => {
                       setLoginFailure(true)
                       setStatus('unavailable')
@@ -502,6 +591,7 @@ function handleCardPointerLeave(event) {
                     onClick={() => {
                       setStatus('idle')
                       setLoginFailure(false)
+                      setGoogleMessage('')
                       setIsFlipped(true)
                     }}
                   >
@@ -534,11 +624,10 @@ function handleCardPointerLeave(event) {
 
                 <div className="oauth-google-btn">
                   <GoogleLogin
-                    onSuccess={handleGoogleOAuth}
+                    onSuccess={handleGoogleRegister}
                     onError={() => {
-                      setLoginFailure(true)
                       setStatus('unavailable')
-                      setAuthError('Google Sign-In was cancelled or failed.')
+                      setAuthError('Google registration was cancelled or failed.')
                     }}
                     theme="filled_black"
                     size="large"
@@ -615,6 +704,38 @@ function handleCardPointerLeave(event) {
                     </button>
                   </div>
 
+                  {regPassword.length > 0 && (
+                    <div className="password-requirements">
+                      <div className="password-requirements-heading">
+                        Password requirements
+                        <span>
+                          {passedPasswordRequirements}/5 completed
+                        </span>
+                      </div>
+
+                      {PASSWORD_REQUIREMENTS.map((requirement, index) => {
+                        const passed = requirement.test(regPassword)
+
+                        return (
+                          <div
+                            key={index}
+                            className={`password-requirement ${
+                              passed ? 'requirement-met' : ''
+                            }`}
+                          >
+                            {passed ? (
+                              <Check size={15} />
+                            ) : (
+                              <AlertTriangle size={15} />
+                            )}
+
+                            <span>{requirement.label}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
                   {['error', 'unavailable', 'verification-sent'].includes(status) && (
                     <div className="atm-receipt-error" style={{ marginTop: '16px' }}>
                       <div className="receipt-header">
@@ -629,7 +750,7 @@ function handleCardPointerLeave(event) {
                       </div>
                       <div className="receipt-body">
                         {status === 'error'
-                          ? 'Please fill all registration fields.'
+                          ? authError || 'Please fill all registration fields.'
                           : status === 'verification-sent'
                           ? authError
                           : authError || 'Authentication failed. Please try again.'}
@@ -641,10 +762,28 @@ function handleCardPointerLeave(event) {
                     type="submit"
                     className="login-submit"
                     style={{ marginTop: '22px' }}
-                    disabled={status === 'processing' || status === 'success'}
+                    disabled={
+                      status === 'processing' ||
+                      status === 'success' ||
+                      !isRegPasswordStrong
+                    }
                   >
-                    Create Account
-                    <ArrowRight size={18} />
+                    {status === 'processing' ? (
+                      <>
+                        Creating Account...
+                        <LoaderCircle size={18} className="animate-spin" />
+                      </>
+                    ) : !isRegPasswordStrong ? (
+                      <>
+                        Create Account
+                        <Ban size={19} />
+                      </>
+                    ) : (
+                      <>
+                        Create Account
+                        <ArrowRight size={18} />
+                      </>
+                    )}
                   </button>
                 </form>
 
@@ -656,6 +795,7 @@ function handleCardPointerLeave(event) {
                     onClick={() => {
                       setStatus('idle')
                       setLoginFailure(false)
+                      setGoogleMessage('')
                       setIsFlipped(false)
                     }}
                   >

@@ -1,12 +1,17 @@
 .access-ticket {
   --ticket-color: #c8f43d;
   --ticket-ink: #11150b;
+
   position: relative;
   width: min(100%, 280px);
   aspect-ratio: 0.48;
+  height: auto;
+  box-sizing: border-box;
+
   overflow: hidden;
   color: var(--ticket-ink);
   background: var(--ticket-color);
+
   clip-path: polygon(
     0 0,
     100% 0,
@@ -19,14 +24,18 @@
     6% 79%,
     0 75%
   );
+
   box-shadow:
     0 30px 65px #00000045,
     0 8px 18px #00000025;
+
   transform-style: preserve-3d;
+
   transition:
     transform 260ms ease,
     filter 260ms ease;
 }
+
 
 .access-ticket:hover {
   transform: translateY(-6px) rotateX(2deg) rotateY(-2deg);
@@ -47,7 +56,11 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 79%;
+
+  height: 79%;
+  min-height: 0;
+  box-sizing: border-box;
+
   padding: 25px 25px 20px;
 }
 
@@ -125,9 +138,15 @@
 }
 
 .access-ticket-result > span {
-  display: block;
+  display: -webkit-box;
   max-width: 220px;
+  min-height: 27px;
   margin-top: 16px;
+
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+
   font-size: 9px;
   font-weight: 600;
   line-height: 1.5;
@@ -168,10 +187,14 @@
   right: 0;
   bottom: 0;
   left: 0;
+
   height: 21%;
+  box-sizing: border-box;
+
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
+
   padding: 20px 25px 18px;
   border-top: 1px dashed #11150b55;
 }

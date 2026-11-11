@@ -32,9 +32,10 @@
   background: color-mix(in srgb, var(--dashboard-danger) 10%, transparent);
 }
 
+
 .icon-violet {
-  color: #8B5CF6;
-  background: color-mix(in srgb, #8B5CF6 11%, transparent);
+  color: #5D0018;
+  background: color-mix(in srgb, #5D0018 10%, transparent);
 }
 
 .icon-amber {
