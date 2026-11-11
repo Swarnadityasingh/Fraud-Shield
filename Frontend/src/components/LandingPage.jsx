@@ -254,7 +254,7 @@ const investigationSlides = [
   },
 ]
 
-function FraudInvestigationScene() {
+export function FraudInvestigationScene() {
   const reducedMotion = useReducedMotion()
   const [activeSlide, setActiveSlide] = useState(0)
 
@@ -264,6 +264,70 @@ function FraudInvestigationScene() {
     const interval = window.setInterval(() => {
       setActiveSlide((current) =>
         (current + 1) % investigationSlides.length
+      )
+    }, 3000)
+
+    return () => window.clearInterval(interval)
+  }, [reducedMotion])
+
+  return (
+    <div
+      className="fs-case-slider"
+      role="region"
+      aria-label="FraudShield intelligence carousel"
+    >
+      <div className="fs-case-cards">
+        <AnimatePresence initial={false} mode="sync">
+          <motion.div
+            key={investigationSlides[activeSlide].image}
+            className="fs-case-card fs-case-card-active"
+            initial={
+              reducedMotion
+                ? false
+                : {
+                    x: '100%',
+                    opacity: 0,
+                  }
+            }
+            animate={{
+              x: '0%',
+              opacity: 1,
+            }}
+            exit={{
+              x: '-100%',
+              opacity: 0,
+            }}
+            transition={{
+              x: {
+                duration: reducedMotion ? 0 : 0.9,
+                ease: [0.22, 1, 0.36, 1],
+              },
+              opacity: {
+                duration: reducedMotion ? 0 : 0.55,
+              },
+            }}
+          >
+            <img
+              src={investigationSlides[activeSlide].image}
+              alt={investigationSlides[activeSlide].title}
+            />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
+function LandingFraudInvestigationScene() {
+  const reducedMotion = useReducedMotion()
+  const [activeSlide, setActiveSlide] = useState(0)
+
+  useEffect(() => {
+    if (reducedMotion) return undefined
+
+    const interval = window.setInterval(() => {
+      setActiveSlide(
+        (current) => (current + 1) % investigationSlides.length
       )
     }, 4500)
 
@@ -275,7 +339,9 @@ function FraudInvestigationScene() {
       (index - activeSlide + investigationSlides.length) %
       investigationSlides.length
 
-    if (position > 1) position -= investigationSlides.length
+    if (position > 1) {
+      position -= investigationSlides.length
+    }
 
     return position
   }
@@ -296,7 +362,10 @@ function FraudInvestigationScene() {
           initial={{ opacity: 0, scale: 1.08 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
+          transition={{
+            duration: reducedMotion ? 0 : 0.8,
+            ease: 'easeOut',
+          }}
         />
       </AnimatePresence>
 
@@ -336,7 +405,10 @@ function FraudInvestigationScene() {
                   opacity: isActive ? 1 : 0,
                   y: isActive ? 0 : 14,
                 }}
-                transition={{ duration: 0.4, delay: isActive ? 0.25 : 0 }}
+                transition={{
+                  duration: 0.4,
+                  delay: isActive ? 0.25 : 0,
+                }}
               >
                 <span>{slide.eyebrow}</span>
                 <strong>{slide.title}</strong>
@@ -1050,7 +1122,7 @@ export default function LandingPage() {
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   transition={{ duration: 1.1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <FraudInvestigationScene />
+                  <LandingFraudInvestigationScene />
                 </motion.div>
               </section>
             </div>

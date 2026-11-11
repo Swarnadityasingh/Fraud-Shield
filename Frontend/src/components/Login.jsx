@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { GoogleLogin } from '@react-oauth/google'
+import AccessTicket from './AccessTicket'
+import { FraudInvestigationScene } from './LandingPage'
 import {
   ShieldCheck,
   Eye,
@@ -10,12 +12,11 @@ import {
   User,
   ArrowRight,
   ArrowLeft,
-  AlertTriangle
+  AlertTriangle,
 } from 'lucide-react'
 import './Login.css'
 import ThemeToggle from './ThemeToggle'
 import ForgotPassword from './ForgotPassword'
-import ReceiptPrinter from './ReceiptPrinter'
 
 export default function Login({
   onLogin,
@@ -41,18 +42,17 @@ export default function Login({
   const [status, setStatus] = useState('idle')
   const [authError, setAuthError] = useState('')
   const [loginFailure, setLoginFailure] = useState(false)
+  useEffect(() => {
+  if (status !== 'error') return undefined
+
+  const timer = window.setTimeout(() => {
+    setStatus('idle')
+  }, 2500)
+
+  return () => window.clearTimeout(timer)
+}, [status])
 
   const isLoginView = !isFlipped && !showForgot
-
-  const printerStage = !isLoginView
-    ? 'idle'
-    : status === 'processing'
-    ? 'processing'
-    : status === 'success'
-    ? 'complete'
-    : loginFailure && ['error', 'unavailable'].includes(status)
-    ? 'printing'
-    : 'idle'
 
   async function handleLoginSubmit(e) {
     e.preventDefault()
@@ -97,15 +97,15 @@ export default function Login({
       } else {
         window.setTimeout(() => {
           onLogin?.(data)
-        }, 1800)
+        }, 3000)
       }
 
     } catch (error) {
       console.error('Login error:', error)
       setLoginFailure(true)
-      setStatus('unavailable')
+      setStatus('error')
       setAuthError(
-        error.message || 'Could not connect to the authentication server.'
+        error.message || 'Could not verify your credentials.'
       )
     }
   }
@@ -160,7 +160,7 @@ export default function Login({
 
     if (!credential) {
       setLoginFailure(true)
-      setStatus('unavailable')
+      setStatus('error')
       setAuthError('Google did not provide an authentication credential.')
       return
     }
@@ -198,33 +198,70 @@ export default function Login({
       } else {
         window.setTimeout(() => {
           onLogin?.(data)
-        }, 1800)
+        }, 3000)
       }
 
     } catch (error) {
       console.error('Google authentication error:', error)
-
       setLoginFailure(true)
-      setStatus('unavailable')
+      setStatus('error')
       setAuthError(
-        error.message || 'Could not connect to the authentication server.'
+        error.message || 'Google authentication was denied.'
       )
     }
   }
 
+  function handleCardPointerMove(event) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return
+  }
+
+  const card = event.currentTarget
+  const bounds = card.getBoundingClientRect()
+  const pointerX = (event.clientX - bounds.left) / bounds.width
+  const pointerY = (event.clientY - bounds.top) / bounds.height
+  const rotateX = (0.5 - pointerY) * 10
+  const rotateY = (pointerX - 0.5) * 10
+
+  card.style.setProperty('--card-rotate-x', `${rotateX}deg`)
+  card.style.setProperty('--card-rotate-y', `${rotateY}deg`)
+  card.style.setProperty('--card-pointer-x', `${pointerX * 100}%`)
+  card.style.setProperty('--card-pointer-y', `${pointerY * 100}%`)
+}
+
+function handleCardPointerLeave(event) {
+  const card = event.currentTarget
+
+  card.style.setProperty('--card-rotate-x', '0deg')
+  card.style.setProperty('--card-rotate-y', '0deg')
+  card.style.setProperty('--card-pointer-x', '50%')
+  card.style.setProperty('--card-pointer-y', '50%')
+}
+
   return (
-    <main className="login-page" data-theme={theme}>
+    <main
+      className={`login-page ${isFlipped ? 'register-layout' : ''}`}
+      data-theme={theme}
+    >
+      <button
+        type="button"
+        className="continue-exploring-btn"
+        onClick={() => {
+          window.location.href = '/'
+        }}
+      >
+        <ArrowLeft size={18} />
+        <span>Continue Exploring</span>
+      </button>
+
       <section className="login-visual">
-        <button
-          type="button"
-          className="continue-exploring-btn"
-          onClick={() => {
-            window.location.href = '/'
-          }}
+        <div
+          className="login-carousel-layer"
+          aria-hidden="true"
+          inert=""
         >
-          <ArrowLeft size={18} />
-          <span>Continue Exploring</span>
-        </button>
+          <FraudInvestigationScene />
+        </div>
 
         <div className="visual-content">
           <p className="visual-eyebrow">FINANCIAL INTELLIGENCE PLATFORM</p>
@@ -239,86 +276,10 @@ export default function Login({
             risk intelligence.
           </p>
 
-          <div className="login-depth-scene" aria-hidden="true">
-            <div className="login-depth-glow" />
-            <div className="login-depth-orbit" />
-            <div className="login-depth-orbit login-depth-orbit-inner" />
+          <div className="login-ticket-wrapper">
 
-            {[
-              { value: '500', position: 'one', angle: -14 },
-              { value: '200', position: 'two', angle: 18 },
-              { value: '100', position: 'three', angle: -9 },
-            ].map((note, index) => (
-              <motion.div
-                key={note.value}
-                className={`login-depth-note login-depth-note-${note.position}`}
-                initial={{ x: 0, y: 0, rotate: note.angle, rotateX: 0, rotateY: 0 }}
-                animate={
-                  reduceMotion
-                    ? { x: 0, y: 0, rotate: note.angle, rotateX: 0, rotateY: 0 }
-                    : {
-                        x: [0, index === 1 ? -6 : 6, 0, index === 1 ? 6 : -6, 0],
-                        y: [0, -14, -5, -10, 0],
-                        rotate: [
-                          note.angle,
-                          note.angle + 4,
-                          note.angle,
-                          note.angle - 4,
-                          note.angle,
-                        ],
-                        rotateX: [0, 7, 0, -7, 0],
-                        rotateY: [0, -9, 0, 9, 0],
-                      }
-                }
-                transition={
-                  reduceMotion
-                    ? { duration: 0 }
-                    : {
-                        duration: 6 + index,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                        times: [0, 0.25, 0.5, 0.75, 1],
-                        delay: index * 0.4,
-                      }
-                }
-              >
-                <span>FRAUDSHIELD · SECURITY</span>
-                <div>
-                  <b>₹</b>
-                  <strong>{note.value}</strong>
-                </div>
-                <span>ILLUSTRATIVE NOTE</span>
-              </motion.div>
-            ))}
-
-            <motion.div
-              className="login-depth-shield"
-              initial={{ x: 0, y: 0, rotate: 0, rotateX: 0, rotateY: 0 }}
-              animate={
-                reduceMotion
-                  ? { x: 0, y: 0, rotate: 0, rotateX: 0, rotateY: 0 }
-                  : {
-                      x: [0, 4, 0, -4, 0],
-                      y: [0, -12, -5, -10, 0],
-                      rotate: [0, 3, 0, -3, 0],
-                      rotateX: [0, 5, 0, -5, 0],
-                      rotateY: [0, -7, 0, 7, 0],
-                    }
-              }
-              transition={
-                reduceMotion
-                  ? { duration: 0 }
-                  : {
-                      duration: 7,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      times: [0, 0.25, 0.5, 0.75, 1],
-                    }
-              }
-            >
-              <ShieldCheck size={76} strokeWidth={1.3} />
-            </motion.div>
           </div>
+
         </div>
       </section>
 
@@ -330,17 +291,104 @@ export default function Login({
             onBackToLogin={() => setShowForgot(false)}
           />
         ) : (
-          <div className="card-flip-perspective">
+          <div
+            className="card-flip-perspective"
+            onPointerMove={handleCardPointerMove}
+            onPointerLeave={handleCardPointerLeave}
+          >
             <div className={`card-flip-inner ${isFlipped ? 'flipped' : ''}`}>
 
               <div className="login-form-container card-face card-front">
                 <ThemeToggle theme={theme} onThemeChange={onThemeChange} />
+                <div className="atm-terminal-status" aria-hidden="true">
+                  <span>
+                    <i />
+                    FS-ATM 024
+                  </span>
+                  <span>ENCRYPTED LINK</span>
+                </div>
 
                 <div className="mobile-brand">
                   <ShieldCheck size={35} aria-hidden="true" />
                   <span>FraudShield</span>
                 </div>
+                {(status === 'success' || status === 'error') && (
+                  <motion.div
+                    className={`success-ticket-overlay ${
+                      status === 'success'
+                        ? 'success-ticket-granted'
+                        : 'success-ticket-denied'
+                    }`}
+                    initial={{
+                      opacity: 0,
+                    }}
+                    animate={{
+                      opacity: 1,
+                    }}
+                    transition={{
+                      duration: reduceMotion ? 0 : 0.45,
+                      ease: 'easeOut',
+                    }}
+                  >
+                    <motion.div
+                      className="success-ticket-shadow"
+                      initial={
+                        reduceMotion
+                          ? false
+                          : {
+                              opacity: 0,
+                              scale: 0.7,
+                            }
+                      }
+                      animate={{
+                        opacity: 1,
+                        scale: 1,
+                      }}
+                      transition={{
+                        duration: reduceMotion ? 0 : 1.1,
+                        delay: 0.45,
+                        ease: [0.16, 1, 0.3, 1],
+                      }}
+                    />
 
+                    <motion.div
+                      className="success-ticket-sheet"
+                      initial={
+                        reduceMotion
+                          ? false
+                          : {
+                              y: '-115%',
+                              opacity: 0,
+                              rotateX: 10,
+                            }
+                      }
+                      animate={{
+                        y: '0%',
+                        opacity: 1,
+                        rotateX: 0,
+                      }}
+                      transition={{
+                        y: {
+                          duration: reduceMotion ? 0 : 1.55,
+                          ease: [0.16, 1, 0.3, 1],
+                        },
+                        opacity: {
+                          duration: reduceMotion ? 0 : 0.25,
+                        },
+                        rotateX: {
+                          duration: reduceMotion ? 0 : 1.2,
+                        },
+                      }}
+                    >
+                      <div className="success-ticket-scale">
+                        <AccessTicket
+                          status={status === 'success' ? 'granted' : 'denied'}
+                          name={email || 'FRAUDSHIELD USER'}
+                        />
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
                 <div className="form-heading">
                   <p>SECURE ACCESS</p>
                   <h2>Welcome back</h2>
@@ -464,6 +512,14 @@ export default function Login({
 
               <div className="login-form-container card-face card-back">
                 <ThemeToggle theme={theme} onThemeChange={onThemeChange} />
+
+                <div className="atm-terminal-status" aria-hidden="true">
+                  <span>
+                    <i />
+                    FS-ATM 024
+                  </span>
+                  <span>ENCRYPTED LINK</span>
+                </div>
 
                 <div className="mobile-brand">
                   <ShieldCheck size={35} aria-hidden="true" />
@@ -610,31 +666,6 @@ export default function Login({
 
             </div>
           </div>
-        )}
-
-        {isLoginView && (
-          <ReceiptPrinter
-            stage={printerStage}
-            title={
-              status === 'success'
-                ? 'TRANSACTION APPROVED'
-                : status === 'unavailable'
-                ? 'AUTHENTICATION UNAVAILABLE'
-                : 'TRANSACTION DECLINED'
-            }
-            reason={
-              status === 'success'
-                ? 'IDENTITY VERIFIED'
-                : status === 'error'
-                ? 'MISSING CREDENTIALS'
-                : 'AUTHENTICATION FAILED'
-            }
-            message={
-              status === 'success'
-                ? 'Your secure session has been established.'
-                : authError || 'Please verify your credentials and try again.'
-            }
-          />
         )}
       </section>
     </main>

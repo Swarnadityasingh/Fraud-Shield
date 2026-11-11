@@ -11,6 +11,7 @@
     radial-gradient(circle at 50% 55%, #134E4A 0%, transparent 42%),
     linear-gradient(145deg, #0F172A, #102A3A);
 
+  position: relative;
   width: 100%;
   min-height: 100vh;
   display: grid;
@@ -92,7 +93,7 @@
   background: rgba(255, 255, 255, 0.12);
   border-color: var(--login-primary);
   color: var(--login-primary);
-  transform: translateX(-4px);
+  transform: none;
 }
 
 .continue-exploring-btn:hover svg {
@@ -923,6 +924,17 @@
     transform: translate(-50%, -50%) scale(0.85);
     transform-origin: center;
   }
+
+  .login-carousel-layer {
+    width: 100%;
+    height: 100%;
+    opacity: 0.42;
+  }
+
+  .visual-content {
+    flex: none;
+    min-height: 440px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1412,6 +1424,84 @@
   margin: auto;
 }
 
+.card-flip-perspective {
+  --card-rotate-x: 0deg;
+  --card-rotate-y: 0deg;
+  --card-pointer-x: 50%;
+  --card-pointer-y: 50%;
+  --card-lift: 0px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform-origin: center;
+  transform:
+    perspective(1200px)
+    translateY(var(--card-lift))
+    rotateX(var(--card-rotate-x))
+    rotateY(var(--card-rotate-y));
+  transition:
+    transform 180ms ease-out,
+    filter 350ms ease;
+  will-change: transform;
+}
+
+.card-flip-perspective::after {
+  content: '';
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  border-radius: 24px;
+  background: radial-gradient(
+    circle 220px at var(--card-pointer-x) var(--card-pointer-y),
+    #ffffff35 0%,
+    #ffffff16 32%,
+    transparent 68%
+  );
+  opacity: 0;
+  transition: opacity 250ms ease;
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card-flip-perspective:hover {
+    --card-lift: -8px;
+    filter:
+      drop-shadow(0 30px 35px #00000066)
+      drop-shadow(0 0 25px #2dd4bf20);
+  }
+
+  .card-flip-perspective:hover::after {
+    opacity: 1;
+  }
+}
+
+.login-page[data-theme='light'] .card-flip-perspective:hover {
+  filter:
+    drop-shadow(0 30px 35px #0f172a30)
+    drop-shadow(0 0 24px #0d948825);
+}
+
+.login-page[data-theme='light'] .card-flip-perspective::after {
+  background: radial-gradient(
+    circle 220px at var(--card-pointer-x) var(--card-pointer-y),
+    #ffffff80 0%,
+    #ffffff30 32%,
+    transparent 68%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-flip-perspective {
+    transform: none;
+    transition: none;
+  }
+
+  .card-flip-perspective::after {
+    display: none;
+  }
+}
+
 .card-flip-inner {
   width: 100%;
   height: auto;
@@ -1573,8 +1663,566 @@
   color: var(--login-text);
 }
 
+.login-visual,
+.login-form-section {
+  position: relative;
+  will-change: transform;
+  transition:
+    transform 950ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 700ms ease,
+    box-shadow 700ms ease;
+}
+
+.login-visual {
+  z-index: 1;
+}
+
+.login-form-section {
+  z-index: 2;
+}
+
+.visual-content,
+.login-carousel-layer {
+  will-change: transform;
+  transition: transform 1100ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.login-page.register-layout .login-visual {
+  transform: translateX(81.818%);
+}
+
+.login-page.register-layout .login-form-section {
+  transform: translateX(-122.222%);
+}
+
+.login-page.register-layout .visual-content {
+  transform: translateX(32px);
+}
+
+.login-page.register-layout .login-carousel-layer {
+  transform: translateX(-1.5%) scale(1.08);
+}
+
 @media (max-width: 850px) {
   .lhs-passbook-container {
     display: none;
+  }
+
+  .login-page.register-layout .login-visual,
+  .login-page.register-layout .login-form-section,
+  .login-page.register-layout .visual-content,
+  .login-page.register-layout .login-carousel-layer {
+    transform: none;
+  }
+}
+
+.login-ticket-wrapper {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  margin-top: 35px;
+}
+
+.continue-exploring-btn {
+  position: absolute;
+  top: 24px;
+  left: 29px;
+  z-index: 100;
+  margin: 0;
+}
+
+.visual-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 1;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: center;
+  isolation: isolate;
+}
+
+.visual-content > .visual-eyebrow,
+.visual-content > h1,
+.visual-content > .visual-description {
+  position: relative;
+  z-index: 3;
+}
+
+.login-carousel-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  opacity: 0.5;
+  filter: saturate(0.8) contrast(0.92);
+  pointer-events: none;
+}
+
+.login-carousel-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      circle at center,
+      #0b142438 0%,
+      #0b142480 58%,
+      #0b1424f2 100%
+    );
+  pointer-events: none;
+}
+
+.login-carousel-layer .fs-case-slider {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: auto;
+}
+
+.login-carousel-layer .fs-case-card {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  border: 0;
+  box-shadow: none;
+}
+
+.login-carousel-layer .fs-case-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.login-carousel-layer .fs-case-card-active {
+  z-index: 3;
+}
+
+.login-carousel-layer .fs-case-card-content,
+.login-carousel-layer .fs-case-card::after {
+  display: none;
+}
+
+.login-page[data-theme='light'] .login-carousel-layer {
+  opacity: 1;
+  filter: none;
+}
+
+.login-page[data-theme='light'] .login-carousel-layer .fs-case-card img {
+  opacity: 0.9;
+  filter:
+    brightness(0.58)
+    contrast(1.12)
+    saturate(0.82);
+}
+
+.login-page[data-theme='light'] .login-carousel-layer::after {
+  background:
+    radial-gradient(
+      circle at center,
+      #07111f35 0%,
+      #07111f75 58%,
+      #07111fd9 100%
+    ),
+    linear-gradient(
+      180deg,
+      #07111f35 0%,
+      #07111f55 48%,
+      #07111fa8 100%
+    );
+}
+
+.login-page[data-theme='light'] .login-visual {
+  color: #f1f5f9;
+  background: #07111f;
+}
+
+.login-page[data-theme='light'] .visual-eyebrow {
+  color: #2dd4bf;
+  text-shadow: 0 2px 12px #00000080;
+}
+
+.login-page[data-theme='light'] .visual-content h1 {
+  color: #f8fafc;
+  text-shadow:
+    0 3px 18px #000000cc,
+    0 1px 3px #000000;
+}
+
+.login-page[data-theme='light'] .visual-content h1 span {
+  color: #2dd4bf;
+  text-shadow:
+    0 3px 18px #000000cc,
+    0 1px 3px #000000;
+}
+
+.login-page[data-theme='light'] .visual-description {
+  color: #dbeafe;
+  text-shadow: 0 2px 10px #000000cc;
+}
+
+.login-page[data-theme='light'] .continue-exploring-btn {
+  border-color: #ffffff55;
+  background: #07111f70;
+  color: #f8fafc;
+  box-shadow: 0 8px 24px #00000035;
+}
+
+.login-page[data-theme='light'] .continue-exploring-btn:hover {
+  border-color: #2dd4bf;
+  background: #07111fc7;
+  color: #5eead4;
+}
+
+.success-ticket-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 28px;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      circle at center,
+      #0f172a80,
+      #070d18d6 72%
+    );
+  backdrop-filter: blur(7px);
+  perspective: 1200px;
+}
+
+.success-ticket-shadow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 52%;
+  height: 62%;
+  border-radius: 45%;
+  filter: blur(42px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.success-ticket-granted .success-ticket-shadow {
+  background: #c8f43d55;
+}
+
+.success-ticket-denied .success-ticket-shadow {
+  background: #ff5f6655;
+}
+
+.success-ticket-sheet {
+  position: relative;
+  z-index: 2;
+  width: 230px;
+  height: 479px;
+  transform-origin: top center;
+}
+
+.success-ticket-granted .success-ticket-sheet {
+  filter:
+    drop-shadow(0 24px 32px #00000065)
+    drop-shadow(0 8px 14px #00000040)
+    drop-shadow(0 0 28px #c8f43d50);
+}
+
+.success-ticket-denied .success-ticket-sheet {
+  filter:
+    drop-shadow(0 24px 32px #00000065)
+    drop-shadow(0 8px 14px #00000040)
+    drop-shadow(0 0 28px #ff5f6650);
+}
+
+.success-ticket-scale {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 584px;
+  transform: scale(0.82);
+  transform-origin: top left;
+}
+
+.success-ticket-scale .access-ticket {
+  width: 280px;
+}
+
+.login-page[data-theme='light'] .success-ticket-overlay {
+  background:
+    radial-gradient(
+      circle at center,
+      #ffffff70,
+      #e2e8f0d6 72%
+    );
+}
+
+.login-page[data-theme='light']
+.success-ticket-granted
+.success-ticket-shadow {
+  background: #84cc1660;
+}
+
+.login-page[data-theme='light']
+.success-ticket-denied
+.success-ticket-shadow {
+  background: #ef444460;
+}
+
+@media (max-width: 600px) {
+  .success-ticket-overlay {
+    padding: 18px;
+  }
+
+  .success-ticket-sheet {
+    width: 190px;
+    height: 397px;
+  }
+
+  .success-ticket-scale {
+    transform: scale(0.68);
+  }
+
+  .success-ticket-shadow {
+    width: 58%;
+    height: 56%;
+    filter: blur(32px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .success-ticket-overlay,
+  .success-ticket-shadow,
+  .success-ticket-sheet {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-visual,
+  .login-form-section,
+  .visual-content,
+  .continue-exploring-btn,
+  .login-carousel-layer {
+    transition: none;
+  }
+}
+
+.card-flip-perspective::before {
+  content: '';
+  display: none;
+  position: absolute;
+  inset: -14px;
+  z-index: -1;
+  border: 1px solid #47556980;
+  border-radius: 34px;
+  background:
+    linear-gradient(145deg, #334155, #111827 42%, #020617);
+  box-shadow:
+    0 35px 70px #00000075,
+    inset 2px 2px 2px #ffffff18,
+    inset -3px -3px 8px #00000090;
+  transform: translateZ(-24px);
+  pointer-events: none;
+}
+
+.login-form-container {
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid #64748b70;
+  background:
+    linear-gradient(145deg, #182438ed, #101a2ced);
+  box-shadow:
+    inset 0 0 0 5px #0b142475,
+    inset 0 1px 0 #ffffff12,
+    0 25px 55px #00000045;
+}
+
+.login-form-container::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  height: 70px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    #2dd4bf12,
+    #5eead42c,
+    transparent
+  );
+  opacity: 0.7;
+  animation: atm-screen-scan 5.5s linear infinite;
+  pointer-events: none;
+}
+
+.login-form-container > * {
+  position: relative;
+  z-index: 2;
+}
+
+.login-form-container > .theme-toggle {
+  position: absolute;
+}
+
+.login-form-container > .success-ticket-overlay {
+  position: absolute;
+  z-index: 50;
+}
+
+.atm-terminal-status {
+  position: absolute;
+  top: 22px;
+  left: 32px;
+  right: 108px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #64748b;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  pointer-events: none;
+}
+
+.atm-terminal-status span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.atm-terminal-status i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2dd4bf;
+  box-shadow:
+    0 0 8px #2dd4bf,
+    0 0 16px #2dd4bf80;
+  animation: atm-status-pulse 1.8s ease-in-out infinite;
+}
+
+.login-submit {
+  position: relative;
+  margin-top: 8px;
+  border: 1px solid #5eead470;
+  background:
+    linear-gradient(180deg, #20c7b7, #0f9f93);
+  box-shadow:
+    0 12px 28px #14b8a645,
+    inset 0 1px 0 #ffffff40;
+  transform: translateZ(18px);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    filter 220ms ease;
+}
+
+.login-submit:hover:not(:disabled) {
+  transform: translateZ(24px) translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow:
+    0 16px 36px #14b8a660,
+    0 0 18px #2dd4bf30,
+    inset 0 1px 0 #ffffff50;
+}
+
+.login-submit::after {
+  content: 'INSERT SECURE IDENTITY';
+  position: absolute;
+  left: 50%;
+  bottom: -19px;
+  color: #64748b;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.flip-toggle-footer {
+  margin-top: 34px;
+}
+
+.login-page[data-theme='light'] .card-flip-perspective::before {
+  border-color: #94a3b8;
+  background:
+    linear-gradient(145deg, #e2e8f0, #cbd5e1 45%, #94a3b8);
+  box-shadow:
+    0 35px 70px #0f172a2b,
+    inset 2px 2px 2px #ffffff,
+    inset -3px -3px 8px #64748b40;
+}
+
+.login-page[data-theme='light'] .login-form-container {
+  border-color: #cbd5e1;
+  background:
+    linear-gradient(145deg, #ffffffed, #f8fafced);
+  box-shadow:
+    inset 0 0 0 5px #e2e8f070,
+    inset 0 1px 0 #ffffff,
+    0 25px 55px #0f172a16;
+}
+
+.login-page[data-theme='light'] .atm-terminal-status {
+  color: #64748b;
+}
+
+@keyframes atm-screen-scan {
+  from {
+    top: -20%;
+  }
+
+  to {
+    top: 110%;
+  }
+}
+
+@keyframes atm-status-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .card-flip-perspective::before {
+    inset: -8px;
+    border-radius: 29px;
+  }
+
+  .atm-terminal-status {
+    left: 26px;
+    right: 96px;
+    font-size: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-form-container::before,
+  .atm-terminal-status i {
+    animation: none;
   }
 }

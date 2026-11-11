@@ -389,3 +389,141 @@
     height: 75px;
   }
 }
+
+.access-ticket-output {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 355px;
+  margin-top: -1px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.printer-access-ticket {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 1;
+  width: 170px;
+  transform: translateX(-50%);
+}
+
+.printer-access-ticket .access-ticket {
+  width: 170px;
+  box-shadow:
+    0 12px 26px #00000045,
+    0 4px 10px #00000025;
+}
+
+.printer-access-ticket .access-ticket:hover {
+  transform: none;
+  filter: none;
+}
+
+.printer-access-ticket .access-ticket-main {
+  padding: 15px 15px 12px;
+}
+
+.printer-access-ticket .access-ticket-header {
+  font-size: 4px;
+}
+
+.printer-access-ticket .access-ticket-pixels {
+  grid-template-columns: repeat(11, 3px);
+  grid-template-rows: repeat(9, 3px);
+  gap: 5px;
+  margin-top: 20px;
+}
+
+.printer-access-ticket .access-ticket-pixel {
+  width: 3px;
+  height: 3px;
+}
+
+.printer-access-ticket .access-ticket-result-icon {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 10px;
+}
+
+.printer-access-ticket .access-ticket-result-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.printer-access-ticket .access-ticket-result p {
+  margin-bottom: 4px;
+  font-size: 5px;
+}
+
+.printer-access-ticket .access-ticket-result h2 {
+  font-size: 25px;
+  letter-spacing: -1px;
+}
+
+.printer-access-ticket .access-ticket-result > span {
+  margin-top: 9px;
+  font-size: 6px;
+}
+
+.printer-access-ticket .access-ticket-details {
+  gap: 15px;
+  margin-top: 14px;
+}
+
+.printer-access-ticket .access-ticket-details span,
+.printer-access-ticket .access-ticket-admit > span,
+.printer-access-ticket .access-ticket-reference > span,
+.printer-access-ticket .access-ticket-name > span {
+  font-size: 4px;
+}
+
+.printer-access-ticket .access-ticket-details strong {
+  font-size: 8px;
+}
+
+.printer-access-ticket .access-ticket-stub {
+  gap: 8px;
+  padding: 11px 15px 10px;
+}
+
+.printer-access-ticket .access-ticket-admit strong {
+  font-size: 9px;
+}
+
+.printer-access-ticket .access-ticket-reference strong,
+.printer-access-ticket .access-ticket-name strong {
+  font-size: 5px;
+}
+
+.printer-access-ticket .access-ticket-barcode {
+  height: 17px;
+}
+
+.printer-access-ticket .access-ticket-number {
+  font-size: 3px;
+  letter-spacing: 2px;
+}
+
+.receipt-printer[data-stage='printing'] .printer-light {
+  background: #ef4444;
+  box-shadow: 0 0 9px #ef4444;
+}
+
+.receipt-printer[data-stage='complete'] .printer-light {
+  background: #34d399;
+  box-shadow: 0 0 9px #34d399;
+}
+
+@media (max-width: 1100px) {
+  .access-ticket-output {
+    height: 315px;
+  }
+
+  .printer-access-ticket,
+  .printer-access-ticket .access-ticket {
+    width: 150px;
+  }
+}

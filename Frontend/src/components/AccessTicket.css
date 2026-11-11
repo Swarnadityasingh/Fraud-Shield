@@ -1,0 +1,313 @@
+.access-ticket {
+  --ticket-color: #c8f43d;
+  --ticket-ink: #11150b;
+  position: relative;
+  width: min(100%, 280px);
+  aspect-ratio: 0.48;
+  overflow: hidden;
+  color: var(--ticket-ink);
+  background: var(--ticket-color);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 75%,
+    94% 79%,
+    100% 83%,
+    100% 100%,
+    0 100%,
+    0 83%,
+    6% 79%,
+    0 75%
+  );
+  box-shadow:
+    0 30px 65px #00000045,
+    0 8px 18px #00000025;
+  transform-style: preserve-3d;
+  transition:
+    transform 260ms ease,
+    filter 260ms ease;
+}
+
+.access-ticket:hover {
+  transform: translateY(-6px) rotateX(2deg) rotateY(-2deg);
+  filter: brightness(1.04);
+}
+
+.access-ticket-granted {
+  --ticket-color: #c8f43d;
+  --ticket-ink: #101509;
+}
+
+.access-ticket-denied {
+  --ticket-color: #ff5d5d;
+  --ticket-ink: #250606;
+}
+
+.access-ticket-main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 79%;
+  padding: 25px 25px 20px;
+}
+
+.access-ticket-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  opacity: 0.65;
+}
+
+.access-ticket-pixels {
+  display: grid;
+  grid-template-columns: repeat(11, 4px);
+  grid-template-rows: repeat(9, 4px);
+  justify-content: center;
+  gap: 9px;
+  margin-top: 42px;
+}
+
+.access-ticket-pixel {
+  display: block;
+  width: 4px;
+  height: 4px;
+  background: currentColor;
+}
+
+.access-ticket-pixel-soft {
+  opacity: 0.18;
+  transform: scale(0.65);
+}
+
+.access-ticket-pixel-medium {
+  opacity: 0.48;
+  transform: scale(0.82);
+}
+
+.access-ticket-pixel-strong {
+  opacity: 0.9;
+  transform: scale(1);
+}
+
+.access-ticket-result {
+  margin-top: auto;
+}
+
+.access-ticket-result-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 18px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+
+.access-ticket-result p {
+  margin: 0 0 7px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+}
+
+.access-ticket-result h2 {
+  margin: 0;
+  font-family: 'Space Grotesk', Inter, sans-serif;
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 0.84;
+  letter-spacing: -2px;
+}
+
+.access-ticket-result > span {
+  display: block;
+  max-width: 220px;
+  margin-top: 16px;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.access-ticket-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  margin-top: 27px;
+}
+
+.access-ticket-details div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.access-ticket-details span,
+.access-ticket-admit > span,
+.access-ticket-reference > span,
+.access-ticket-name > span {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  opacity: 0.55;
+}
+
+.access-ticket-details strong {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.access-ticket-stub {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 21%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 20px 25px 18px;
+  border-top: 1px dashed #11150b55;
+}
+
+.access-ticket-admit,
+.access-ticket-reference,
+.access-ticket-name {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.access-ticket-admit strong {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+}
+
+.access-ticket-reference {
+  text-align: right;
+}
+
+.access-ticket-reference strong {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 7px;
+}
+
+.access-ticket-name {
+  grid-column: 1 / -1;
+}
+
+.access-ticket-name strong {
+  overflow: hidden;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.access-ticket-barcode {
+  grid-column: 1 / -1;
+  height: 27px;
+  margin-top: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    currentColor 0 2px,
+    transparent 2px 4px,
+    currentColor 4px 5px,
+    transparent 5px 8px,
+    currentColor 8px 11px,
+    transparent 11px 13px
+  );
+}
+
+.access-ticket-number {
+  grid-column: 1 / -1;
+  margin-top: -10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 5px;
+  letter-spacing: 4px;
+  text-align: center;
+  opacity: 0.55;
+}
+
+.access-ticket-granted::after,
+.access-ticket-denied::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -90%;
+  width: 55%;
+  height: 160%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #ffffff48,
+    transparent
+  );
+  transform: rotate(18deg);
+  animation: access-ticket-shine 2.8s 0.5s ease-in-out forwards;
+}
+
+.access-ticket-denied .access-ticket-result-icon {
+  animation: access-ticket-denied-pulse 1.2s ease-in-out infinite;
+}
+
+.access-ticket-granted .access-ticket-result-icon {
+  animation: access-ticket-granted-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes access-ticket-shine {
+  to {
+    left: 150%;
+  }
+}
+
+@keyframes access-ticket-granted-pulse {
+  50% {
+    box-shadow:
+      0 0 0 8px #10150910,
+      0 0 22px #10150925;
+  }
+}
+
+@keyframes access-ticket-denied-pulse {
+  50% {
+    box-shadow:
+      0 0 0 8px #25060612,
+      0 0 25px #25060635;
+    transform: scale(1.05);
+  }
+}
+
+@media (max-width: 600px) {
+  .access-ticket {
+    width: min(100%, 245px);
+  }
+
+  .access-ticket-pixels {
+    gap: 7px;
+    margin-top: 30px;
+  }
+
+  .access-ticket-result h2 {
+    font-size: 33px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .access-ticket,
+  .access-ticket-result-icon,
+  .access-ticket::after {
+    animation: none;
+    transition: none;
+  }
+}
