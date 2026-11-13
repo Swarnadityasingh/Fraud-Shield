@@ -2275,3 +2275,19 @@
 .login-submit:disabled {
   cursor: not-allowed;
 }
+
+@media (min-width: 851px) {
+  .login-page {
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .login-visual,
+  .login-form-section {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+}

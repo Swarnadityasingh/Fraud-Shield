@@ -1,6 +1,8 @@
 import hashlib
 import os
 import secrets
+import base64
+import binascii
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -61,6 +63,11 @@ class GoogleLoginRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     credential: str
+
+class ProfilePictureRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    image_data: str = Field(min_length=20, max_length=4_000_000)
 
 class RegisterRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -425,6 +432,9 @@ def google_login(
             "full_name": user.full_name,
             "profile_picture": user.profile_picture,
             "is_email_verified": user.is_email_verified,
+            "auth_provider": "google",
+            "auth_providers": sorted(identity.provider for identity in user.identities),
+            "created_at": user.created_at.isoformat(),
         },
     }
 
@@ -517,6 +527,9 @@ def google_register(
             "full_name": user.full_name,
             "profile_picture": user.profile_picture,
             "is_email_verified": user.is_email_verified,
+            "auth_provider": "google",
+            "auth_providers": sorted(identity.provider for identity in user.identities),
+            "created_at": user.created_at.isoformat(),
         },
     }
 
@@ -612,19 +625,184 @@ def login(
             "full_name": user.full_name,
             "profile_picture": user.profile_picture,
             "is_email_verified": user.is_email_verified,
+            "auth_provider": "password",
+            "auth_providers": sorted(identity.provider for identity in user.identities),
+            "created_at": user.created_at.isoformat(),
         },
     }
 
 @router.get("/me")
 def get_me(
     current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
+    identities = (
+        db.query(AuthIdentity)
+        .filter(AuthIdentity.user_id == current_user.id)
+        .order_by(AuthIdentity.id.asc())
+        .all()
+    )
+
+    providers = sorted({identity.provider for identity in identities})
+
     return {
         "id": current_user.id,
         "email": current_user.email,
         "full_name": current_user.full_name,
         "profile_picture": current_user.profile_picture,
         "is_email_verified": current_user.is_email_verified,
+        "auth_provider": providers[0] if providers else "password",
+        "auth_providers": providers or ["password"],
+        "created_at": current_user.created_at.isoformat(),
+    }
+
+@router.post("/google/link")
+def link_google_account(
+    request: GoogleLoginRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    google_user, email, google_user_id = verify_google_credential(
+        request.credential
+    )
+
+    if email != current_user.email:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Use the Google account with the same email as your FraudShield account.",
+        )
+
+    existing_identity = (
+        db.query(AuthIdentity)
+        .filter(
+            AuthIdentity.provider == "google",
+            AuthIdentity.provider_user_id == google_user_id,
+        )
+        .first()
+    )
+
+    if existing_identity and existing_identity.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This Google account is already connected to another FraudShield account.",
+        )
+
+    if existing_identity is None:
+        db.add(
+            AuthIdentity(
+                user_id=current_user.id,
+                provider="google",
+                provider_user_id=google_user_id,
+            )
+        )
+
+    current_user.is_email_verified = True
+
+    if not current_user.profile_picture and google_user.get("picture"):
+        current_user.profile_picture = google_user.get("picture")
+
+    try:
+        db.commit()
+        db.refresh(current_user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This Google account could not be connected.",
+        )
+
+    providers = sorted(
+        identity.provider
+        for identity in db.query(AuthIdentity)
+        .filter(AuthIdentity.user_id == current_user.id)
+        .all()
+    )
+
+    return {
+        "message": "Google account connected successfully.",
+        "user": {
+            "id": current_user.id,
+            "email": current_user.email,
+            "full_name": current_user.full_name,
+            "profile_picture": current_user.profile_picture,
+            "is_email_verified": current_user.is_email_verified,
+            "auth_provider": "google",
+            "auth_providers": providers,
+            "created_at": current_user.created_at.isoformat(),
+        },
+    }
+
+@router.put("/profile-picture")
+def update_profile_picture(
+    payload: ProfilePictureRequest,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if "," not in payload.image_data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid profile image.",
+        )
+
+    header, encoded_image = payload.image_data.split(",", 1)
+    allowed_types = {
+        "data:image/jpeg;base64": "jpg",
+        "data:image/png;base64": "png",
+        "data:image/webp;base64": "webp",
+    }
+    extension = allowed_types.get(header)
+
+    if extension is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Use a JPG, PNG, or WebP image.",
+        )
+
+    try:
+        image_bytes = base64.b64decode(encoded_image, validate=True)
+    except (ValueError, binascii.Error):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid profile image.",
+        )
+
+    if len(image_bytes) > 2_500_000:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Profile image must be smaller than 2.5 MB.",
+        )
+
+    uploads_dir = Path(__file__).resolve().parents[1] / "uploads"
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"profile-{current_user.id}.{extension}"
+    (uploads_dir / filename).write_bytes(image_bytes)
+
+    current_user.profile_picture = (
+        f"{str(request.base_url).rstrip('/')}/uploads/{filename}"
+    )
+    db.commit()
+    db.refresh(current_user)
+
+    providers = sorted(
+        identity.provider
+        for identity in db.query(AuthIdentity)
+        .filter(AuthIdentity.user_id == current_user.id)
+        .all()
+    )
+
+    return {
+        "message": "Profile picture updated.",
+        "user": {
+            "id": current_user.id,
+            "email": current_user.email,
+            "full_name": current_user.full_name,
+            "profile_picture": current_user.profile_picture,
+            "is_email_verified": current_user.is_email_verified,
+            "auth_provider": providers[0] if providers else "password",
+            "auth_providers": providers or ["password"],
+            "created_at": current_user.created_at.isoformat(),
+        },
     }
 
 @router.post("/refresh")

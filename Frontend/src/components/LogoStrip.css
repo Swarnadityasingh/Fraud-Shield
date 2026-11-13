@@ -1,0 +1,8 @@
+.fs-logo-strip{overflow:hidden;padding:32px 0;color:#8993ab;background:transparent}
+.fs-marquee-track{display:flex;width:max-content;animation:fs-tech-marquee 28s linear infinite}
+.fs-marquee-group{display:flex;align-items:center;justify-content:space-around;gap:80px;padding-right:80px;flex-shrink:0;min-width:100vw}
+.fs-logo-wordmark{display:flex;align-items:center;gap:12px;white-space:nowrap;color:#8993ab;font-size:28px;font-weight:650}
+.fs-logo-wordmark svg{width:34px;height:34px;flex-shrink:0}
+@keyframes fs-tech-marquee{to{transform:translateX(-50%)}}
+@media(max-width:640px){.fs-marquee-group{gap:40px;padding-right:40px}.fs-logo-wordmark{font-size:22px}.fs-logo-wordmark svg{width:28px;height:28px}}
+@media(prefers-reduced-motion:reduce){.fs-marquee-track{animation:none;width:100%}.fs-marquee-group{min-width:0;width:100%;flex-wrap:wrap;padding:0 16px;gap:24px}.fs-marquee-group[aria-hidden="true"]{display:none}}

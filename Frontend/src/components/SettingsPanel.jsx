@@ -1,12 +1,17 @@
+import { useRef, useState } from 'react'
+import { GoogleLogin } from '@react-oauth/google'
 import {
   UserRound,
   BellRing,
   ShieldCheck,
   BrainCircuit,
+  Fingerprint,
   Info,
   RefreshCw,
   CheckCircle,
   XCircle,
+  Camera,
+  Link2,
 } from 'lucide-react'
 
 import './SettingsPanel.css'
@@ -67,9 +72,17 @@ function SettingsToggle({ label, description, checked, onChange }) {
 export default function SettingsPanel({
   settings,
   onChange,
+  currentUser,
+  accessToken,
+  onCurrentUserChange,
   modelStatus,
   onRefreshModel,
 }) {
+  const profileInputRef = useRef(null)
+  const [accountMessage, setAccountMessage] = useState('')
+  const [accountError, setAccountError] = useState('')
+  const [accountBusy, setAccountBusy] = useState(false)
+
   function update(key, value) {
     onChange({ ...settings, [key]: value })
   }
@@ -94,8 +107,214 @@ export default function SettingsPanel({
           ? 'Backend online · ML model not loaded'
           : 'Backend unavailable'
 
+  const accountName = currentUser?.full_name || settings.profileName || 'FraudShield user'
+  const accountEmail = currentUser?.email || settings.email || 'No email available'
+  const accountInitials = accountName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0].toUpperCase())
+    .join('')
+  const authProviders = Array.isArray(currentUser?.auth_providers)
+    ? currentUser.auth_providers
+    : [currentUser?.auth_provider || (currentUser?.profile_picture ? 'google' : 'password')]
+  const isGoogleAccount = authProviders.includes('google')
+  const hasPasswordSignIn = authProviders.includes('password')
+
+  async function updateAccount(endpoint, options) {
+    const response = await fetch(`http://localhost:8000/auth/${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+        ...options.headers,
+      },
+    })
+    const data = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(data.detail || 'Account update failed.')
+    }
+
+    if (data.user) {
+      onCurrentUserChange(data.user)
+    }
+
+    return data
+  }
+
+  async function handleProfilePicture(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+
+    if (!file) return
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setAccountError('Use a JPG, PNG, or WebP image.')
+      setAccountMessage('')
+      return
+    }
+
+    if (file.size > 2_500_000) {
+      setAccountError('Profile image must be smaller than 2.5 MB.')
+      setAccountMessage('')
+      return
+    }
+
+    setAccountBusy(true)
+    setAccountError('')
+    setAccountMessage('')
+
+    try {
+      const imageData = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result)
+        reader.onerror = () => reject(new Error('Could not read the selected image.'))
+        reader.readAsDataURL(file)
+      })
+      const data = await updateAccount('profile-picture', {
+        method: 'PUT',
+        body: JSON.stringify({ image_data: imageData }),
+      })
+      setAccountMessage(data.message)
+    } catch (error) {
+      setAccountError(error.message)
+    } finally {
+      setAccountBusy(false)
+    }
+  }
+
+  async function handleGoogleLink(credentialResponse) {
+    if (!credentialResponse?.credential) {
+      setAccountError('Google did not provide a valid credential.')
+      return
+    }
+
+    setAccountBusy(true)
+    setAccountError('')
+    setAccountMessage('')
+
+    try {
+      const data = await updateAccount('google/link', {
+        method: 'POST',
+        body: JSON.stringify({ credential: credentialResponse.credential }),
+      })
+      setAccountMessage(data.message)
+    } catch (error) {
+      setAccountError(error.message)
+    } finally {
+      setAccountBusy(false)
+    }
+  }
+
   return (
     <div className="settings-panel" id="settings">
+
+      <SettingsSection
+        icon={Fingerprint}
+        title="Account & sign-in"
+        description="Your authenticated FraudShield account and sign-in details."
+      >
+        <div className="settings-account-card">
+          <div className="settings-account-identity">
+            <div className="settings-avatar-control">
+              {currentUser?.profile_picture ? (
+                <img
+                  className="settings-account-avatar"
+                  src={currentUser.profile_picture}
+                  alt={`${accountName} profile`}
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <span className="settings-account-avatar settings-account-initials" aria-hidden="true">
+                  {accountInitials}
+                </span>
+              )}
+              <button
+                type="button"
+                className="settings-avatar-button"
+                onClick={() => profileInputRef.current?.click()}
+                disabled={accountBusy}
+                aria-label="Change profile picture"
+              >
+                <Camera size={14} />
+              </button>
+              <input
+                ref={profileInputRef}
+                className="settings-avatar-input"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleProfilePicture}
+              />
+            </div>
+
+            <div className="settings-account-copy">
+              <strong>{accountName}</strong>
+              <span>{accountEmail}</span>
+
+              <div className="settings-account-badges">
+                <span className={`settings-provider-badge ${isGoogleAccount ? 'is-google' : ''}`}>
+                  {isGoogleAccount && <b aria-hidden="true">G</b>}
+                  {isGoogleAccount && hasPasswordSignIn
+                    ? 'Google + email sign-in'
+                    : isGoogleAccount
+                      ? 'Signed in with Google'
+                      : 'Email & password'}
+                </span>
+
+                <span className={`settings-verification-badge ${currentUser?.is_email_verified ? 'is-verified' : ''}`}>
+                  <CheckCircle size={13} aria-hidden="true" />
+                  {currentUser?.is_email_verified ? 'Email verified' : 'Verification pending'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="settings-account-summary">
+            <span>Sign-in method</span>
+            <strong>
+              {isGoogleAccount && hasPasswordSignIn
+                ? 'Google OAuth + password'
+                : isGoogleAccount
+                  ? 'Google OAuth'
+                  : 'Email and password'}
+            </strong>
+            <small>
+              {isGoogleAccount
+                ? 'Google is connected to this FraudShield account'
+                : 'Connect Google to enable either sign-in method'}
+            </small>
+          </div>
+        </div>
+
+        <div className="settings-account-actions">
+          <button
+            type="button"
+            className="settings-picture-action"
+            onClick={() => profileInputRef.current?.click()}
+            disabled={accountBusy}
+          >
+            <Camera size={15} />
+            Change profile picture
+          </button>
+
+          {!isGoogleAccount && (
+            <div className="settings-google-link">
+              <span><Link2 size={15} /> Connect the matching Google account</span>
+              <GoogleLogin
+                onSuccess={handleGoogleLink}
+                onError={() => setAccountError('Google connection was cancelled or failed.')}
+                text="continue_with"
+                shape="pill"
+                size="medium"
+              />
+            </div>
+          )}
+        </div>
+
+        {accountMessage && <p className="settings-account-message is-success">{accountMessage}</p>}
+        {accountError && <p className="settings-account-message is-error">{accountError}</p>}
+      </SettingsSection>
 
       <SettingsSection
         icon={UserRound}
@@ -219,6 +438,7 @@ export default function SettingsPanel({
             )}
 
             <div>
+              <span className="settings-model-label">Model status</span>
               <strong>{statusText}</strong>
               <small>Health check endpoint: /health</small>
             </div>

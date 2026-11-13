@@ -10,6 +10,7 @@ import math
 import pandas as pd
 
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict
 from fastapi import FastAPI, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
@@ -122,6 +123,9 @@ app = FastAPI(
 )
 
 app.include_router(auth_router)
+UPLOADS_DIR = BASE_DIR.parent / "uploads"
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,

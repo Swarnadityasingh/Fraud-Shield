@@ -465,6 +465,7 @@ export default function App() {
     <Dashboard
       accessToken={accessToken}
       currentUser={currentUser}
+      onCurrentUserChange={setCurrentUser}
       activePage={activePage}
       setActivePage={setActivePage}
       settings={settings}

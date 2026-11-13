@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import './LogoStrip.css'
 import {
   SiReact,
   SiVite,
@@ -179,39 +180,19 @@ function WorkspaceLink({ children, className = '' }) {
 }
 
 function TechStack() {
-  const marketingPhrases = [
-    'INVESTIGATE',
-    'VALIDATE',
-    'ANALYZE',
-    'UNDERSTAND',
-    'DETECT ANOMALIES',
-    'ASSESS RISK',
-    'SECURE TRANSACTIONS'
-  ]
-
+  const capabilities = ['Transaction Analysis', 'Fraud Detection', 'Risk Scoring', 'Suspicious Activity Alerts', 'Financial Insights', 'Machine Learning Predictions']
   return (
-    <section className="fs-tech-section" aria-label="Platform highlights">
-      <div
-        className="fs-tech-window"
-        tabIndex={0}
-        aria-label="Platform highlights ticker. Focus or hover to pause scrolling."
-      >
-        <div className="fs-tech-track">
-          {[0, 1].map((copy) => (
-            <ul
-              className="fs-tech-group"
-              key={copy}
-              aria-hidden={copy === 1 ? true : undefined}
-            >
-              {marketingPhrases.map((phrase, index) => (
-                <li className="fs-tech-item" key={index}>
-                  <span className="fs-ticker-dot" />
-                  <span>{phrase}</span>
-                </li>
-              ))}
-            </ul>
-          ))}
-        </div>
+    <section className="fs-logo-strip" aria-label="FraudShield capabilities">
+      <div className="fs-marquee-track">
+        {[0, 1].map(copy => (
+          <div className="fs-marquee-group" key={copy} aria-hidden={copy === 1 ? true : undefined}>
+            {capabilities.map(name => (
+              <div className="fs-logo-wordmark" key={name}>
+                <span aria-hidden="true">✦</span><span>{name}</span>
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
     </section>
   )
@@ -254,6 +235,21 @@ const investigationSlides = [
   },
 ]
 
+const loginSlides = [
+  {
+    image: '/images/Loginpageimage1.png',
+    title: 'Fraud monitoring',
+  },
+  {
+    image: '/images/Loginpageimage2.png',
+    title: 'Transaction intelligence',
+  },
+  {
+    image: '/images/Loginpageimage3.png',
+    title: 'Risk investigation',
+  },
+]
+
 export function FraudInvestigationScene() {
   const reducedMotion = useReducedMotion()
   const [activeSlide, setActiveSlide] = useState(0)
@@ -263,7 +259,7 @@ export function FraudInvestigationScene() {
 
     const interval = window.setInterval(() => {
       setActiveSlide((current) =>
-        (current + 1) % investigationSlides.length
+        (current + 1) % loginSlides.length
       )
     }, 3000)
 
@@ -279,7 +275,7 @@ export function FraudInvestigationScene() {
       <div className="fs-case-cards">
         <AnimatePresence initial={false} mode="sync">
           <motion.div
-            key={investigationSlides[activeSlide].image}
+            key={loginSlides[activeSlide].image}
             className="fs-case-card fs-case-card-active"
             initial={
               reducedMotion
@@ -308,8 +304,8 @@ export function FraudInvestigationScene() {
             }}
           >
             <img
-              src={investigationSlides[activeSlide].image}
-              alt={investigationSlides[activeSlide].title}
+              src={loginSlides[activeSlide].image}
+              alt={loginSlides[activeSlide].title}
             />
           </motion.div>
         </AnimatePresence>

@@ -1,8 +1,10 @@
 import { useEffect, useState, useRef } from 'react'
+import { flushSync } from 'react-dom'
 import {
   Activity,
   AlertTriangle,
   Bell,
+  BellOff,
   CreditCard,
   Percent,
   Search,
@@ -15,9 +17,15 @@ import {
   LogOut,
   ArrowUpRight,
   Download,
+  FileDown,
   TrendingUp,
   ShieldCheck,
   Clock3,
+  LayoutGrid,
+  ChartColumn,
+  FileChartColumn,
+  Folder,
+  Crown,
 } from 'lucide-react'
 
 import {
@@ -39,6 +47,7 @@ import {
 import StatCard from './components/StatCard'
 import TransactionTable from './components/TransactionTable'
 import SettingsPanel from './components/SettingsPanel'
+import PlansModal from './components/PlansModal'
 
 import './Dashboard.css'
 
@@ -81,6 +90,9 @@ const getLastSevenDays = (history = []) => {
 }
 
 export default function Dashboard({
+  accessToken,
+  currentUser,
+  onCurrentUserChange,
   activePage,
   setActivePage,
   settings,
@@ -128,32 +140,61 @@ export default function Dashboard({
     {
       name: 'Low',
       value: safeHistory.filter((item) => item.risk_level === 'Low').length,
-      color: '#477653',
+      color: '#D9DADC',
     },
     {
       name: 'Medium',
       value: safeHistory.filter((item) => item.risk_level === 'Medium').length,
-      color: '#B7791F',
+      color: '#FFC93C',
     },
     {
       name: 'High',
       value: highRiskCases,
-      color: '#9F263B',
+      color: '#2B2D31',
     },
   ].filter((item) => item.value > 0)
 
   const transactionDistribution = [
-    { name: 'Legitimate', value: legitimateTransactions, color: '#477653' },
-    { name: 'Flagged', value: flaggedTransactions, color: '#9F263B' },
+    { name: 'Legitimate', value: legitimateTransactions, color: '#D9DADC' },
+    { name: 'Flagged', value: flaggedTransactions, color: '#FFC93C' },
   ].filter((item) => item.value > 0)
 
   const userName =
     settings.profileName?.split(' ')[0] || 'there'
+  const notificationsEnabled = settings.notifyHighRisk || settings.notifyFraud
+  const accountCreatedAt = currentUser?.created_at
+    ? new Date(currentUser.created_at)
+    : null
+  const oneMonthAgo = new Date()
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
+  const isEstablishedUser = Boolean(
+    accountCreatedAt &&
+    !Number.isNaN(accountCreatedAt.getTime()) &&
+    accountCreatedAt <= oneMonthAgo
+  )
 
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [themeToast, setThemeToast] = useState('')
+  const [themeToastPhase, setThemeToastPhase] = useState('hidden')
   const themeInitialized = useRef(false)
   const notificationWrapperRef = useRef(null)
+  const [sidebarWidth, setSidebarWidth] = useState(() =>
+    window.localStorage.getItem('fraudshield-sidebar-collapsed') === 'true'
+      ? 76
+      : 200
+  )
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() =>
+    window.localStorage.getItem('fraudshield-sidebar-collapsed') === 'true'
+  )
+  const sidebarRef = useRef(null)
+  const expandedSidebarWidthRef = useRef(200)
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      'fraudshield-sidebar-collapsed',
+      String(sidebarCollapsed)
+    )
+  }, [sidebarCollapsed])
 
   const [welcomePhase, setWelcomePhase] = useState(
     welcomeVisible ? 'visible' : 'hidden'
@@ -207,10 +248,47 @@ export default function Dashboard({
     setThemeToast(
       settings.theme === 'dark' ? 'Dark mode enabled' : 'Light mode enabled'
     )
-
-    const timer = setTimeout(() => setThemeToast(''), 1800)
-    return () => clearTimeout(timer)
   }, [settings.theme])
+
+  useEffect(() => {
+    if (!themeToast) {
+      setThemeToastPhase('hidden')
+      return
+    }
+
+    setThemeToastPhase('visible')
+
+    const exitTimer = setTimeout(() => {
+      setThemeToastPhase('exiting')
+    }, 1900)
+
+    const dismissTimer = setTimeout(() => {
+      setThemeToast('')
+      setThemeToastPhase('hidden')
+    }, 2450)
+
+    return () => {
+      clearTimeout(exitTimer)
+      clearTimeout(dismissTimer)
+    }
+  }, [themeToast])
+
+  function toggleSidebar() {
+    setSidebarCollapsed((current) => {
+      const next = !current
+
+      setSidebarWidth(
+        next ? 76 : Math.max(220, expandedSidebarWidthRef.current)
+      )
+
+      return next
+    })
+  }
+
+  function handleSidebarDoubleClick(event) {
+    if (event.target.closest('button')) return
+    toggleSidebar()
+  }
 
   const pageButtonClass = (page) =>
     `dashboard-nav-item ${
@@ -219,6 +297,17 @@ export default function Dashboard({
 
   function navigateTo(page, sectionId) {
     setActivePage(page)
+
+    if (page === 'Dashboard' || page === 'Settings') {
+      requestAnimationFrame(() => {
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: 'smooth',
+        })
+      })
+      return
+    }
 
     if (sectionId) {
       requestAnimationFrame(() => {
@@ -230,82 +319,180 @@ export default function Dashboard({
     }
   }
 
-  return (
-    <div className="dashboard-layout dashboard-enter">
-      <aside className="dashboard-sidebar">
-        <div className="dashboard-brand">
-          <div className="dashboard-brand-icon">
-            <ShieldAlert size={23} />
-          </div>
+  const themeTransitionRef = useRef(false)
+  const logoutDialogRef = useRef(null)
+  const [plansOpen, setPlansOpen] = useState(false)
+  const currentPlan = 'free'
 
-          <div>
-            <h2>FraudShield</h2>
-            <p>Risk monitoring</p>
+  function handlePlanRequest(plan) {
+    setPlansOpen(false)
+    setThemeToast(
+      plan === 'enterprise'
+        ? 'Enterprise enquiries are not connected yet.'
+        : plan === 'pro'
+          ? 'Pro subscriptions are coming soon.'
+          : 'Subscription management is not connected yet.'
+    )
+  }
+
+  async function toggleDashboardTheme(event) {
+    if (themeTransitionRef.current) return
+    const nextTheme = settings.theme === 'dark' ? 'light' : 'dark'
+    const applyTheme = () => {
+      flushSync(() => setSettings(previous => ({ ...previous, theme: nextTheme })))
+      document.documentElement.classList.toggle('dark', nextTheme === 'dark')
+    }
+    if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      applyTheme()
+      return
+    }
+    const bounds = event.currentTarget.getBoundingClientRect()
+    const x = bounds.left + bounds.width / 2
+    const y = bounds.top + bounds.height / 2
+    const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y))
+    themeTransitionRef.current = true
+    document.documentElement.classList.add('dashboard-theme-reveal')
+    try {
+      const transition = document.startViewTransition(applyTheme)
+      await transition.ready
+      await document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+        { duration: 650, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', pseudoElement: '::view-transition-new(root)' }
+      ).finished
+      await transition.finished
+    } catch {
+      document.documentElement.classList.toggle('dark', nextTheme === 'dark')
+    } finally {
+      document.documentElement.classList.remove('dashboard-theme-reveal')
+      themeTransitionRef.current = false
+    }
+  }
+
+  return (
+    <div
+      className={`dashboard-layout dashboard-enter ${
+        sidebarCollapsed ? 'dashboard-sidebar-is-collapsed' : ''
+      }`}
+      style={{ '--dashboard-sidebar-width': `${sidebarWidth}px` }}
+    >
+      <PlansModal
+        open={plansOpen}
+        onClose={() => setPlansOpen(false)}
+        currentPlan={currentPlan}
+        onUpgrade={handlePlanRequest}
+      />
+      <dialog ref={logoutDialogRef} className="logout-confirm-dialog" aria-labelledby="logout-confirm-title" aria-describedby="logout-confirm-description" onClick={event => { if (event.target === event.currentTarget) logoutDialogRef.current.close() }}>
+        <div className="logout-confirm-content">
+          <div className="logout-confirm-icon"><LogOut size={24} aria-hidden="true" /></div>
+          <h2 id="logout-confirm-title">Log out of FraudShield?</h2>
+          <p id="logout-confirm-description">You’ll need to sign in again to access your workspace.</p>
+          <div className="logout-confirm-actions">
+            <button type="button" className="logout-confirm-cancel" autoFocus onClick={() => logoutDialogRef.current.close()}>Cancel</button>
+            <button type="button" className="logout-confirm-submit" onClick={() => { logoutDialogRef.current.close(); onLogout() }}>Log out</button>
           </div>
+        </div>
+      </dialog>
+      <button
+        type="button"
+        className="dashboard-sidebar-resizer"
+        aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        onClick={toggleSidebar}
+      />
+      <aside
+        ref={sidebarRef}
+        className={`dashboard-sidebar ${
+          sidebarCollapsed ? 'dashboard-sidebar-collapsed' : ''
+        }`}
+        style={{ '--dashboard-sidebar-width': `${sidebarWidth}px` }}
+        onDoubleClick={handleSidebarDoubleClick}
+      >
+        <div className="dashboard-brand">
+          <div className="dashboard-brand-copy">
+            <h2>FraudShield</h2>
+            <p>Financial risk intelligence</p>
+          </div>
+          <span className="dashboard-brand-short" aria-hidden="true">FS</span>
         </div>
 
         <nav className="dashboard-navigation">
           <button
             type="button"
-            onClick={() => navigateTo('Dashboard', 'overview')}
+            data-label="Dashboard"
+            onClick={() => navigateTo('Dashboard')}
             className={pageButtonClass('Dashboard')}
           >
-            <Activity size={19} />
+            <LayoutGrid size={17} />
             <span>Dashboard</span>
           </button>
 
           <button
             type="button"
-            onClick={() => navigateTo('Analyze', 'analyze')}
-            className={pageButtonClass('Analyze')}
+            data-label="Dashboard"
+            onClick={() => navigateTo('Analytics', 'analytics')}
+            className={pageButtonClass('Analytics')}
           >
-            <Search size={19} />
-            <span>Analyze</span>
+            <ChartColumn size={17} />
+            <span>Analytics</span>
           </button>
 
           <button
             type="button"
-            onClick={() => navigateTo('Transactions', 'transactions')}
-            className={pageButtonClass('Transactions')}
+            data-label="Dashboard"
+            onClick={() => navigateTo('Reports', 'transactions')}
+            className={pageButtonClass('Reports')}
           >
-            <CreditCard size={19} />
-            <span>Transactions</span>
+            <FileChartColumn size={17} />
+            <span>Reports</span>
           </button>
 
           <button
             type="button"
+            onClick={() => setThemeToast('File management is not available yet.')}
+            title="File management coming soon"
+            className={pageButtonClass('Files')}
+          >
+            <Folder size={17} />
+            <span>Files</span>
+          </button>
+
+          <button
+            type="button"
+            data-label="Dashboard"
             onClick={() => navigateTo('Settings', 'settings')}
             className={pageButtonClass('Settings')}
           >
             <SettingsIcon size={19} />
             <span>Settings</span>
           </button>
+
+          <button
+            type="button"
+            className="dashboard-nav-item sidebar-nav-logout"
+            onClick={() => logoutDialogRef.current.showModal()}
+            title="Logout"
+            aria-label="Logout from FraudShield"
+          >
+            <LogOut size={18} aria-hidden="true" />
+            <span>Logout</span>
+          </button>
         </nav>
 
-        <div className="model-status-card">
-          <div className="model-status-heading">
-            <span className="model-status-dot" />
-            <span>Model status</span>
+        <div className="sidebar-account-footer">
+          <div className="sidebar-upgrade-card">
+            <span>Running on Free Tier</span>
+            <button type="button" onClick={() => setPlansOpen(true)} aria-label="Upgrade plan" title="Upgrade plan">
+              <Crown size={16} aria-hidden="true" />
+              <span>Upgrade Plan</span>
+            </button>
           </div>
-
-          <p>
-            {modelStatus.loading
-              ? 'Checking connection...'
-              : modelStatus.modelConnected
-                ? 'Connected'
-                : 'Not connected'}
-          </p>
-
-          {modelStatus.error && (
-            <span className="model-status-error">
-              {modelStatus.error}
+          <button className="sidebar-user-profile" type="button" onClick={() => navigateTo('Settings', 'settings')} aria-label="Open account settings">
+            <span className="sidebar-user-avatar" aria-hidden="true">{userName.trim().slice(0, 1).toUpperCase()}</span>
+            <span className="sidebar-user-details">
+              <strong>{userName}</strong>
+              <small>Personal workspace</small>
             </span>
-          )}
-        </div>
-
-        <div className="sidebar-footer">
-          <span>FRAUDSHIELD</span>
-          <span>FINANCIAL INTELLIGENCE</span>
+          </button>
         </div>
       </aside>
 
@@ -321,7 +508,11 @@ export default function Dashboard({
             </div>
 
             <div>
-              <strong>Welcome to FraudShield!</strong>
+              <strong>
+                {isEstablishedUser
+                  ? 'Welcome back to FraudShield!'
+                  : 'Welcome to FraudShield!'}
+              </strong>
               <p>Your financial monitoring workspace is ready.</p>
             </div>
           </div>
@@ -347,34 +538,33 @@ export default function Dashboard({
           <div className="header-actions">
             <button
               type="button"
-              className="theme-toggle-button"
-              onClick={() =>
-                setSettings((previous) => ({
-                  ...previous,
-                  theme: previous.theme === 'dark' ? 'light' : 'dark',
-                }))
-              }
-              aria-label="Toggle theme"
-              title="Switch theme"
+              className={`theme-toggle-button ${settings.theme === 'dark' ? 'is-dark' : ''}`}
+              onClick={toggleDashboardTheme}
+              aria-label={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-pressed={settings.theme === 'dark'}
+              title={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              {settings.theme === 'dark' ? (
-                <Sun size={19} />
-              ) : (
-                <Moon size={19} />
-              )}
+              <span className="theme-toggle-thumb" aria-hidden="true" />
+              <Sun className="theme-toggle-sun" size={16} aria-hidden="true" />
+              <Moon className="theme-toggle-moon" size={16} aria-hidden="true" />
             </button>
 
             <div ref={notificationWrapperRef} style={{ position: 'relative' }}>
               <button
                 type="button"
-                className="notification-button"
-                aria-label="Notifications"
+                className={`notification-button ${notificationsEnabled ? '' : 'is-disabled'}`}
+                aria-label={notificationsEnabled ? 'Notifications' : 'Notifications disabled'}
                 aria-expanded={notificationsOpen}
+                title={notificationsEnabled ? 'Notifications' : 'Notifications are disabled in Settings'}
                 onClick={() => setNotificationsOpen((open) => !open)}
               >
-                <Bell size={20} />
+                {notificationsEnabled ? (
+                  <Bell size={17} aria-hidden="true" />
+                ) : (
+                  <BellOff size={17} aria-hidden="true" />
+                )}
 
-                {safeNotifications.some((item) => !item.read) && (
+                {notificationsEnabled && safeNotifications.some((item) => !item.read) && (
                   <span className="notification-indicator" />
                 )}
               </button>
@@ -426,19 +616,12 @@ export default function Dashboard({
               )}
             </div>
 
-            <button
-              type="button"
-              className="logout-button"
-              onClick={onLogout}
-              title="Logout"
-              aria-label="Logout from FraudShield"
-            >
-              <LogOut size={19} />
-              <span>Logout</span>
-            </button>
-
             {themeToast && (
-              <div className="theme-toast" role="status">
+              <div
+                key={themeToast}
+                className={`theme-toast theme-toast-${themeToastPhase}`}
+                role="status"
+              >
                 {themeToast}
               </div>
             )}
@@ -450,37 +633,59 @@ export default function Dashboard({
             <SettingsPanel
               settings={settings}
               onChange={setSettings}
+              currentUser={currentUser}
+              accessToken={accessToken}
+              onCurrentUserChange={onCurrentUserChange}
               modelStatus={modelStatus}
               onRefreshModel={refreshModelStatus}
             />
           </section>
         ) : (
           <>
+            <div className="reference-dashboard-grid">
             <section className="dashboard-welcome">
               <div>
                 <span className="dashboard-eyebrow">
-                  YOUR FINANCIAL COMMAND CENTRE
+                  EXECUTIVE OVERVIEW
                 </span>
 
-                <h1>
-                  {getGreeting()}, {userName} 👋🏻
-                </h1>
+                <h1>Welcome back, {userName}.</h1>
 
                 <p>
-                  Here's what's happening with your financial security.
+                  You’ve analysed <strong className="overview-summary-count">{totalTransactions.toLocaleString('en-IN')}</strong> transactions in your workspace.
                 </p>
               </div>
 
-              <div className="welcome-date">
-                <Clock3 size={16} />
-                {new Date().toLocaleDateString('en-IN', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
+              <div className="overview-header-actions">
+                <button type="button" className="overview-export" onClick={() => window.print()}>
+                  <FileDown size={17} aria-hidden="true" />
+                  <span>Export Report</span>
+                </button>
               </div>
             </section>
+
+            <aside className="reference-activity-card">
+              <div className="reference-activity-heading">
+                <div>
+                  <strong>Activity</strong>
+                  <span>Latest risk events</span>
+                </div>
+                <small><i /> Live</small>
+              </div>
+
+              <div className="reference-activity-list">
+                {safeNotifications.length === 0 && <p>No activity yet.</p>}
+                {safeNotifications.slice(0, 5).map((item, index) => (
+                  <div className="reference-activity-item" key={item.id}>
+                    <span>{index + 1}</span>
+                    <div>
+                      <strong>{item.title}</strong>
+                      <small>{item.description}</small>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </aside>
 
             <section className="dashboard-quick-actions">
               <button onClick={() => navigateTo('Analyze', 'analyze')}>
@@ -525,18 +730,18 @@ export default function Dashboard({
                 title="Flagged Transactions"
                 value={flaggedTransactions.toLocaleString('en-IN')}
                 icon={ShieldAlert}
-                color="red"
+                color="amber"
               />
 
               <StatCard
                 title="High Risk Cases"
                 value={highRiskCases.toLocaleString('en-IN')}
                 icon={AlertTriangle}
-                color="amber"
+                color="red"
               />
             </section>
 
-            <section className="dashboard-analytics">
+            <section id="analytics" className="dashboard-analytics">
               <article className="dashboard-panel activity-panel">
                 <div className="panel-heading">
                   <div className="panel-heading-icon">
@@ -552,7 +757,7 @@ export default function Dashboard({
                 {totalTransactions > 0 ? (
                   <div className="activity-chart">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={activityData}>
+                      <BarChart data={activityData} barGap={6} barCategoryGap="22%">
                         <CartesianGrid
                           strokeDasharray="3 3"
                           vertical={false}
@@ -567,24 +772,22 @@ export default function Dashboard({
 
                         <Legend />
 
-                        <Line
-                          type="monotone"
+                        <Bar
                           dataKey="legitimate"
                           name="Legitimate"
-                          stroke="#477653"
-                          strokeWidth={3}
-                          dot={false}
+                          fill="#7DD3FC"
+                          maxBarSize={36}
+                          radius={[5, 5, 0, 0]}
                         />
 
-                        <Line
-                          type="monotone"
+                        <Bar
                           dataKey="flagged"
                           name="Flagged"
-                          stroke="#9F263B"
-                          strokeWidth={3}
-                          dot={false}
+                          fill="#4F46E5"
+                          maxBarSize={36}
+                          radius={[5, 5, 0, 0]}
                         />
-                      </LineChart>
+                      </BarChart>
                     </ResponsiveContainer>
                   </div>
                 ) : (
@@ -595,6 +798,142 @@ export default function Dashboard({
                   </div>
                 )}
               </article>
+
+              <section id="analyze" className="dashboard-panel analyze-panel">
+                <div className="panel-heading">
+                  <div className="panel-heading-icon">
+                    <ShieldAlert size={19} />
+                  </div>
+
+                  <div>
+                    <h2>Analyze a transaction</h2>
+                    <p>ML-powered financial risk assessment</p>
+                  </div>
+                </div>
+
+                <form onSubmit={analyze} className="analysis-form">
+                  <label>
+                    <span>Transaction amount</span>
+
+                    <div className="analysis-input-wrapper">
+                      <span className="currency-symbol">₹</span>
+
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        required
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="Enter transaction amount"
+                      />
+                    </div>
+                  </label>
+
+                  <label>
+                    <span>Transaction type</span>
+
+                    <select
+                      value={type}
+                      onChange={(e) => setType(e.target.value)}
+                    >
+                      {[
+                        'TRANSFER',
+                        'PAYMENT',
+                        'CASH_OUT',
+                        'CASH_IN',
+                        'DEBIT',
+                      ].map((item) => (
+                        <option key={item} value={item}>
+                          {item.replace('_', ' ')}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="analyze-button"
+                  >
+                    <Search size={18} />
+                    {loading
+                      ? 'Analyzing transaction...'
+                      : 'Analyze transaction'}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="clear-analysis-button"
+                    onClick={clearAnalysis}
+                    disabled={loading}
+                  >
+                    Clear / Reset
+                  </button>
+                </form>
+
+                {message && (
+                  <div role="status" className="analysis-message">
+                    {message}
+                  </div>
+                )}
+
+                {result && (
+                  <div
+                    className={`analysis-result ${
+                      isFraud ? 'result-danger' : 'result-safe'
+                    }`}
+                  >
+                    <div className="analysis-result-heading">
+                      {isFraud ? (
+                        <XCircle size={22} />
+                      ) : (
+                        <CheckCircle size={22} />
+                      )}
+
+                      <div>
+                        <span>MODEL PREDICTION</span>
+                        <h3>{result.prediction}</h3>
+                      </div>
+                    </div>
+
+                    <div className="analysis-result-grid">
+                      <div>
+                        <span>Fraud probability</span>
+                        <strong>
+                          {(Number(result.fraud_probability) * 100).toFixed(1)}%
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Risk classification</span>
+                        <strong>{result.risk_level}</strong>
+                      </div>
+                    </div>
+
+                    <p>
+                      Experimental prediction from a model trained on
+                      synthetic data. It is not proof of fraud.
+                    </p>
+                  </div>
+                )}
+              </section>
+
+              <article className="smart-insights-card">
+                <span>NEW INSIGHTS</span>
+                <h2>Identify high-risk transactions</h2>
+                <p>{totalTransactions > 0
+                  ? `${flaggedTransactions} of ${totalTransactions} analysed transactions were flagged. Review their risk scores before taking action.`
+                  : 'Analyse a transaction to uncover risk signals and review the model’s assessment.'}</p>
+                <button type="button" onClick={() => navigateTo('Analyze', 'analyze')}>View Smart Analysis</button>
+              </article>
+
+              <section id="transactions" className="dashboard-transactions overview-transactions">
+                <div className="transactions-section-heading">
+                  <div><h2>Recent Transactions</h2><p>Your analysed transaction history</p></div>
+                </div>
+                <TransactionTable history={safeHistory} />
+              </section>
 
               <article className="dashboard-panel">
                 <div className="panel-heading">
@@ -681,7 +1020,7 @@ export default function Dashboard({
                 )}
               </article>
 
-              <article className="dashboard-panel">
+              <article className="dashboard-panel daily-volume-panel">
                 <div className="panel-heading">
                   <div className="panel-heading-icon">
                     <TrendingUp size={19} />
@@ -711,14 +1050,14 @@ export default function Dashboard({
                         <Bar
                           dataKey="legitimate"
                           stackId="a"
-                          fill="#477653"
+                          fill="#D9DADC"
                           name="Legitimate"
                         />
 
                         <Bar
                           dataKey="flagged"
                           stackId="a"
-                          fill="#9F263B"
+                          fill="#FFC93C"
                           name="Flagged"
                         />
                       </BarChart>
@@ -733,130 +1072,8 @@ export default function Dashboard({
                 )}
               </article>
             </section>
+            </div>
 
-            <section id="analyze" className="dashboard-panel analyze-panel" style={{ marginTop: '24px', marginBottom: '24px' }}>
-              <div className="panel-heading">
-                <div className="panel-heading-icon">
-                  <ShieldAlert size={19} />
-                </div>
-
-                <div>
-                  <h2>Analyze a transaction</h2>
-                  <p>ML-powered financial risk assessment</p>
-                </div>
-              </div>
-
-              <form onSubmit={analyze} className="analysis-form">
-                <label>
-                  <span>Transaction amount</span>
-
-                  <div className="analysis-input-wrapper">
-                    <span className="currency-symbol">₹</span>
-
-                    <input
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      required
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="Enter transaction amount"
-                    />
-                  </div>
-                </label>
-
-                <label>
-                  <span>Transaction type</span>
-
-                  <select
-                    value={type}
-                    onChange={(e) => setType(e.target.value)}
-                  >
-                    {[
-                      'TRANSFER',
-                      'PAYMENT',
-                      'CASH_OUT',
-                      'CASH_IN',
-                      'DEBIT',
-                    ].map((item) => (
-                      <option key={item} value={item}>
-                        {item.replace('_', ' ')}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="analyze-button"
-                >
-                  <Search size={18} />
-                  {loading
-                    ? 'Analyzing transaction...'
-                    : 'Analyze transaction'}
-                </button>
-
-                <button
-                  type="button"
-                  className="clear-analysis-button"
-                  onClick={clearAnalysis}
-                  disabled={loading}
-                >
-                  Clear / Reset
-                </button>
-              </form>
-
-              {message && (
-                <div role="status" className="analysis-message">
-                  {message}
-                </div>
-              )}
-
-              {result && (
-                <div
-                  className={`analysis-result ${
-                    isFraud ? 'result-danger' : 'result-safe'
-                  }`}
-                >
-                  <div className="analysis-result-heading">
-                    {isFraud ? (
-                      <XCircle size={22} />
-                    ) : (
-                      <CheckCircle size={22} />
-                    )}
-
-                    <div>
-                      <span>MODEL PREDICTION</span>
-                      <h3>{result.prediction}</h3>
-                    </div>
-                  </div>
-
-                  <div className="analysis-result-grid">
-                    <div>
-                      <span>Fraud probability</span>
-                      <strong>
-                        {(Number(result.fraud_probability) * 100).toFixed(1)}%
-                      </strong>
-                    </div>
-
-                    <div>
-                      <span>Risk classification</span>
-                      <strong>{result.risk_level}</strong>
-                    </div>
-                  </div>
-
-                  <p>
-                    Experimental prediction from a model trained on
-                    synthetic data. It is not proof of fraud.
-                  </p>
-                </div>
-              )}
-            </section>
-
-            <section id="transactions" className="dashboard-transactions">
-              <TransactionTable history={safeHistory} />
-            </section>
           </>
         )}
 
@@ -866,6 +1083,18 @@ export default function Dashboard({
           <span>Educational prototype · Synthetic data</span>
         </footer>
       </main>
+      <aside className="insights-rail">
+        <span className="dashboard-eyebrow">PERSONAL OVERVIEW</span>
+        <h2>Your insights</h2>
+        <p>Financial risk at a glance.</p>
+        <div className="rail-summary"><span>TRANSACTIONS ANALYSED</span><strong>{totalTransactions.toLocaleString('en-IN')}</strong></div>
+        <div className="rail-metrics"><div><span>Legitimate</span><strong>{legitimateTransactions}</strong></div><div><span>Flagged</span><strong>{flaggedTransactions}</strong></div></div>
+        <div className="rail-highlight"><span>HIGH RISK CASES</span><strong>{highRiskCases}</strong></div>
+        <h3>Transaction trends</h3>
+        <div className="rail-chart"><ResponsiveContainer width="100%" height={150}><BarChart data={activityData}><Bar dataKey="legitimate" fill="#dcd9ff" radius={[3,3,0,0]} /><Bar dataKey="flagged" fill="#635bff" radius={[3,3,0,0]} /></BarChart></ResponsiveContainer></div>
+        <h3>Recent activity</h3>
+        {safeNotifications.length === 0 ? <p>No activity yet.</p> : safeNotifications.slice(0,5).map(item => <div className="rail-event" key={item.id}><strong>{item.title}</strong><p>{item.description}</p></div>)}
+      </aside>
     </div>
   )
 }
