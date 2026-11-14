@@ -1,47 +1,175 @@
 import {
-  ShieldCheck, LayoutDashboard, Search,
-  CreditCard, Settings
+  LayoutGrid,
+  ChartColumn,
+  FileChartColumn,
+  Folder,
+  Settings as SettingsIcon,
+  LogOut,
+  Crown,
+  ShieldAlert,
+  CreditCard,
+  Layers,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react'
 
-export default function Sidebar() {
+import './Sidebar.css'
+
+export default function Sidebar({
+  activePage,
+  userName,
+  sidebarCollapsed,
+  sidebarWidth,
+  sidebarRef,
+  onNavigate,
+  onDoubleClick,
+  onOpenPlans,
+  onLogoutRequest,
+  onShowMessage,
+  onToggleSidebar,
+}) {
   const links = [
-    { name: 'Dashboard', icon: LayoutDashboard, href: '#overview' },
-    { name: 'Analyze', icon: Search, href: '#analyze' },
-    { name: 'Transactions', icon: CreditCard, href: '#transactions' },
-    { name: 'Settings', icon: Settings, href: '#settings' },
+    {
+      name: 'Dashboard',
+      icon: LayoutGrid,
+      onClick: () => onNavigate('Dashboard'),
+    },
+    {
+      name: 'Fraud Detection',
+      icon: ShieldAlert,
+      onClick: () => onNavigate('Fraud Detection'),
+    },
+    {
+      name: 'Credit Risk',
+      icon: CreditCard,
+      onClick: () => onNavigate('Credit Risk'),
+    },
+    {
+      name: 'Unified Risk',
+      icon: Layers,
+      onClick: () => onNavigate('Unified Risk'),
+    },
+    {
+      name: 'Analytics',
+      icon: ChartColumn,
+      onClick: () => onNavigate('Analytics'),
+    },
+    {
+      name: 'Reports',
+      icon: FileChartColumn,
+      onClick: () => onNavigate('Reports'),
+    },
+    {
+      name: 'Files',
+      icon: Folder,
+      onClick: () =>
+        onShowMessage('File management is not available yet.'),
+    },
+    {
+      name: 'Settings',
+      icon: SettingsIcon,
+      onClick: () => onNavigate('Settings', 'settings'),
+    },
   ]
 
   return (
-    <aside className="flex w-full shrink-0 flex-col border-b border-slate-200 bg-white p-5 md:sticky md:top-0 md:h-screen md:w-60 md:border-b-0 md:border-r">
-      <a href="#overview" className="mb-8 flex items-center gap-2 text-xl font-bold">
-        <ShieldCheck className="text-blue-600" size={28} />
-        <span>Fraud<span className="text-blue-600">Shield</span></span>
-      </a>
+    <aside
+      ref={sidebarRef}
+      className={`dashboard-sidebar ${
+        sidebarCollapsed ? 'dashboard-sidebar-collapsed' : ''
+      }`}
+      style={{ '--dashboard-sidebar-width': `${sidebarWidth}px` }}
+      onDoubleClick={onDoubleClick}
+    >
 
-      <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-400">
-        Workspace
-      </p>
+      <div className="dashboard-brand-header">
+        <div className="dashboard-brand">
+          <div className="dashboard-brand-icon-wrapper">
+            <ShieldAlert size={20} />
+          </div>
+          <div className="dashboard-brand-copy">
+            <h2>FraudShield</h2>
+            <p>Risk Intelligence OS</p>
+          </div>
+        </div>
 
-      <nav className="flex flex-wrap gap-1 md:flex-col">
-        {links.map(({ name, icon: Icon, href }, index) => (
-          <a
+        <button
+          type="button"
+          className="sidebar-collapse-toggle-btn"
+          onClick={onToggleSidebar}
+          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {sidebarCollapsed ? (
+            <PanelLeftOpen size={18} />
+          ) : (
+            <PanelLeftClose size={18} />
+          )}
+        </button>
+      </div>
+
+      <nav className="dashboard-navigation">
+        {links.map(({ name, icon: Icon, onClick }) => (
+          <button
             key={name}
-            href={href}
-            className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium ${
-              index === 0
-                ? 'bg-blue-50 text-blue-700'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
+            type="button"
+            data-label={name}
+            onClick={onClick}
+            className={`dashboard-nav-item ${
+              activePage === name ? 'active' : ''
             }`}
+            title={name}
           >
-            <Icon size={18} />
-            {name}
-          </a>
+            <Icon size={18} className="nav-icon" />
+            <span className="nav-text">{name}</span>
+          </button>
         ))}
       </nav>
 
-      <div className="mt-auto hidden rounded-xl bg-blue-50 p-4 md:block">
-        <p className="text-sm font-semibold text-blue-900">Fraud monitoring</p>
-        <p className="mt-1 text-xs text-blue-700">ML dashboard prototype</p>
+      <div className="sidebar-account-footer">
+        <div className="sidebar-upgrade-card">
+          <div className="upgrade-card-content">
+            <Crown size={14} className="upgrade-crown" />
+            <span className="upgrade-text">Free Tier</span>
+          </div>
+          <button
+            type="button"
+            onClick={onOpenPlans}
+            className="upgrade-btn-mini"
+            title="Upgrade Plan"
+          >
+            <span>Upgrade</span>
+            <Crown size={12} className="upgrade-icon-collapsed" />
+          </button>
+        </div>
+
+        <button
+          className="sidebar-user-profile"
+          type="button"
+          onClick={() => onNavigate('Settings', 'settings')}
+          aria-label="Open account settings"
+          title={userName}
+        >
+          <span className="sidebar-user-avatar" aria-hidden="true">
+            {userName.trim().slice(0, 1).toUpperCase()}
+          </span>
+
+          <span className="sidebar-user-details">
+            <strong>{userName}</strong>
+            <small>Personal workspace</small>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          className="dashboard-nav-item sidebar-nav-logout"
+          onClick={onLogoutRequest}
+          title="Logout"
+          aria-label="Logout from FraudShield"
+        >
+          <LogOut size={18} aria-hidden="true" />
+          <span className="nav-text">Logout</span>
+        </button>
       </div>
     </aside>
   )
