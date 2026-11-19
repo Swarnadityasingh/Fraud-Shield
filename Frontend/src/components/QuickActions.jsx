@@ -9,27 +9,27 @@ import {
 export default function QuickActions({ onNavigate }) {
   return (
     <section className="dashboard-quick-actions">
-      <button onClick={() => onNavigate('Analyze', 'analyze')}>
+      <button onClick={() => onNavigate('Fraud Detection')}>
         <ShieldAlert size={18} />
-        Financial Fraud
+        Fraud detection
         <ArrowUpRight size={16} />
       </button>
 
-      <button onClick={() => onNavigate('Risk Analysis')}>
+      <button onClick={() => onNavigate('Credit Risk')}>
         <TrendingUp size={18} />
-        Risk Analysis
+        Credit delinquency
         <ArrowUpRight size={16} />
       </button>
 
-      <button onClick={() => onNavigate('Unified Intelligence')}>
+      <button onClick={() => onNavigate('Unified Risk')}>
         <Activity size={18} />
-        Unified Intelligence
+        Unified workspace
         <ArrowUpRight size={16} />
       </button>
 
-      <button onClick={() => window.print()}>
+      <button onClick={() => onNavigate('Reports')}>
         <Download size={18} />
-        Export Report
+        Reports & exports
       </button>
     </section>
   )

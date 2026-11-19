@@ -1,3 +1,4 @@
+import { API_URL } from '../services/api'
 import { useRef, useState } from 'react'
 import { GoogleLogin } from '@react-oauth/google'
 import {
@@ -87,16 +88,6 @@ export default function SettingsPanel({
     onChange({ ...settings, [key]: value })
   }
 
-  const medium = Number(settings.mediumThreshold)
-  const high = Number(settings.highThreshold)
-
-  const thresholdsValid =
-    Number.isFinite(medium) &&
-    Number.isFinite(high) &&
-    medium >= 1 &&
-    high <= 100 &&
-    medium < high
-
   const statusText = modelStatus.loading
     ? 'Checking backend connection...'
     : modelStatus.error
@@ -122,7 +113,7 @@ export default function SettingsPanel({
   const hasPasswordSignIn = authProviders.includes('password')
 
   async function updateAccount(endpoint, options) {
-    const response = await fetch(`http://localhost:8000/auth/${endpoint}`, {
+    const response = await fetch(`${API_URL}/auth/${endpoint}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -344,63 +335,12 @@ export default function SettingsPanel({
       <SettingsSection
         icon={ShieldCheck}
         title="Risk & alerts"
-        description="Configure risk classification thresholds and alert preferences."
+        description="Review model risk bands and choose your alerts."
       >
-        <div className="settings-fields-grid">
-          <SettingsField
-            label="Medium risk starts at (%)"
-            type="number"
-            min="1"
-            max="99"
-            value={settings.mediumThreshold}
-            onChange={(value) => update('mediumThreshold', value)}
-          />
-
-          <SettingsField
-            label="High risk starts at (%)"
-            type="number"
-            min="2"
-            max="100"
-            value={settings.highThreshold}
-            onChange={(value) => update('highThreshold', value)}
-          />
-        </div>
-
-        {!thresholdsValid && (
-          <p className="settings-validation">
-            Invalid thresholds. Medium must be at least 1%, high must be at
-            most 100%, and medium must be lower than high.
-          </p>
-        )}
-
-        <div className="settings-risk-preview">
-          <strong>Current risk rules</strong>
-
-          <div className="settings-risk-row">
-            <span>
-              <i className="risk-dot low-dot" /> Low risk
-            </span>
-            <strong>Below {Number.isFinite(medium) ? medium : '—'}%</strong>
-          </div>
-
-          <div className="settings-risk-row">
-            <span>
-              <i className="risk-dot medium-dot" /> Medium risk
-            </span>
-            <strong>
-              {Number.isFinite(medium) ? medium : '—'}% to below{' '}
-              {Number.isFinite(high) ? high : '—'}%
-            </strong>
-          </div>
-
-          <div className="settings-risk-row">
-            <span>
-              <i className="risk-dot high-dot" /> High risk
-            </span>
-            <strong>{Number.isFinite(high) ? high : '—'}% and above</strong>
-          </div>
-        </div>
-
+       <p className="settings-helper">
+  The API assigns Low below 30%, Medium from 30% to below 70%,
+  and High at 70% or above.
+</p>
         <div className="settings-toggle-list">
           <SettingsToggle
             label="High-risk alerts"
@@ -418,10 +358,9 @@ export default function SettingsPanel({
         </div>
 
         <p className="settings-helper">
-          Thresholds change the displayed risk classification, not the model's
-          underlying fraud probability or accuracy. Alert preferences control
-          application messages; they do not send emails or push notifications.
-        </p>
+  Alert preferences control in-workspace notifications after predictions.
+  They do not send emails or push notifications.
+</p>
       </SettingsSection>
 
       <SettingsSection
@@ -466,25 +405,21 @@ export default function SettingsPanel({
 
           <div>
             <span>Dataset</span>
-            <strong>PaySim synthetic data</strong>
+            <strong>IEEE-CIS and Give Me Some Credit</strong>
           </div>
 
           <div>
             <span>Input features</span>
-            <strong>Step, type, amount</strong>
+            <strong>431 transaction fields or 10 credit fields</strong>
           </div>
 
           <div>
             <span>Evaluation</span>
-            <strong>See training output</strong>
+            <strong>Separate labelled evaluation datasets</strong>
           </div>
         </div>
 
-        <p className="settings-helper">
-          These describe the expected project configuration. Verify the
-          backend model and training results before presenting them as
-          confirmed metrics.
-        </p>
+
       </SettingsSection>
 
       <SettingsSection
@@ -512,10 +447,11 @@ export default function SettingsPanel({
         </div>
 
         <div className="settings-disclaimer">
-          FraudShield is an educational project using synthetic transaction
-          data. Predictions are experimental and must not be treated as proof
-          of fraud or used as the sole basis for financial decisions.
-        </div>
+  FraudShield is an educational prototype. The fraud score estimates
+  transaction risk, while the credit score estimates serious delinquency
+  within two years. Predictions are experimental and must not be treated
+  as proof of fraud or used as the sole basis for financial decisions.
+</div>
       </SettingsSection>
 
       <p className="settings-autosave-note">

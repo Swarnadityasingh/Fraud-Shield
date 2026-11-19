@@ -1,0 +1,48 @@
+/* Dashboard-scoped tokens keep public/auth screens independent. */
+.dashboard-layout {
+  --dashboard-bg: #f2f0ec;
+  --dashboard-surface: #fff;
+  --dashboard-elevated: #faf9f6;
+  --dashboard-text: #25272d;
+  --dashboard-muted: #666b74;
+  --dashboard-border: #e2ded7;
+  --dashboard-border-strong: #c9c2b8;
+  --dashboard-copper: #965a30;
+  --dashboard-copper-fill: #965a30;
+  --dashboard-copper-soft: #f4e9df;
+  --dashboard-blue: #3c6f99;
+  --dashboard-blue-soft: #eaf1f7;
+  --dashboard-danger: #b54752;
+  --dashboard-danger-soft: #faebed;
+  --dashboard-safe: #39765c;
+  --dashboard-warning: #946620;
+  --dashboard-slate: #747e8c;
+  --dashboard-primary: var(--dashboard-copper);
+  --dashboard-accent: var(--dashboard-blue);
+  --dashboard-chart-grid: #e9e5df;
+  --dashboard-radius: 12px;
+  --dashboard-shadow: 0 2px 5px #25272d03,0 8px 24px #25272d03;
+  color-scheme: light;
+}
+.dark .dashboard-layout {
+  --dashboard-bg: #17191e;
+  --dashboard-surface: #22262d;
+  --dashboard-elevated: #292e36;
+  --dashboard-text: #f3f4f6;
+  --dashboard-muted: #a1a6af;
+  --dashboard-border: #343a44;
+  --dashboard-border-strong: #525a66;
+  --dashboard-copper: #d19a70;
+  --dashboard-copper-fill: #c58a59;
+  --dashboard-copper-soft: #c58a591a;
+  --dashboard-blue: #85add1;
+  --dashboard-blue-soft: #85add118;
+  --dashboard-danger: #e29198;
+  --dashboard-danger-soft: #e2919816;
+  --dashboard-safe: #82b89b;
+  --dashboard-warning: #d4b277;
+  --dashboard-slate: #a2aab7;
+  --dashboard-chart-grid: #343a44;
+  --dashboard-shadow: 0 3px 16px #0000000c;
+  color-scheme: dark;
+}

@@ -1,0 +1,10 @@
+.research-panel {padding:clamp(20px,3vw,40px);background:var(--dashboard-surface);color:var(--dashboard-text);border-radius:18px;max-width:1180px;margin:20px auto}
+.research-panel h1 {font-size:2rem;margin:0 0 12px}.research-panel p {margin:12px 0}
+.research-panel label {display:block;font-weight:600;overflow-wrap:anywhere}
+.research-panel textarea,.research-panel input,.research-panel select {border:1px solid #819299;border-radius:6px;background:Canvas;color:CanvasText;padding:9px}
+.research-panel textarea,.research-panel input {display:block;width:100%;box-sizing:border-box;margin-top:6px}
+.research-panel button {padding:9px 14px;border:1px solid #82939a;border-radius:7px;cursor:pointer}
+.research-panel .score-btn {margin-top:16px;background:#135d51;color:white}.credit-fields,.risk-bands {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:16px}
+.score-result,.risk-bands section {padding:16px;margin-top:18px;border-left:3px solid #238772}.report-tools {display:flex;gap:8px;margin:16px 0}
+.risk-bands label {display:flex;gap:12px;align-items:center;margin:8px 0}.research-panel progress {accent-color:#238772}
+@media print {body:has(.research-panel) * {visibility:hidden}.research-panel,.research-panel * {visibility:visible}.research-panel {position:absolute;left:0;top:0;width:100%;margin:0;padding:0}.research-panel .report-tools,.research-panel select {display:none}.transaction-table-scroll {overflow:visible!important}.dashboard-layout,.dashboard-main {display:block!important;height:auto!important;overflow:visible!important}}

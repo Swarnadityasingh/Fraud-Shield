@@ -1,108 +1,28 @@
 import './TransactionTable.css'
 
-const sampleTransactions = [
-  { id: 'TXN-1042', amount: 8500, type: 'PAYMENT', probability: 12, risk: 'Low' },
-  { id: 'TXN-1043', amount: 85000, type: 'TRANSFER', probability: 92, risk: 'High' },
-  { id: 'TXN-1044', amount: 12000, type: 'CASH_OUT', probability: 35, risk: 'Medium' },
-  { id: 'TXN-1045', amount: 950, type: 'PAYMENT', probability: 8, risk: 'Low' },
-]
-
-function formatINR(amount) {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(amount)
-}
-
-function formatTime(value) {
-  if (!value) return '—'
-
-  return new Date(value).toLocaleString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+export function predictionLabel(row) {
+  if (row.prediction !== 0 && row.prediction !== 1) return 'Other classification'
+  if (row.model_type === 'fraud') return row.prediction ? 'Fraudulent' : 'Legitimate'
+  if (row.model_type === 'credit_risk') return row.prediction ? 'Serious delinquency' : 'No serious delinquency'
+  return 'Other classification'
 }
 
 export default function TransactionTable({ history = [] }) {
-  const liveTransactions = history.map((tx) => ({
-    id: tx.transaction_id,
-    amount: tx.amount,
-    type: tx.transaction_type,
-    probability: Number(tx.fraud_probability) * 100,
-    risk: tx.risk_level,
-    createdAt: tx.created_at,
-    source: 'Live analysis',
-  }))
-
-  const rows = [
-    ...liveTransactions,
-    ...sampleTransactions.map((tx) => ({
-      ...tx,
-      source: 'Sample data',
-    })),
-  ]
-
-  return (
-    <section className="transaction-table-panel">
-      <div className="transaction-table-heading">
-        <div>
-          <h2>Recent transactions</h2>
-          <p>Monitor transaction activity and risk classifications.</p>
-        </div>
-
-        <span className="sample-data-label">
-          {liveTransactions.length} live · {sampleTransactions.length} sample
-        </span>
-      </div>
-
-      <div className="transaction-table-scroll">
-        <table className="transaction-table">
-          <thead>
-            <tr>
-              <th>Transaction</th>
-              <th>Amount</th>
-              <th>Type</th>
-              <th>Fraud probability</th>
-              <th>Risk</th>
-              <th>Source / Time</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {rows.map((tx) => (
-              <tr key={tx.id}>
-                <td className="transaction-id">{tx.id}</td>
-                <td className="transaction-amount">{formatINR(tx.amount)}</td>
-                <td>{tx.type?.replace('_', ' ')}</td>
-                <td>{Number(tx.probability).toFixed(1)}%</td>
-                <td>
-                  <span className={`risk-badge risk-${tx.risk.toLowerCase()}`}>
-                    {tx.risk}
-                  </span>
-                </td>
-                <td>
-                  <span className="transaction-source">
-                    {tx.source}
-                  </span>
-                  {tx.createdAt && (
-                    <small className="transaction-time">
-                      {formatTime(tx.createdAt)}
-                    </small>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <p className="transaction-table-disclaimer">
-        Live entries are predictions returned by the connected model.
-        Sample entries are illustrative and are not real transactions.
-      </p>
-    </section>
-  )
+  if (!history.length) return <div className="table-empty">No saved predictions yet.</div>
+  return <div className="transaction-table-scroll" tabIndex={0} role="region" aria-label="Saved predictions table"><table className="transaction-table">
+    <thead><tr>{['Prediction ID', 'Model', 'Classification', 'Model score', 'Risk level', 'Saved at'].map(h => <th scope="col" key={h}>{h}</th>)}</tr></thead>
+    <tbody>{history.map(row => {
+      const risk = ['Low', 'Medium', 'High'].includes(row.risk_level) ? row.risk_level.toLowerCase() : 'other'
+      const knownModel = ['fraud', 'credit_risk'].includes(row.model_type)
+      const tone = knownModel && row.prediction === 1 ? 'red' : knownModel && row.prediction === 0 ? 'blue' : 'slate'
+      const date = row.created_at ? new Date(row.created_at) : null
+      return <tr key={row.id}>
+        <td className="transaction-id">#{row.id}</td><td><span className="model-tag">{row.model_type === 'fraud' ? 'Transaction fraud' : row.model_type === 'credit_risk' ? 'Credit delinquency' : 'Other model'}</span></td>
+        <td><span className={`classification-badge badge-${tone}`}><i />{predictionLabel(row)}</span></td>
+        <td className="model-score">{typeof row.probability === 'number' && Number.isFinite(row.probability) ? `${(100 * row.probability).toFixed(2)}%` : '—'}</td>
+        <td><span className={`risk-badge risk-${risk}`}>{risk === 'other' ? 'Other' : row.risk_level}</span></td>
+        <td className="saved-time">{date && !Number.isNaN(date.getTime()) ? <time dateTime={date.toISOString()}>{date.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}<small>{date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</small></time> : 'Unavailable'}</td>
+      </tr>
+    })}</tbody>
+  </table></div>
 }

@@ -9,7 +9,7 @@ import ResetPassword from './components/ResetPassword'
 import VerifyEmail from './components/VerifyEmail'
 
 import {
-  predictTransaction,
+  API_URL,
   getModelStatus,
 } from './services/api'
 
@@ -55,13 +55,6 @@ export default function App() {
 
   const [welcomeVisible, setWelcomeVisible] = useState(false)
 
-  const [amount, setAmount] = useState('')
-  const [type, setType] = useState('TRANSFER')
-  const [message, setMessage] = useState('')
-  const [result, setResult] = useState(null)
-  const [loading, setLoading] = useState(false)
-
-  const [history, setHistory] = useState([])
   const [notifications, setNotifications] = useState([])
 
   const [activePage, setActivePage] = useState('Dashboard')
@@ -124,7 +117,7 @@ export default function App() {
       try {
 
         const refreshResponse = await fetch(
-          'http://localhost:8000/auth/refresh',
+          `${API_URL}/auth/refresh`,
           {
             method: 'POST',
             credentials: 'include',
@@ -142,7 +135,7 @@ export default function App() {
         }
 
         const userResponse = await fetch(
-          'http://localhost:8000/auth/me',
+          `${API_URL}/auth/me`,
           {
             method: 'GET',
             headers: {
@@ -178,28 +171,18 @@ export default function App() {
   }, [])
 
   async function handleLogout() {
-    try {
-      await fetch('http://localhost:8000/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      })
-    } catch (error) {
-      console.error('Backend logout failed:', error)
-    } finally {
-      setIsAuthenticated(false)
-      setAccessToken(null)
-      setCurrentUser(null)
-      setWelcomeVisible(false)
-
-      setAmount('')
-      setType('TRANSFER')
-      setResult(null)
-      setMessage('')
-      setHistory([])
-      setNotifications([])
-
-      navigate('/login', true)
-    }
+    const response = await fetch(`${API_URL}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+    if (!response.ok) throw new Error('Logout failed')
+    setIsAuthenticated(false)
+    setAccessToken(null)
+    setCurrentUser(null)
+    setWelcomeVisible(false)
+    setNotifications([])
+    setActivePage('Dashboard')
+    navigate('/login', true)
   }
 
   function handleIntroComplete() {
@@ -225,21 +208,10 @@ export default function App() {
       activeTheme === 'dark'
     )
     document.documentElement.style.colorScheme = activeTheme
+    document.documentElement.toggleAttribute('data-workspace', currentPath === '/dashboard')
   }, [currentPath, settings.theme])
 
   useEffect(() => {
-    const medium = Number(settings.mediumThreshold)
-    const high = Number(settings.highThreshold)
-
-    const valid =
-      Number.isFinite(medium) &&
-      Number.isFinite(high) &&
-      medium >= 1 &&
-      high <= 100 &&
-      medium < high
-
-    if (!valid) return
-
     try {
       localStorage.setItem(
         'fraudshield-settings',
@@ -263,7 +235,7 @@ export default function App() {
       setModelStatus({
         loading: false,
         online: data.status === 'healthy',
-        modelConnected: data.model_connected === true,
+        modelConnected: Boolean(data.models?.fraud_detection && data.models?.credit_risk),
         error: '',
       })
     } catch {
@@ -290,92 +262,6 @@ export default function App() {
       },
       ...previous,
     ])
-  }
-
-  function clearAnalysis() {
-    setAmount('')
-    setType('TRANSFER')
-    setResult(null)
-    setMessage('')
-  }
-
-  async function analyze(e) {
-    e.preventDefault()
-
-    if (loading) return
-
-    const submittedAmount = Number(amount)
-    if (!Number.isFinite(submittedAmount) || submittedAmount <= 0) {
-      setMessage('Enter a valid transaction amount.')
-      return
-    }
-
-    setLoading(true)
-    setMessage('')
-    setResult(null)
-
-    try {
-      const data = await predictTransaction({
-        amount: submittedAmount,
-        transaction_type: type,
-        step: 1,
-      })
-
-      const probability = Number(data.fraud_probability)
-
-      if (!Number.isFinite(probability)) {
-        throw new Error('The backend returned an invalid fraud probability.')
-      }
-
-      const medium = Number(settings.mediumThreshold) / 100
-      const high = Number(settings.highThreshold) / 100
-
-      const risk =
-        probability >= high
-          ? 'High'
-          : probability >= medium
-            ? 'Medium'
-            : 'Low'
-
-      const transactionId = `FS-${Date.now().toString().slice(-8)}`
-
-      const updatedResult = {
-        ...data,
-        transaction_id: transactionId,
-        amount: submittedAmount,
-        transaction_type: type,
-        fraud_probability: probability,
-        risk_level: risk,
-        created_at: new Date().toISOString(),
-      }
-
-      setResult(updatedResult)
-      setHistory((previous) => [updatedResult, ...previous])
-
-      const isFraud = data.prediction === 'Fraudulent'
-      const shouldAlert =
-        (risk === 'High' && settings.notifyHighRisk) ||
-        (isFraud && settings.notifyFraud)
-
-      if (shouldAlert) {
-        addNotification({
-          title: isFraud ? 'Potential fraud detected' : 'High-risk transaction',
-          description: `${transactionId} · ₹${submittedAmount.toLocaleString('en-IN')} · ${risk} risk`,
-          severity: isFraud ? 'danger' : 'warning',
-          transactionId,
-        })
-      }
-
-      setMessage(
-        shouldAlert
-          ? `Alert: ${data.prediction} transaction detected.`
-          : 'Transaction analysis completed.'
-      )
-    } catch (error) {
-      setMessage(error.message || 'Could not connect to the backend.')
-    } finally {
-      setLoading(false)
-    }
   }
 
   function markNotificationRead(id) {
@@ -472,16 +358,7 @@ export default function App() {
       setSettings={setSettings}
       modelStatus={modelStatus}
       refreshModelStatus={refreshModelStatus}
-      amount={amount}
-      setAmount={setAmount}
-      type={type}
-      setType={setType}
-      analyze={analyze}
-      clearAnalysis={clearAnalysis}
-      loading={loading}
-      message={message}
-      result={result}
-      history={history}
+      onNotification={addNotification}
       notifications={notifications}
       markNotificationRead={markNotificationRead}
       markAllNotificationsRead={markAllNotificationsRead}

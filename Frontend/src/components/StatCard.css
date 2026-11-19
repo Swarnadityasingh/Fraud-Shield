@@ -1,68 +1,60 @@
 .stat-card {
   min-width: 0;
-  padding: 23px;
+  min-height: 148px;
+  padding: 22px;
   background: var(--dashboard-surface);
   border: 1px solid var(--dashboard-border);
-  border-radius: 17px;
-  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.025);
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  border-radius: var(--dashboard-radius);
+  box-shadow: var(--dashboard-shadow);
+  transition: border-color .18s ease,transform .18s ease;
 }
-
 .stat-card:hover {
+  border-color: var(--dashboard-border-strong);
   transform: translateY(-2px);
-  border-color: var(--dashboard-primary);
 }
-
-.stat-card-icon {
-  display: grid;
-  width: 46px;
-  height: 46px;
-  place-items: center;
-  border-radius: 13px;
-  margin-bottom: 20px;
+.stat-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
 }
-
-.icon-blue {
-  color: var(--dashboard-accent);
-  background: color-mix(in srgb, var(--dashboard-accent) 11%, transparent);
-}
-
-.icon-red {
-  color: var(--dashboard-danger);
-  background: color-mix(in srgb, var(--dashboard-danger) 10%, transparent);
-}
-
-
-.icon-violet {
-  color: #5D0018;
-  background: color-mix(in srgb, #5D0018 10%, transparent);
-}
-
-.icon-amber {
-  color: var(--dashboard-warning);
-  background: color-mix(in srgb, var(--dashboard-warning) 11%, transparent);
-}
-
 .stat-card-title {
   margin: 0;
   color: var(--dashboard-muted);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.5;
 }
-
-.stat-card-value {
-  margin: 7px 0 0;
-  color: var(--dashboard-text);
-  font-size: clamp(23px, 2vw, 29px);
-  font-weight: 800;
-  line-height: 1.25;
-  letter-spacing: -0.7px;
-  overflow-wrap: anywhere;
+.stat-card-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  color: var(--dashboard-copper);
+  background: var(--dashboard-copper-soft);
 }
-
-@media (max-width: 480px) {
-  .stat-card {
-    padding: 18px;
-  }
+.stat-blue .stat-card-icon {
+  color: var(--dashboard-blue);
+  background: var(--dashboard-blue-soft);
+}
+.stat-red .stat-card-icon {
+  color: var(--dashboard-danger);
+  background: var(--dashboard-danger-soft);
+}
+.stat-card-value {
+  margin: 6px 0 8px;
+  color: var(--dashboard-text);
+  font-size: 32px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -1.2px;
+  font-variant-numeric: tabular-nums;
+}
+.stat-card-description {
+  margin: 0;
+  color: var(--dashboard-muted);
+  font-size: 11px;
+  line-height: 1.5;
 }

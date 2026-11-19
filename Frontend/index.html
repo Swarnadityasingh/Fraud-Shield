@@ -3,6 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Apply the persisted workspace theme before the first paint.
+      (() => {
+        const workspace = location.pathname === '/dashboard'
+        let theme = 'light'
+        try { theme = JSON.parse(localStorage.getItem('fraudshield-settings') || '{}').theme === 'dark' ? 'dark' : 'light' } catch {}
+        document.documentElement.classList.toggle('dark', location.pathname === '/' || theme === 'dark')
+        document.documentElement.toggleAttribute('data-workspace', workspace)
+        document.documentElement.style.colorScheme = location.pathname === '/' ? 'dark' : theme
+      })()
+    </script>
 
     <!-- FraudShield Brand Identity -->
     <link
@@ -29,7 +40,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&family=Playwrite+IT+Trad:wght@400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Browser Theme -->
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#070D18" />
 
     <!-- Primary SEO -->
@@ -47,11 +58,13 @@
 
     <!-- Prevent Initial White Screen Flash -->
     <style>
+      html[data-workspace] { --initial-bg: #F2F0EC; --initial-text: #25272D; }
+      html[data-workspace].dark { --initial-bg: #17191E; --initial-text: #F3F4F6; }
       html,
       body,
       #root {
-        background-color: #070D18 !important;
-        color: #F1F5F9;
+        background-color: var(--initial-bg, #070D18) !important;
+        color: var(--initial-text, #F1F5F9);
         margin: 0;
         padding: 0;
         width: 100%;

@@ -11,7 +11,12 @@ import Sidebar from './components/Sidebar'
 import DashboardHeader from './components/DashboardHeader'
 import DashboardHome from './pages/DashboardHome'
 
+import PredictionForm from './pages/PredictionForm'
+import HistoryReport from './pages/HistoryReport'
+import { loadHistory } from './services/api'
+import './styles/theme.css'
 import './Dashboard.css'
+import './styles/predictions.css'
 
 export default function Dashboard({
   accessToken,
@@ -23,16 +28,7 @@ export default function Dashboard({
   setSettings,
   modelStatus,
   refreshModelStatus,
-  amount,
-  setAmount,
-  type,
-  setType,
-  analyze,
-  clearAnalysis,
-  loading,
-  message,
-  result,
-  history = [],
+  onNotification,
   notifications = [],
   markNotificationRead,
   markAllNotificationsRead,
@@ -40,20 +36,43 @@ export default function Dashboard({
   onWelcomeDismiss,
   onLogout,
 }) {
-  const safeHistory = Array.isArray(history) ? history : []
+  const [history, setHistory] = useState([])
+  const [revision, setRevision] = useState(0)
+  const [historyStatus, setHistoryStatus] = useState('Loading history…')
+  const [historyState, setHistoryState] = useState('loading')
+  const [historyToken, setHistoryToken] = useState(null)
+  const visibleHistoryState = historyToken === accessToken ? historyState : 'loading'
+  useEffect(() => {
+    const controller = new AbortController()
+    setHistoryStatus('Loading history…')
+    setHistoryState('loading')
+    setHistoryToken(accessToken)
+    setHistory([])
+    loadHistory(accessToken, controller.signal).then(rows => {
+      if (!controller.signal.aborted) {
+        setHistory(rows)
+        setHistoryStatus('')
+        setHistoryState('ready')
+      }
+    }).catch(error => {
+      if (!controller.signal.aborted) {
+        setHistoryStatus(error.message)
+        setHistoryState('error')
+      }
+    })
+    return () => controller.abort()
+  }, [accessToken, revision])
+
+  function predictionSaved(data, kind) {
+    setRevision(value => value + 1)
+    if ((kind === 'fraud' && data.prediction && settings.notifyFraud) ||
+        (data.risk_level === 'High' && settings.notifyHighRisk)) {
+      onNotification({title: data.prediction_label, description: 'Prediction #' + data.history_id,
+        severity: 'warning'})
+    }
+  }
+
   const safeNotifications = Array.isArray(notifications) ? notifications : []
-
-  const totalTransactions = safeHistory.length
-
-  const flaggedTransactions = safeHistory.filter(
-    (item) => item.prediction === 'Fraudulent'
-  ).length
-
-  const legitimateTransactions = totalTransactions - flaggedTransactions
-
-  const highRiskCases = safeHistory.filter(
-    (item) => item.risk_level === 'High'
-  ).length
 
   const userName = settings.profileName?.split(' ')[0] || 'there'
   const notificationsEnabled = settings.notifyHighRisk || settings.notifyFraud
@@ -210,6 +229,19 @@ export default function Dashboard({
 
   const themeTransitionRef = useRef(false)
   const logoutDialogRef = useRef(null)
+  const [logoutError, setLogoutError] = useState('')
+  const [loggingOut, setLoggingOut] = useState(false)
+
+  async function confirmLogout() {
+    setLoggingOut(true)
+    setLogoutError('')
+    try {
+      await onLogout()
+    } catch {
+      setLogoutError('Could not end the session. Check the connection and try again.')
+      setLoggingOut(false)
+    }
+  }
   const [plansOpen, setPlansOpen] = useState(false)
   const currentPlan = 'free'
 
@@ -282,9 +314,10 @@ export default function Dashboard({
           <div className="logout-confirm-icon"><LogOut size={24} aria-hidden="true" /></div>
           <h2 id="logout-confirm-title">Log out of FraudShield?</h2>
           <p id="logout-confirm-description">You’ll need to sign in again to access your workspace.</p>
-          <div className="logout-confirm-actions">
+          {logoutError && <p role="alert">{logoutError}</p>}
+            <div className="logout-confirm-actions">
             <button type="button" className="logout-confirm-cancel" autoFocus onClick={() => logoutDialogRef.current.close()}>Cancel</button>
-            <button type="button" className="logout-confirm-submit" onClick={() => { logoutDialogRef.current.close(); onLogout() }}>Log out</button>
+            <button type="button" className="logout-confirm-submit" disabled={loggingOut} onClick={confirmLogout}>{loggingOut ? 'Logging out...' : 'Log out'}</button>
           </div>
         </div>
       </dialog>
@@ -340,7 +373,16 @@ export default function Dashboard({
           themeToastPhase={themeToastPhase}
         />
 
-        {activePage === 'Settings' ? (
+        {activePage !== 'Dashboard' && visibleHistoryState !== 'ready' && <div className="history-status-banner" role={visibleHistoryState === 'error' ? 'alert' : 'status'}>
+          <span>{visibleHistoryState === 'error' ? historyStatus : 'Loading saved prediction history…'}</span>
+          {visibleHistoryState === 'error' && <button className="dashboard-button" onClick={() => setRevision(n => n + 1)}>Reload history</button>}
+        </div>}
+        {activePage === 'Fraud Detection' || activePage === 'Credit Risk' ? (
+          <PredictionForm key={activePage} kind={activePage === 'Credit Risk' ? 'credit-risk' : 'fraud'}
+            token={accessToken} onSaved={predictionSaved} />
+        ) : ['Analytics', 'Reports', 'Unified Risk'].includes(activePage) ? (
+          visibleHistoryState === 'ready' && <HistoryReport page={activePage} history={history} ready />
+        ) : activePage === 'Settings' ? (
           <section id="settings" className="dashboard-settings">
             <SettingsPanel
               settings={settings}
@@ -355,12 +397,11 @@ export default function Dashboard({
         ) : (
           <DashboardHome
             userName={userName}
-            totalTransactions={totalTransactions}
-            legitimateTransactions={legitimateTransactions}
-            flaggedTransactions={flaggedTransactions}
-            highRiskCases={highRiskCases}
             notifications={safeNotifications}
-            history={safeHistory}
+            history={history}
+            historyState={visibleHistoryState}
+            historyError={historyStatus}
+            onReload={() => setRevision(n => n + 1)}
             onNavigate={navigateTo}
           />
         )}
@@ -368,7 +409,7 @@ export default function Dashboard({
         <footer className="dashboard-footer">
           <span>FraudShield</span>
           <span>Machine Learning Financial Monitoring</span>
-          <span>Educational prototype · Synthetic data</span>
+          <span>Educational prototype</span>
         </footer>
       </main>
     </div>

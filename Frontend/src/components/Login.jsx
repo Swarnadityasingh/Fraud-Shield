@@ -1,3 +1,4 @@
+import { API_URL } from '../services/api'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { GoogleLogin } from '@react-oauth/google'
@@ -102,7 +103,7 @@ export default function Login({
     setAuthError('')
 
     try {
-      const response = await fetch('http://localhost:8000/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -165,7 +166,7 @@ export default function Login({
     setAuthError('')
 
     try {
-      const response = await fetch('http://localhost:8000/auth/register', {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -215,7 +216,7 @@ export default function Login({
     setGoogleMessage('')
 
     try {
-      const response = await fetch('http://localhost:8000/auth/google', {
+      const response = await fetch(`${API_URL}/auth/google`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -268,7 +269,7 @@ export default function Login({
 
     try {
       const response = await fetch(
-        'http://localhost:8000/auth/google/register',
+        `${API_URL}/auth/google/register`,
         {
           method: 'POST',
           headers: {

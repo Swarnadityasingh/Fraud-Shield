@@ -108,7 +108,8 @@ export default function Sidebar({
         </button>
       </div>
 
-      <nav className="dashboard-navigation">
+      <p className="sidebar-section-label">WORKSPACE</p>
+      <nav className="dashboard-navigation" aria-label="Workspace navigation">
         {links.map(({ name, icon: Icon, onClick }) => (
           <button
             key={name}
@@ -119,6 +120,8 @@ export default function Sidebar({
               activePage === name ? 'active' : ''
             }`}
             title={name}
+            aria-label={name}
+            aria-current={activePage === name ? 'page' : undefined}
           >
             <Icon size={18} className="nav-icon" />
             <span className="nav-text">{name}</span>

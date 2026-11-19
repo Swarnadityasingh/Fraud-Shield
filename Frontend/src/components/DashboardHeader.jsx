@@ -19,19 +19,18 @@ export default function DashboardHeader({
   themeToast,
   themeToastPhase,
 }) {
-  const pageTitle =
-    activePage === 'Settings' ? 'Settings' : 'Dashboard'
+  const pageTitle = activePage === 'Dashboard' ? 'Executive overview' : activePage
 
   const pageDescription =
     activePage === 'Settings'
       ? 'Manage your preferences, risk rules and system configuration.'
-      : 'Financial transaction monitoring'
+      : activePage === 'Dashboard' ? 'Your saved financial risk activity, at a glance.' : 'Independent financial risk assessment'
 
   return (
     <header className="dashboard-header">
       <div>
         <span className="dashboard-eyebrow">
-          FINANCIAL INTELLIGENCE PLATFORM
+          FRAUDSHIELD / WORKSPACE
         </span>
 
         <h1>{pageTitle}</h1>
@@ -39,6 +38,7 @@ export default function DashboardHeader({
       </div>
 
       <div className="header-actions">
+        <span className="workspace-chip"><i aria-hidden="true" /> Personal workspace</span>
         <button
           type="button"
           className={`theme-toggle-button ${
@@ -62,7 +62,7 @@ export default function DashboardHeader({
           <Moon className="theme-toggle-moon" size={16} aria-hidden="true" />
         </button>
 
-        <div ref={notificationWrapperRef} style={{ position: 'relative' }}>
+        <div ref={notificationWrapperRef} style={{ position: 'relative' }} onKeyDown={event => { if (event.key === 'Escape') setNotificationsOpen(false) }}>
           <button
             type="button"
             className={`notification-button ${
@@ -74,6 +74,7 @@ export default function DashboardHeader({
                 : 'Notifications disabled'
             }
             aria-expanded={notificationsOpen}
+            aria-controls="workspace-notifications"
             title={
               notificationsEnabled
                 ? 'Notifications'
@@ -94,7 +95,7 @@ export default function DashboardHeader({
           </button>
 
           {notificationsOpen && (
-            <div className="notification-panel">
+            <div className="notification-panel" id="workspace-notifications">
               <div className="notification-panel-header">
                 <div>
                   <h3>Notifications</h3>
