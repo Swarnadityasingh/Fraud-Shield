@@ -1,0 +1,144 @@
+{
+  "status": "REVIEW REQUIRED: no inference or live submissions authorized in this stage",
+  "baseline": "C:\\Users\\Arpit Srivastava\\FraudShield-Backups\\2026-11-18_205620_IST",
+  "selection_rule": "For each dataset and each true class 0 and 1, select the holdout record with the smallest numeric source ID. No score-based selection.",
+  "scope": "Four illustrative integration examples, not new evaluation evidence; true class does not guarantee model output.",
+  "environment": {
+    "python": "3.13.9",
+    "pandas": "3.1.0",
+    "numpy": "2.5.4",
+    "scikit_learn": "1.9.1"
+  },
+  "verification": {
+    "fraud": {
+      "partition_rows": {
+        "train": 413378,
+        "validation": 88581,
+        "holdout": 88581
+      },
+      "unique_ids": true,
+      "disjoint_partitions": true,
+      "strict_temporal_boundaries": true,
+      "saved_distribution_matches": true,
+      "selected_raw_csv_join_matches": true
+    },
+    "credit": {
+      "reconstructed_with_existing_two_stage_stratified_split": true,
+      "seed": 42,
+      "partition_rows": {
+        "train": 105000,
+        "validation": 22500,
+        "holdout": 22500
+      },
+      "saved_distribution_matches": true,
+      "unique_ids": true,
+      "disjoint_partitions": true,
+      "complete_id_coverage": true,
+      "membership_hash_definition": "SHA256 of ascending numeric source IDs, decimal text, LF-separated with final LF",
+      "membership_sha256": {
+        "train": "c5b5112dc4bddf3820320126edd2bd83fdb1043cf1bb6ff233501be986beccfa",
+        "validation": "1c811dbc7c0946f0ed8ce1c41fbdb653150e95e4cec4d7c3e0cd5dea5650e5b4",
+        "holdout": "4b39598d093ebe9b3c351318892bb3fee830dcb5fd04245f9f2d0a19f09b38b6"
+      },
+      "limitation": "No prior saved membership manifest exists to compare against; reconstruction matches the preserved algorithm, raw-file hash and distribution counts."
+    }
+  },
+  "sources": {
+    "repository/Backend/data/processed/train.parquet": {
+      "sha256": "60bc4997cdf0995682b19d8f65eff4d0a6919da86bb5078ffa82ccf4670d61ac",
+      "size_bytes": 59350011
+    },
+    "repository/Backend/data/processed/validation.parquet": {
+      "sha256": "bd3654369f573fa21431eacc90a026ac2ed6e2187813769a5ebdf208b3878629",
+      "size_bytes": 12755396
+    },
+    "repository/Backend/data/processed/holdout.parquet": {
+      "sha256": "09523f5e713cd9936700dcee85d6953e1d4be66ad4d1957c5e117ab66a4bae5c",
+      "size_bytes": 13733910
+    },
+    "public_datasets/IEEE-CIS/train_transaction.csv": {
+      "sha256": "3a5c83ab6b3cc13dcabe5ffa9f522307fd5f7f7b6e6f6a60c32284ca6283d642",
+      "size_bytes": 683351067
+    },
+    "public_datasets/IEEE-CIS/train_identity.csv": {
+      "sha256": "b63c725d8377be90a995268d97f347c17d456b95db45807adcf9f59cd603c37c",
+      "size_bytes": 26529680
+    },
+    "repository/Backend/app/models/fraud_selected.joblib": {
+      "sha256": "d8c98d26d7458b13d79e6328c2f1ddd9c75dcdd175bc3cc12923732665f17f00",
+      "size_bytes": 5520644
+    },
+    "public_datasets/GiveMeSomeCredit/cs-training.csv": {
+      "sha256": "1bd46da486a5708c58c7b01a034fae2a13b327f6f7b62ea7ba4fe3b5824b24ac",
+      "size_bytes": 7564965
+    },
+    "repository/Backend/app/models/credit_selected.joblib": {
+      "sha256": "607e7f0ba9ecfefa342ea25311c2e021123e5727d2459964fc45b0cf4778c90c",
+      "size_bytes": 9037895
+    }
+  },
+  "records": [
+    {
+      "dataset": "IEEE-CIS",
+      "source_id": 3488959,
+      "split": "holdout",
+      "true_label_metadata_only": 0,
+      "TransactionDT_metadata_only": 13151880,
+      "model_sha256": "d8c98d26d7458b13d79e6328c2f1ddd9c75dcdd175bc3cc12923732665f17f00",
+      "decision_threshold": 0.21,
+      "feature_count": 431,
+      "payload_file": "demo-fraud-3488959.json",
+      "payload_sha256": "88bb3215b4e14d53ccefb1f81bbb3ec525e6de27f558f4daf064c92d3a48a968",
+      "raw_source_verified": true,
+      "not_in_training_or_validation": true,
+      "prediction_executed": false,
+      "application_submission_executed": false
+    },
+    {
+      "dataset": "IEEE-CIS",
+      "source_id": 3488979,
+      "split": "holdout",
+      "true_label_metadata_only": 1,
+      "TransactionDT_metadata_only": 13153151,
+      "model_sha256": "d8c98d26d7458b13d79e6328c2f1ddd9c75dcdd175bc3cc12923732665f17f00",
+      "decision_threshold": 0.21,
+      "feature_count": 431,
+      "payload_file": "demo-fraud-3488979.json",
+      "payload_sha256": "f0269fc78e3a5b76af1431a672e95dd02163517aecb196410db1b1fdd247e9d3",
+      "raw_source_verified": true,
+      "not_in_training_or_validation": true,
+      "prediction_executed": false,
+      "application_submission_executed": false
+    },
+    {
+      "dataset": "Give Me Some Credit",
+      "source_id": 12,
+      "source_dataframe_index_zero_based": 11,
+      "split": "holdout",
+      "true_label_metadata_only": 0,
+      "model_sha256": "607e7f0ba9ecfefa342ea25311c2e021123e5727d2459964fc45b0cf4778c90c",
+      "decision_threshold": 0.23,
+      "feature_count": 10,
+      "payload_file": "demo-credit-12.json",
+      "payload_sha256": "bda628e667f487e322e46c571a54d924d241ea860aff278374542501a7fe25b8",
+      "not_in_training_or_validation": true,
+      "prediction_executed": false,
+      "application_submission_executed": false
+    },
+    {
+      "dataset": "Give Me Some Credit",
+      "source_id": 1,
+      "source_dataframe_index_zero_based": 0,
+      "split": "holdout",
+      "true_label_metadata_only": 1,
+      "model_sha256": "607e7f0ba9ecfefa342ea25311c2e021123e5727d2459964fc45b0cf4778c90c",
+      "decision_threshold": 0.23,
+      "feature_count": 10,
+      "payload_file": "demo-credit-1.json",
+      "payload_sha256": "fb7395fd05fea2eca2119744a126f750b5a8dafd781a31cf80204a51b5d93788",
+      "not_in_training_or_validation": true,
+      "prediction_executed": false,
+      "application_submission_executed": false
+    }
+  ]
+}

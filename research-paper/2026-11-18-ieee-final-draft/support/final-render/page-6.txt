@@ -1,0 +1,95 @@
+therefore enforces a training-only boundary; it is not a complete 
+audit of historical execution. [E08, E15] 
+The research evaluator loads ieee_ cis_model.joblib, reuses 
+its fitted preprocessor and weighted classifier, and fits the 
+unweighted clone on transformed chronological training data. 
+This is a reused weighted reference versus a newly fitted 
+unweighted comparator, not a symmetric refit of both forests 
+in one research run. Credit instead clones/ refits preprocessing 
+and fits both candidate forests on the new stratified training 
+partition. [E07, E08] 
+Previously documented artifact inspection found matching 
+fraud feature order and fitted preprocessing object hashes. Both 
+forests record 413,378 fitted samples and 431 features. The 
+original artifact matches its Git-tracked version; its SHA-256 is 
+c3fbdd379bc809462f03fa6baa7255d5bcaa337c9983dceb
+1252e957abac6059. These checks strengthen continuity and 
+preprocessing equivalence. Nevertheless, exact historical 
+training-row identity for the original weighted fraud model 
+is unproven, because a dataset-hash/row-ID fit manifest was not 
+stored with it. Equal dimensions and fitted preprocessing do not 
+logically prove identical historical rows or labels. [E15] 
+The original weighted fit goes through a DataFrame/Pipeline 
+path. Research unweighted fitting receives transformed float32 
+memory-mapped arrays built in batches of 4096. Estimator 
+parameter dictionaries differ in class weight and n_ jobs (-1 
+versus 4); the project does not establish exact historical 
+numerical training equivalence merely from a shared seed. This 
+implementation asymmetry is retained as a limitation. [E08, 
+E15] 
+TABLE IV. FITTED CONFIGURATION AND COMPARISON SCOPE. CONFIGURATION DERIVES FROM ARTIFACTS AND SCRIPTS, NOT NEWLY TRAINED ESTIMATORS. [E07, 
+E08, E15] 
+Property Fraud Credit 
+Forest size / maximum depth 100 / 16 100 / 16 
+Minimum leaf size 2 2 
+Criterion / feature sampling Gini / square root Gini / square root 
+Bootstrap / seed Enabled / 42 Enabled / 42 
+Weight candidates balanced_subsample, None balanced_subsample, None 
+Selected weighting None None 
+Input count 431 10 
+Research fitting Reused weighted forest; fitted unweighted clone Both research candidates fitted 
+Baseline Training-prior constant score Training-prior constant score 
+The comparison is not a broad hyperparameter search. No 
+SMOTE, NearMiss, undersampling or other class -balancing 
+resampling experiment is evidenced. Random Forest's internal 
+bootstrap procedure should not be relabeled as such an 
+experiment. [E08] 
+B. Validation selection and decision rules 
+For each of three candidates, thresholds 0.01 –0.99 in 
+increments of 0.01 are examined on validation scores. 
+Maximum F1 selects the candidate's operating point, with ties 
+resolved by higher precision and then higher threshold. Only the 
+two forests compete for selection using their best validation F1. 
+The prior classifier receives its own threshold for comparison 
+but cannot become the selected serving model. There are 297 
+saved validation operating points per dataset. [E08, E09] 
+The selected thresholds are 0.21 for fraud and 0.23 for credit. 
+A score s(x) is positive when s(x) ≥ t. Current code implements 
+validation-based selection, but neither the code nor present 
+outputs independently certify the full chronology of historical 
+analyst decisions or absence of holdout -guided choices. F1 
+selection is not a measured financial -cost optimization. [E04, 
+E08, E15] [3] 
+C. Measures and their interpretation 
+For class 1, precision is TP/ (TP+FP), recall TP/ (TP+FN), 
+and F1 2PR/ (P+R). Accuracy is (TP+TN)/ N. ROC -AUC 
+summarizes ranking over positive/negative pairs. The evaluator 
+computes trapezoidal PR -AUC using auc(recall, precision) on 
+the precision–recall c urve and computes Average Precision 
+separately using average_precision_score. AP weights precision 
+by recall increments; the two measures must remain distinct. 
+[E08] [1], [2] 
+Earlier validation JSONs used pr_ auc as the name for AP. 
+Those legacy values are not substituted into final -result tables. 
+Constant-score baseline curves also require caution: trapezoidal 
+interpolation can yield an apparently large area without useful 
+ranking. Both stored quantities are reta ined faithfully, rather 
+than retrospectively redefining a metric. [E09, E12] [2] 
+D. Environment evidence and artifact replay 
+The current -environment snapshot records Python 3.13.9, 
+scikit-learn 1.9.1, pandas 3.1.0, NumPy 2.5.4, joblib 1.6.0 and 
+PyArrow 26.0.1. Frontend lockfile versions include React 
+18.3.1, Vite 6.4.5 and Tailwind CSS 4.3.3. Node.js 24.16.0 and 
+npm 11.13.0 were observed during documentation. PostgreSQL 
+18.6 is an earlier audit observation, not a current query. These 
+are explicitly current inspection/ lockfile or previously 
+reported versions , not a recovered historical training 
+environment. Several requirements are unpinned; no verified 
+experimental hardware specification or measured minimum 
+hardware requirement is available. [E11, E18, E19] 
+The selected serialization files contain fitted preprocessing, 
+forests and thresholds. The loader computes SHA-256 and sets 
+n_jobs=1 for fixed -order accumulation, while the serialized 
+selected forests retain n_ jobs=4. The saved replay JSON links 
+the selected files to final results. Its maximum pipeline -versus-
+classifier score difference is recorded as zero. Despite the field 

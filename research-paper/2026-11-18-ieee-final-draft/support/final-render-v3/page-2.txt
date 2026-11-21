@@ -1,0 +1,114 @@
+current partition structure. The application audit records earlier 
+automated/database checks, while live browser evidence 
+remains incomplete. The following sections preserve these 
+distinctions rather than treating all available material as 
+equivalent verification. [E09, E11, E14, E15] 
+II. RELATED WORK AND LITERATURE POSITIONING 
+A. Forest classification, weighting and credit evaluation 
+Breiman's Random Forest formulation establishes the 
+ensemble basis of the method [4]. Lessmann et al.'s multi -
+classifier credit benchmark [5] places the current two -variant 
+comparison in perspective: evidence about one forest family 
+cannot establish algorithm superiority. Weighting research also 
+indicates that a conventional weighting rule need not be 
+uniformly optimal [7]. FraudShield consequently evaluates 
+specific candidate/threshold combinations rather than assuming 
+weighting solves imbalance. 
+Han and Jung examine Give Me Some Credit through non -
+parametric models, resampling and explanations, using five-fold 
+evaluation and tuning [8]. Their design addresses a broader 
+method set and a different validation question from a fixed 
+holdout. However, a  cross-validation label alone does not 
+establish equivalence of preprocessing, resampling and tuning 
+boundaries. Those nesting details are not fully audited in the 
+available extraction. The study therefore supplies a relevant 
+methodological comparison, not  a score that can be ranked 
+directly against FraudShield's results. [E22] 
+Soylu et al. use credit benchmarks including GMSC, three 
+stratified 60/20/20 split seeds, an F2 operating -point objective 
+and final development-set refitting [9]. F2 gives recall a different 
+emphasis from FraudShield's F1 criterion; refitting after 
+selection also changes the fitted model to which the selected 
+operating point is applied. The methodological implication is 
+that split fractions, threshold objective and refit policy jointly 
+affect comparability. This is not a finding that their refit is 
+invalid. FraudShield instead reports one research split and 
+retains the training -partition fits, with limited evidence about 
+stability across partitions. [E08, E09, E22] 
+B. Temporal validation, observation construction and 
+operational fraud 
+Dal Pozzolo et al. examine operational constraints including 
+delayed verification and changing transaction patterns [6]. Their 
+setting highlights what static holdout metrics omit: investigator 
+feedback, label availability and adaptation. FraudShield does not 
+simulate these mechanisms, and its temporal split cannot 
+establish their operational effects. 
+Chen et al. use IEEE -CIS with chronological 70/ 10/20 
+partitions, temporal-sequence modeling and synthetic training 
+examples [10]. This differs in both the learning method and the 
+construction of an observation. A sequence's history and an 
+augmented train ing population are not interchangeable with 
+FraudShield's transaction feature vectors. Comparing reported 
+scores would require alignment of split boundaries, sequence 
+context and augmentation controls, which has not been 
+established. Their temporal protoco l is relevant background; 
+neither its validity nor its empirical gains are independently 
+certified here. [E22] 
+Kang and Kim examine IEEE -CIS using interpretable 
+additive models, out -of-time assessment and pseudo -entity-
+disjoint evaluation [11]. Their design separates temporal 
+generalization from performance on separated entities and treats 
+explanation structure as part of the model. FraudShield has 
+neither an entity -disjoint experiment nor an equivalent 
+explanation assessment. The distinction matters because 
+chronological row separation alone does not establish how 
+repeated entities or individual explanations affect  
+generalization. No numerical superiority claim follows from the 
+common dataset name. [E10, E15, E22] 
+TABLE I. PROTOCOL DISTINCTIONS IN SELECTED VERIFIED LITERATURE AND THIS STUDY. THE TABLE COMPARES METHODOLOGICAL SCOPE, NOT PERFORMANCE 
+SCORES. EXTERNAL PROTOCOLS ARE DRAWN FROM THE PREVIOUSLY VERIFIED LITERATURE MATRIX; UNEXAMINED NESTING OR IMPLEMENTATION DETAILS ARE 
+NOT ASSUMED CORRECT OR EQUIVALENT. [E22] 
+Study Dataset and emphasis Method / verified evaluation design Comparability limit 
+Han and Jung [8] GMSC; imbalance and 
+explanations 
+Non-parametric classifiers, resampling, five-fold 
+evaluation and tuning 
+Different candidate set; nesting details not fully 
+audited; no matched fixed holdout 
+Soylu et al. [9] Credit including GMSC; 
+cost-sensitive hybrid 
+Stratified 60/20/20, three split seeds, F2 operating 
+points and development refitting 
+Different objective, sample allocation and final-fit 
+policy; F2 is not a measured financial cost 
+Chen et al. [10] IEEE-CIS; temporal 
+sequences 
+Chronological 70/10/20, Transformer and synthetic 
+training observations 
+Different observation construction/augmentation; 
+context and split controls not aligned here 
+Kang and Kim [11] IEEE-CIS; interpretable 
+fraud models 
+Additive models, out-of-time and pseudo-entity-
+disjoint assessments 
+Different feature/model structure and entity-
+separation question 
+FraudShield Independent fraud and credit 
+tasks 
+Fixed forest family, two weightings, prior baseline; 
+respective chronological/random 70/15/15; validation 
+F1 
+One research seed, reused weighted fraud fit, no 
+broader algorithm or entity-disjoint comparison 
+C. Thresholding, precision–recall evaluation and calibration 
+Saito and Rehmsmeier examine precision –recall 
+interpretation for imbalanced problems [1]. Davis and Goadrich 
+discuss the relationship between ROC and PR spaces, including 
+interpolation difficulties [2]. These works motivate retaining 
+positive-class errors alongside ranking measures and specifying 
+exactly how PR area is computed. They do not imply that ROC-
+AUC should be discarded. 
+Lipton et al. analyze F1 threshold selection [3]. The present 
+manuscript cites the verified arXiv preprint explicitly rather than 
+mixing its title with conference metadata. Its calibrated -
+probability special case is not assumed to hold for these forests. 

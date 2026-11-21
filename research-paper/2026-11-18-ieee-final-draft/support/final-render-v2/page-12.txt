@@ -1,0 +1,113 @@
+cost, investigator-capacity or institutional intervention outcome 
+is measured. [E09, E15, E20] 
+C. Construct validity and gap assessment 
+Imbalance is partially addressed , not solved: the study 
+compares weighting and thresholds, yet both selected models 
+miss substantial positive cases. Explainability is also partially 
+addressed only at the global descriptive level: impurity ranks 
+are present, while SHAP, local explanations, counterfactuals 
+and their fidelity/stability are not demonstrated. [E04, E08–E10] 
+Unified application architecture is implemented, but unified 
+predictive modeling is absent. Two scores without demonstrated 
+calibration and with different targets cannot be treated as a 
+validated joint financial-risk score merely because they share a 
+page. Temporal fraud evaluation is present, whereas concept-
+drift detection and adaptation are not implemented or 
+experimentally evaluated . The selection reversal is an 
+observation, not a drift diagnosis. [E02, E04, E07–E09] [6] 
+Calibration is unmeasured. Neither displaying percentages 
+nor using a probability -producing estimator validates absolute 
+risk. Conversely, external calibration findings do not prove these 
+models are miscalibrated. The UI bands are conventions without 
+empirical risk-band validation, and F1 does not encode actual 
+monetary costs. [E04] [3], [12], [13], [14] 
+D. Reproducibility, operations and publication boundaries 
+The preserved package includes sources, scripts, artifacts, 
+metrics, figures and checksums. This improves traceability but 
+is not independent reproduction. The current environment 
+snapshot must remain separate from an unrecorded historical 
+environment, and  hardware requirements cannot be inferred 
+from a successful past run. [E14, E18, E19] 
+Operational qualifications include history rows lacking 
+model version/threshold attribution and the prior audit's finding 
+that a downgrade through the authentication migration removes 
+history ownership. Browser report/ download/print verification 
+remains pending. Dataset -specific redistribution permissions, 
+exact credit dictionary wording and official-release identity are 
+unresolved. The manuscript is therefore an evidence -bounded 
+content draft, not a claim of operational or publication readiness. 
+[E06, E11, E13, E17, E20] [17] 
+X. FUTURE WORK 
+The prospective objectives retain their approved identities 
+and are not completed -study achievements. O8 would develop 
+and evaluate per -case explanations, including fidelity/ stability 
+and appropriate presentation. O9 would require justified linked 
+data, a joint target and separate validation before claiming a 
+fused financial-risk predictor. O10 would specify and evaluate 
+time-aware drift detection and adaptation, including false 
+alarms, delayed labels and monitoring controls. None is 
+implemented or evaluated by the evidence reported here. [E04, 
+E07, E10, E20] 
+Other possible extensions include repeated -seed 
+comparisons, uncertainty estimates, stronger matched baselines, 
+calibration assessment, external validation and subgroup 
+evaluation. They require separately designed and authorized 
+analyses with suitable data  boundaries; repeated tuning on an 
+already exposed holdout would undermine its role. Existing 
+metrics and plots must remain unchanged, with any follow -up 
+study producing separately versioned evidence. 
+Immediate publication work is narrower: confirm author/
+venue decisions, resolve attribution and data-sharing questions, 
+critically check selected literature, review figure readability in 
+the final format and complete genuine application evidence only 
+if authorized and still claimed. These tasks are not substitutes for 
+missing experiments, nor does every possible future experiment 
+become a mandatory claim in the present study. [E17, E20, E22] 
+XI. CONCLUSION 
+FraudShield's preserved experiments describe two 
+independent Random Forest pipelines selected using validation 
+F1 and evaluated on distinct internal holdouts. Both selected 
+forests exceed the prior baseline in saved F1 and AP, but 
+positive-case errors rema in substantial. The fraud comparison 
+demonstrates a validation -to-holdout ordering reversal: the 
+selected unweighted forest does not retain its F1 advantage over 
+the weighted reference. The paper retains that result and its 
+unresolved cause. 
+The empirical contribution is the task-specific comparison of 
+weighting candidates at validation -selected operating points, 
+including a preserved unfavorable selection -order reversal. 
+Global rankings and source/ artifact traceability support that 
+interpretation without becoming claims of a new classifier or 
+explanation method. Application integration is documented at 
+source level and through identified prior checks; live 
+verification remains prospective under O7c/ PSQ1, outside the 
+answered RQ1–RQ3. Histori cal fit provenance, calibration, 
+uncertainty and publication permissions retain their stated 
+limits. No universal superiority, acceptance or deployment 
+readiness is asserted. [E01–E11, E15–E20] 
+Evidence availability— Internal labels E01–E22 resolve in 
+the companion figure -and-screenshot-placement-register.md 
+and the protected V2 source crosswalk, subject to the V2.1 O7/
+PSQ1 corrections. Source/ artifact hashes and saved outputs 
+establish local continuity, not indepen dent reproduction or 
+unrestricted data -sharing rights. No publicly redistributable 
+dataset package or completed application screenshot is asserted. 
+REFERENCES 
+[1] T. Saito and M. Rehmsmeier, “The Precision-Recall Plot Is More 
+Informative than the ROC Plot When Evaluating Binary Classifiers on 
+Imbalanced Datasets,” PLOS ONE, vol. 10, no. 3, e0118432, 2015, doi: 
+10.1371/journal.pone.0118432. 
+[2] J. Davis and M. Goadrich, “The Relationship Between Precision-Recall 
+and ROC Curves,” in Proceedings of the 23rd International Conference 
+on Machine Learning, pp. 233–240, 2006, doi: 10.1145/
+1143844.1143874. 
+[3] Z. C. Lipton, C. Elkan, and B. Narayanaswamy, “Thresholding Classifiers 
+to Maximize F1 Score,” arXiv:1402.1892v2, 2014, original preprint. 
+Cited as a preprint, not as a newly verified conference version. [Online]. 
+Available: https://arxiv.org/abs/1402.1892v2 
+[4] L. Breiman, “Random Forests,” Machine Learning, vol. 45, pp. 5–32, 
+2001, doi: 10.1023/A:1010933404324. 
+[5] S. Lessmann, B. Baesens, H.-V. Seow, and L. C. Thomas, “Benchmarking 
+state-of-the-art classification algorithms for credit scoring: An update of 
+research,” European Journal of Operational Research, vol. 247, no. 1, 
+pp. 124–136, 2015, doi: 10.1016/j.ejor.2015.05.030. 

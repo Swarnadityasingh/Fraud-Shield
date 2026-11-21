@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 pandas
 numpy
-scikit-learn
+scikit-learn==1.9.1
 joblib
 pytest
 httpx
@@ -14,3 +14,4 @@ python-dotenv>=1.0,<2.0
 google-auth[requests]>=2.0,<3.0
 PyJWT>=2.10,<3.0
 email-validator
+pyarrow

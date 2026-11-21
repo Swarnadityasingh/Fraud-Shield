@@ -1,0 +1,42 @@
+V. PROPOSED SYSTEM AND ARCHITECTURE 
+FraudShield connects a React/ Vite frontend to FastAPI 
+inference and SQLAlchemy -backed PostgreSQL history. The 
+following schematic is derived from code; it is not a captured 
+application screen or proof of operational performance. [E01 –
+E06] 
+ 
+Fig. 1. Source -derived application architecture. The pipelines share infrastructure and history presentation, not a prediction target or val idated combined score. 
+[E01–E06] 
+Authentication implements JWT access, scrypt password 
+hashing, hashed refresh tokens and account -verification/
+recovery pathways. Google credential and account-linking code 
+is present. The frontend has a refresh -cookie restoration path. 
+These statements de scribe inspected implementation; genuine 
+Google consent and email delivery are not inferred from source 
+alone. [E01, E05] 
+The backend loads selected pipelines at startup, obtains 
+positive-class scores and applies the stored task threshold. 
+Requests require schema-matching feature keys and appropriate 
+values. Successful authenticated predictions commit an owned 
+history row bef ore returning a saved ID. List and individual -
+history queries filter by ownership. The database engine is 
+explicitly configured; there is no exception -driven SQLite 
+fallback. The health response reports model availability, not 
+database connectivity or predictive reliability. [E04, E06] 
+Prediction history stores model type, class, score, display 
+risk and time, but not model hash or decision threshold. Owner 
+IDs can be null for legacy/ detached history; such rows are 
+excluded from personal history. The Unified Risk view renders 
+combined hi story summaries using the same component as 
+Analytics. No third inference model, fused probability or 
+validated joint target is implemented. [E02–E06] 
+VI. METHODOLOGY AND EXPERIMENTAL SETUP 
+A. Fitted preprocessing and candidate construction 
+Numerical preprocessing uses median imputation. 
+Categorical preprocessing uses most -frequent imputation and 
+ordinal encoding with unknown categories mapped to -1. In the 
+original fraud trainer, column types and constants are derived 
+from training data, Pip eline.fit receives training X/ y, and 
+validation predictions follow fitting. The current source 
+therefore enforces a training-only boundary; it is not a complete 
+audit of historical execution. [E08, E15] 

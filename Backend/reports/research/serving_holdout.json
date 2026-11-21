@@ -1,0 +1,42 @@
+{
+  "fraud": {
+    "file": "fraud_selected.joblib",
+    "sha256": "d8c98d26d7458b13d79e6328c2f1ddd9c75dcdd175bc3cc12923732665f17f00",
+    "features": 431,
+    "class_weight": null,
+    "rows": 88581,
+    "max_absolute_api_path_vs_classifier_score_delta": 0.0,
+    "threshold": 0.21,
+    "accuracy": 0.9522809631862363,
+    "precision": 0.3433734939759036,
+    "recall": 0.4067466753162504,
+    "f1": 0.3723830734966592,
+    "roc_auc": 0.8668835178151868,
+    "pr_auc": 0.43825041607034365,
+    "average_precision": 0.4382899898730803,
+    "tn": 83100,
+    "fp": 2398,
+    "fn": 1829,
+    "tp": 1254
+  },
+  "credit": {
+    "file": "credit_selected.joblib",
+    "sha256": "607e7f0ba9ecfefa342ea25311c2e021123e5727d2459964fc45b0cf4778c90c",
+    "features": 10,
+    "class_weight": null,
+    "rows": 22500,
+    "max_absolute_api_path_vs_classifier_score_delta": 0.0,
+    "threshold": 0.23,
+    "accuracy": 0.9187111111111111,
+    "precision": 0.4070897655803316,
+    "recall": 0.4734042553191489,
+    "f1": 0.4377497694435905,
+    "roc_auc": 0.8572739792381933,
+    "pr_auc": 0.395204976726014,
+    "average_precision": 0.3955324542960594,
+    "tn": 19959,
+    "fp": 1037,
+    "fn": 792,
+    "tp": 712
+  }
+}

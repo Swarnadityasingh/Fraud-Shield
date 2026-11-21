@@ -1,0 +1,95 @@
+FraudShield: Validation-Selected Random Forest 
+Pipelines for Transaction Fraud Detection and Credit 
+Delinquency Assessment 
+[Author name(s) to be supplied] 
+[Department and institution to be supplied] 
+[City, country and contact to be supplied] 
+[Target conference/venue to be selected] 
+Supervisor-review draft; genuine application screenshots pending. 
+Abstract—Financial fraud detection and borrower 
+delinquency assessment involve different targets but share the 
+need for careful evaluation under class imbalance. FraudShield 
+integrates two independent Random Forest pipelines within an 
+authenticated applica tion. This study reports preserved 
+experiments comparing weighted and unweighted forests with a 
+constant-prior baseline. IEEE -CIS uses chronological 70/ 15/15 
+partitions, while Give Me Some Credit uses stratified random 
+partitions in the same proportions. Forests and decision thresholds 
+are selected using validation F1. The selected unweighted models 
+use 431 and 10 inputs, with thresholds of 0.21 and 0.23. Saved 
+holdout results give fraud precision 0.343373, recall 0.406747 and 
+F1 0.372383 on 88,581 transa ctions; credit precision is 0.407090, 
+recall 0.473404 and F1 0.437750 on 22,500 borrowers. The 
+unweighted fraud forest wins validation F1, but its weighted 
+comparator achieves higher holdout F1, 0.444087. This reversal is 
+retained rather than used for retr ospective model selection. 
+Artifact inspection supports common fitted preprocessing, 
+although exact historical training -row identity for the reused 
+weighted fraud model remains unproven. Trapezoidal precision–
+recall area and Average Precision are reported separately. The 
+empirical contribution is a task-specific candidate-and-operating-
+point comparison that exposes a validation -to-holdout ordering 
+reversal without test-based reselection. Application integration is 
+documented at source level; live end -to-end verification is a 
+prospective systems question, outside the answered research 
+questions. The study does not establish a new detection method, 
+calibrated financial risk, fused prediction or drift adaptation. 
+Index Terms— Transaction fraud detection, credit delinquency, 
+random forests, imbalanced classification, threshold selection, 
+artifact provenance. 
+I. INTRODUCTION AND RESEARCH PROBLEM 
+Financial applications may present transaction monitoring 
+and borrower assessment within one interface, but integration 
+does not make their prediction targets equivalent. A transaction-
+fraud label concerns a transaction, whereas the Give Me Some 
+Credit tar get concerns a borrower outcome. FraudShield 
+therefore uses separate feature schemas, fitted preprocessors, 
+classifiers and decision thresholds. The system shares 
+authentication, persistence and reporting rather than learning a 
+combined financial -risk scor e. Its actual page wiring and 
+inference routes support this distinction. [E01–E07] 
+Imbalanced outcomes make accuracy alone insufficient for 
+understanding positive-case detection. Precision measures how 
+often a generated positive prediction corresponds to a positive 
+label; recall measures coverage of actual positives. Their 
+operating point depends on a threshold. Ranking measures 
+provide complementary information, but do not establish 
+probability calibration or institutional utility [1], [2], [3]. The 
+present problem is consequently to characterize the operating 
+behavior of two task -specific pipelines while retaining the 
+distinction between training, validation selection, holdout 
+assessment and application operation. 
+Random Forests provide an established approach to tabular 
+classification [4]. Their use does not itself constitute algorithmic 
+novelty. Similarly, a dashboard does not establish that model 
+outputs are reliable in lending or fraud -investigation practice. 
+Credit-scoring benchmarks illustrate the breadth of comparisons 
+needed for algorithm -superiority claims [5], and operational 
+fraud research highlights temporal change and delayed labels 
+[6]. FraudShield has a narrower scope: two weighting choices 
+within one forest configuration, one prior baseline and one 
+internal holdout protocol per task. 
+The empirical contribution has two parts. First, the study 
+reports how specified weighting candidates behave at their own 
+validation-selected operating points under two different 
+internal-holdout designs. Second, it documents a selection 
+reversal: the unwe ighted fraud candidate's validation F1 
+advantage does not persist on the later holdout. Retaining the 
+original selection makes this an account of selection stability 
+rather than an optimistic report of the best test result. Global 
+feature rankings and arti fact/source traceability support 
+interpretation and implementation documentation; they are not 
+new explanation methods or completed live -system evidence. 
+[E07–E10, E15] 
+The contribution is contextual evidence from these 
+preserved datasets, configurations and partitions. No claim is 
+made that weighting, F1 thresholding, temporal evaluation or 
+application integration is itself novel. Because each candidate 
+uses its own sele cted threshold and the weighted fraud fit is 
+reused, this is not a causal isolation of class weighting or a fully 
+symmetric refitting experiment. The findings do not establish 
+universal superiority, a new fraud -detection method or 
+independent experimental reproduction. [E08, E09, E15] 
+The evidential boundary is important. Numerical results are 
+taken from preserved CSV/ JSON outputs. Later source and 
+artifact checks establish properties such as file identity and 

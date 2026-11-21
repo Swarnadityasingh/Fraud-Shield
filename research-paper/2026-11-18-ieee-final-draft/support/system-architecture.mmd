@@ -1,0 +1,14 @@
+flowchart TB
+    UI[Authenticated React frontend] --> AUTH[FastAPI authentication]
+    AUTH --> DB[(PostgreSQL via SQLAlchemy)]
+    UI --> F[Fraud schema and request]
+    UI --> C[Credit schema and request]
+    F --> FM[431-input fraud pipeline]
+    C --> CM[10-input credit pipeline]
+    FM --> SAVE[Task threshold and owner-linked persistence]
+    CM --> SAVE
+    SAVE --> DB
+    DB --> H[Owner-filtered history API]
+    H --> R[Dashboard Analytics and Reports]
+    R --> CSV[Filtered client-side CSV]
+    R --> PDF[Browser Print or Save PDF]

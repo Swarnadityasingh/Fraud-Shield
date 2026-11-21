@@ -1,0 +1,45 @@
+The weighted comparator achieves higher holdout precision 
+with similar recall. This does not justify retrospectively 
+replacing the validation-selected model in the results. Nor does 
+the record establish that concept drift caused the reversal. 
+Distribution change, sample variation and other explanations 
+require additional analysis. RQ1 is answered descriptively for 
+the saved comparison, not by a causal explanation or a general 
+claim that one weighting strategy dominates. [E09, E15] 
+Credit's unweighted model has higher saved validation F1 
+and higher holdout F1 than its weighted comparator. The 
+recorded random split supports that observation only. With one 
+research seed and no uncertainty/significance estimates, it does 
+not establish population-level superiority of unweighted forests. 
+The two datasets should not be pooled to produce a single 
+financial-performance score. [E09] 
+C. Confusion counts, error interpretation and RQ2 
+TABLE IX. SAVED CONFUSION COUNTS FOR ALL CANDIDATES. TN AND FP REFER TO ACTUAL NEGATIVE CASES; FN AND TP REFER TO ACTUAL POSITIVES. 
+SELECTED-MODEL N AND POSITIVE COUNTS ARE REPORTED IN THE TEXT BELOW. [E09] 
+Dataset Candidate TN FP FN TP 
+IEEE-CIS Weighted 84226 1272 1840 1243 
+IEEE-CIS Unweighted 83100 2398 1829 1254 
+IEEE-CIS Constant prior 0 85498 0 3083 
+Credit Weighted 19752 1244 803 701 
+Credit Unweighted 19959 1037 792 712 
+Credit Constant prior 0 20996 0 1504 
+The selected fraud matrix contains 83,100 true negatives, 
+2,398 false positives, 1,829 false negatives and 1,254 true 
+positives on 88,581 observations, including 3,083 actual fraud 
+cases. Precision 0.343373 describes the fraction of alerts that are 
+labeled fraud; recall 0.406747 describes the fraction of labeled 
+fraud detected. False alerts could impose investigator burden 
+and missed cases limit coverage, but neither workload nor 
+monetary losses were measured. [E09] 
+For credit, the selected counts are 19,959 true negatives, 
+1,037 false positives, 792 false negatives and 712 true positives 
+on 22,500 borrowers, including 1,504 positive outcomes. 
+Precision is 0.407090 and recall 0.473404. A false positive is an 
+incorrect serious-delinquency classification, not an observed 
+loan denial; a false negative is a missed labeled outcome, not an 
+observed institutional loss. These errors answer RQ2 at the 
+dataset level and do not validate lending policy. [E09] 
+ 
+Fig. 1. (a) IEEE-CIS transaction fraud                                              (b) GMSC credit delinquency 
+Figure 2(a–b). Existing selected -model confusion matrices for fraud and credit, respectively. Actual classes form rows and predicted classes form columns; 
+thresholds are 0.21 and 0.23. These are original saved plots, not regenerated results. [E10] 

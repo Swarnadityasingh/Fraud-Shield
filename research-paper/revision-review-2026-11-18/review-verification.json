@@ -1,0 +1,30 @@
+{
+  "checked_original_repository_files": 175,
+  "differences_from_preserved_originals": [],
+  "manuscript_v1_sha256": "9793b5a63d61a1dbcbbc64d6d4404fe99492969bbed8b25f7790ac0e2347df92",
+  "manuscript_v1_unchanged": true,
+  "new_review_files": [
+    {
+      "relative_path": "expanded-literature-matrix.md",
+      "sha256": "f7a0f6cd0e9ba534f37e12cb2b69041a2e2bfb7a8045f0059283a7719ce88320",
+      "bytes": 11292
+    },
+    {
+      "relative_path": "methodology-provenance.md",
+      "sha256": "945b6fb785e74588b65c9022eebce9221c4be8b64535f985a61e028f69d93b8f",
+      "bytes": 6646
+    },
+    {
+      "relative_path": "review-report.md",
+      "sha256": "bae1fc5f175056b37f6cbd3264c9b0fcc2c74656701117f4d86a4abec44cb3ea",
+      "bytes": 11996
+    },
+    {
+      "relative_path": "v2-change-plan.md",
+      "sha256": "9cf9f9d3aa2c578969797881d6691fa7ec963e0dbe236ceb6d880f17d610aea3",
+      "bytes": 6054
+    }
+  ],
+  "activity": "read-only source/artifact metadata and partition-ID/time checks plus academic-source lookup; new review documents only",
+  "no_training_inference_evaluation_or_live_demo": true
+}

@@ -1,136 +1,164 @@
 # FraudShield
 
-FraudShield is an experimental financial transaction risk monitoring prototype. It combines a React dashboard with a FastAPI service that scores transactions using a scikit-learn Random Forest model.
+FraudShield is a React and FastAPI prototype for two binary classification tasks. The fraud model scores IEEE-CIS transaction records. The credit-risk model estimates serious delinquency within two years using Give Me Some Credit borrower attributes. Each authenticated prediction creates a history record for its owner. Dashboard counts, report filters and exports use those records.
 
-> **Prototype notice:** The model is trained on a synthetic transaction dataset. Predictions are experimental and are not proof of fraud or suitable as the sole basis for financial decisions. Dashboard totals and chart values are illustrative sample data.
+## Local setup on Windows
 
-## Features
+Use PowerShell, Python 3.13, Node.js 24 with npm, and a running PostgreSQL instance. The API loads the shipped scikit-learn pipelines. Raw training data is required for reproducing the experiments.
 
-- Analyze a transaction by amount and transaction type.
-- Return a predicted class (fraudulent or legitimate), fraud probability, and risk level.
-- Check backend and model status through a health endpoint.
-- Configure risk thresholds and notification preferences in the dashboard.
-- View illustrative transaction summary cards and a sample weekly activity chart.
+From the repository root:
 
-## Project structure
-
-```text
-financial-risk-framework/
-├── Backend/
-│   ├── app/
-│   │   └── main.py
-│   ├── data/
-│   │   └── transactions.csv       # Required training dataset
-│   ├── reports/
-│   │   ├── metrics.json           # Saved held-out evaluation results
-│   │   └── confusion_matrix.png
-│   ├── tests/
-│   │   └── test_api.py
-│   └── training/
-│       └── train.py
-└── Frontend/
-    └── src/
-        ├── components/
-        ├── services/api.js
-        └── App.jsx
-```
-
-## Requirements
-
-- Python with the packages listed in `Backend/requirements.txt`
-- Node.js and npm
-- The transaction dataset at `Backend/data/transactions.csv`, with columns `step`, `type`, `amount`, and `isFraud`
-
-## Setup and run
-
-Open two terminals from the `financial-risk-framework` directory.
-
-### 1. Train the model
-
-```bash
-cd Backend
+```powershell
 python -m venv .venv
-# Activate the virtual environment, then:
-pip install -r requirements.txt
-python training/train.py
+.\.venv\Scripts\python -m pip install -r Backend/requirements.txt
+Copy-Item Backend/.env.example Backend/.env
+Copy-Item Frontend/.env.example Frontend/.env
 ```
 
-Training uses all fraud records and samples up to 200,000 legitimate records, then creates a stratified 80/20 train/test split with random state 42. It saves the trained model to `Backend/app/fraud_model.joblib` and evaluation artifacts under `Backend/reports/`.
+Copy the templates on a fresh installation. On an existing installation, merge missing keys into the existing environment files. Create a local PostgreSQL database and a role that can create and alter its tables. Enter its SQLAlchemy connection URL and a newly generated JWT signing secret in the backend environment. Configure the same Google web client ID on both sides for Google sign-in. The Google client should allow the frontend origin. Email verification and password recovery use the configured Gmail SMTP account and app password. The frontend environment is public build-time configuration.
 
-### 2. Start the API
+Start the API from the repository root:
 
-In the Backend directory, with the environment activated:
-
-```bash
-uvicorn app.main:app --reload
+```powershell
+cd Backend
+..\.venv\Scripts\python -m alembic upgrade head
+..\.venv\Scripts\python -m alembic current
+..\.venv\Scripts\python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
-
-The API listens on `http://127.0.0.1:8000` by default.
-
-### 3. Start the dashboard
 
 In another terminal:
 
-```bash
+```powershell
 cd Frontend
-npm install
-npm run dev
+npm ci
+npm run dev -- --host localhost --port 5173 --strictPort
 ```
 
-Open the local URL printed by Vite (typically `http://localhost:5173`). The frontend uses `http://127.0.0.1:8000` by default. To use another backend URL, set `VITE_API_URL` in the frontend environment before starting Vite.
+Open [the dashboard](http://localhost:5173) and sign in with a verified account. The API's [interactive documentation](http://localhost:8000/docs) lists all authentication, schema, prediction and history operations. The [health endpoint](http://localhost:8000/health) reports availability for each model. Keep the frontend origin, API URL, backend CORS allowlist and email link origin consistent. HTTPS deployments need the secure refresh-cookie setting.
 
-## API
+## Architecture
 
-### `GET /`
-
-Returns a basic API-running message.
-
-### `GET /health`
-
-Returns service health and whether a model was loaded, for example:
-
-```json
-{
-  "status": "healthy",
-  "model_connected": true
-}
+```mermaid
+flowchart TD
+  UI["React dashboard"] -->|Sign in or refresh| AUTH["FastAPI authentication"]
+  UI -->|Bearer token and features| API["Prediction routes"]
+  AUTH --> DB[(PostgreSQL)]
+  API --> F["IEEE-CIS pipeline"]
+  API --> C["Credit-risk pipeline"]
+  API -->|Save result and owner| DB
+  UI --> H["History routes"]
+  H -->|Filter by signed-in user| DB
+  UI --> E["Filtered CSV and print view"]
 ```
 
-### `POST /predict`
+The browser holds the access token in application state. Session restoration uses an HTTP-only refresh cookie. The two pipelines run inside the FastAPI process. Their fitted preprocessing and classifiers are loaded at startup. Reports and analytics aggregate the authenticated user's history. User-uploaded profile images use the backend uploads directory.
 
-Request body:
+## Database schema
 
-```json
-{
-  "amount": 2500.0,
-  "transaction_type": "TRANSFER",
-  "step": 1
-}
+```mermaid
+erDiagram
+    USERS ||--o{ AUTH_IDENTITIES : owns
+    USERS ||--o{ REFRESH_SESSIONS : opens
+    USERS ||--o{ PASSWORD_RESET_TOKENS : requests
+    USERS ||--o{ EMAIL_VERIFICATION_TOKENS : receives
+    USERS o|--o{ PREDICTION_HISTORY : owns
+    USERS {
+        int id PK
+        string email UK
+        boolean is_email_verified
+        boolean is_active
+    }
+    AUTH_IDENTITIES {
+        int id PK
+        int user_id FK
+        string provider
+        string provider_user_id
+        string password_hash
+    }
+    REFRESH_SESSIONS {
+        int id PK
+        int user_id FK
+        string token_hash UK
+        datetime expires_at
+        datetime revoked_at
+    }
+    PASSWORD_RESET_TOKENS {
+        int id PK
+        int user_id FK
+        string token_hash UK
+        datetime expires_at
+        datetime used_at
+    }
+    EMAIL_VERIFICATION_TOKENS {
+        int id PK
+        int user_id FK
+        string token_hash UK
+        datetime expires_at
+        datetime used_at
+    }
+    PREDICTION_HISTORY {
+        int id PK
+        int user_id FK
+        string model_type
+        int prediction
+        float probability
+        string risk_level
+        datetime created_at
+    }
 ```
 
-`amount` must be greater than zero. `step` defaults to 1 and must be between 1 and 744. The response includes `prediction`, `fraud_probability`, `risk_level`, and a prototype disclaimer. The service assigns risk levels using probability thresholds of 0.30 and 0.70. The dashboard can apply its configured thresholds to the displayed risk level.
+The diagram lists the fields relevant to authentication and scoring. Prediction ownership is nullable for legacy or detached rows. New writes use the authenticated user's ID. Unowned rows are excluded from personal history.
 
-## Saved evaluation results
+## Prediction and history API
 
-The archive's `Backend/reports/metrics.json` reports results on a held-out set of 41,643 records (40,000 legitimate and 1,643 fraud):
+| Method and route | Input | Output |
+|---|---|---|
+| POST /auth/login | Verified account email and password | Access token, user information, refresh cookie |
+| POST /auth/google | Google ID credential | Existing linked account session |
+| POST /auth/refresh or /auth/logout | Refresh cookie | Renew access or revoke refresh session |
+| GET /predict/fraud/schema | Bearer token | 431 feature names |
+| GET /predict/credit-risk/schema | Bearer token | 10 feature names |
+| POST /predict/fraud | Bearer token and complete features object | Transaction fraud prediction, score, risk band and history ID |
+| POST /predict/credit-risk | Bearer token and complete features object | Serious delinquency prediction, score, risk band and history ID |
+| GET /history | Bearer token, optional limit, offset and model_type | Total, pagination fields and owned records in reverse time order |
+| GET /history/{history_id} | Bearer token | Owner's record, or 404 |
 
-| Metric | Result |
-|---|---:|
-| Accuracy | 94.35% |
-| Fraud precision | 39.10% |
-| Fraud recall | 77.60% |
-| Fraud F1 | 0.520 |
-| ROC-AUC | 0.957 |
-| PR-AUC | 0.717 |
+Use numeric JSON values for numeric features, categorical values appropriate to the training schema, and JSON null for missing observations. Use fraud or credit_risk as the history model_type. The result's probability is a score for class 1. Positive classification uses the model-specific decision threshold. Risk bands are additional application labels.
 
-The confusion matrix records 1,275 true positives, 368 false negatives, 1,986 false positives, and 38,014 true negatives. These are saved experimental results, not a guarantee of performance on real transactions.
+Full request bodies are checked in for both models. [Fraud sample](Backend/fraud_test_payload.json) · [Credit sample](Backend/credit_risk_test_payload.json)
 
-## Tests
+From the repository root, with an access token from a dedicated test account in the session environment:
 
-The backend contains API tests for the root endpoint and rejection of an invalid prediction request. Run them from `Backend` with the project dependencies installed:
-
-```bash
-pytest
+```powershell
+$headers = @{ Authorization = "Bearer $env:FRAUDSHIELD_ACCESS_TOKEN" }
+$api = "http://localhost:8000"
+Invoke-RestMethod "$api/predict/fraud" -Method Post -Headers $headers -ContentType "application/json" -InFile Backend/fraud_test_payload.json
+Invoke-RestMethod "$api/predict/credit-risk" -Method Post -Headers $headers -ContentType "application/json" -InFile Backend/credit_risk_test_payload.json
+Invoke-RestMethod "$api/history?model_type=credit_risk&limit=10" -Headers $headers
 ```
 
-The archive includes the test source files but does not establish that the tests were run successfully.
+Invalid or expired authentication returns 401. Schema or feature validation errors return 422. An unavailable model returns 503. The history-list limit is 1 through 100. CSV export uses the report's model filter. Print / Save PDF uses the browser print dialog.
+
+## Experiments and test reproduction
+
+The experiments use seed 42, chronological 70/15/15 partitions for IEEE-CIS and stratified 70/15/15 partitions for credit. Both compare weighted and unweighted Random Forests against a training-prior baseline. Model and threshold selection use validation F1. The evaluation report includes final holdout tables, confusion counts, threshold analysis, class distributions, precision-recall and ROC curves, feature rankings and reproduction commands. [Evaluation report](Backend/reports/research/Evaluation.md)
+
+The fraud experiment expects the matching labeled parquet partitions under Backend/data/processed. For a fresh preparation, supply the labeled train_transaction.csv and train_identity.csv in the dataset directory configured in training/prepare_fraud_dataset.py, then run that script followed by training/create_temporal_splits.py. The credit experiment accepts the labeled cs-training.csv using --credit-csv. Use a different --output directory for an independent reproduction so the archived tables remain available for comparison.
+
+```powershell
+cd Backend
+..\.venv\Scripts\python -m pytest -q
+..\.venv\Scripts\python training/demo_workflow.py
+cd ../Frontend
+node --test tests/reports.test.js
+npm run build
+```
+
+The API workflow demo logs in a temporary synthetic account, scores the two example records and checks the history IDs using an isolated database. Operational database and browser checks have their own evidence in the [final audit](Backend/reports/research/Final-audit.md).
+
+## Limitations and future work
+
+- The fraud holdout covers a later period of the same dataset. Credit results use a random split of one labeled dataset. Both models miss a substantial fraction of positive cases.
+- Model scores and pipeline impurity rankings describe dataset performance. Probability calibration, external validation, subgroup evaluation and per-case explanations are open research questions.
+- The 431-field fraud form accepts a complete JSON record. Reports contain scores, risk and timestamps. Monetary analytics would require additional persisted transaction attributes.
+- Real Google consent, email delivery, browser print behavior and a migrated PostgreSQL installation require environment-specific checks. See the audit for the checks observed on this revision.

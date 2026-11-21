@@ -1,0 +1,66 @@
+{
+  "frozen_scientific_source_sha256": "14699dc3ae64abd3de86f78184c9995d560238d88ef1769b9cebb2cb51b61002",
+  "protected_existing_files": 338,
+  "protected_existing_files_changed": 0,
+  "git_diff_and_index_unchanged": true,
+  "new_paths_confined_to_editorial_directory": true,
+  "changed_DOCX_parts": [
+    "word/document.xml"
+  ],
+  "changed_DOCX_paragraphs": [
+    7,
+    67,
+    155,
+    202
+  ],
+  "unchanged_tables": 10,
+  "numeric_CSV_cells": 146,
+  "selection_flags": 12,
+  "PDF_numeric_cell_strings": 155,
+  "original_research_plot_hashes": [
+    {
+      "path": "Backend\\reports\\research\\fraud\\confusion_matrix.png",
+      "sha256": "30e24bd7742be1f58f4ab93fc713d99adee1a9609f2b9dfb6d1142315a132ce2"
+    },
+    {
+      "path": "Backend\\reports\\research\\fraud\\roc.png",
+      "sha256": "fa75864f73d1d22c04f1d66f9f867f3292fcb80cbb96ea3dd35b5d0a3552ae47"
+    },
+    {
+      "path": "Backend\\reports\\research\\fraud\\precision_recall.png",
+      "sha256": "080191ed1944af4c7c22df161c075f4d4408b5be04a6d9002be8ea8a766b6faa"
+    },
+    {
+      "path": "Backend\\reports\\research\\fraud\\feature_importance.png",
+      "sha256": "290519c616018857fa0c0eacce2c4320190c99c7fb7b7762ff6395f1f3a2dc4a"
+    },
+    {
+      "path": "Backend\\reports\\research\\credit\\confusion_matrix.png",
+      "sha256": "3ac43d111a0cb6e8f33b5f92efd776ba9598c03f305f900488c688149643528f"
+    },
+    {
+      "path": "Backend\\reports\\research\\credit\\roc.png",
+      "sha256": "0541b302b66b55a1b1f17cd824de25ef1487595a25ccf1a17cc4ffe24cc0160d"
+    },
+    {
+      "path": "Backend\\reports\\research\\credit\\precision_recall.png",
+      "sha256": "f4cb5034bfe185fd1edfc448b308d5d74af0ec8b0b58d10ad62e6edcd83b71af"
+    },
+    {
+      "path": "Backend\\reports\\research\\credit\\feature_importance.png",
+      "sha256": "ed447cb90b358ec232aabad9c339fc59f92317622a1d0101634b7f8c8bf91e57"
+    }
+  ],
+  "unchanged_screenshot_slots": 7,
+  "reference_entries": 17,
+  "changed_reference_entries": [
+    "14"
+  ],
+  "standalone_citation_17_lines": 0,
+  "PDF_pages": 13,
+  "abstract_body_regular_label_bold": true,
+  "markdown_changes_exactly_match_approved_contract": true,
+  "docx_sha256": "e7d71a68e1ca9e121e2e514611b8ed5bc6fdab302d44ec75319f6dc168b5803d",
+  "pdf_sha256": "57d8a40bd44ac3894071c9b2e402b3a15e80f109e336c053e074b46b12f5e714",
+  "markdown_sha256": "11265f4d0f44091d8ade2c8fb212b324145ac6767f6aa2abe9fbdd3a3edd0121"
+}

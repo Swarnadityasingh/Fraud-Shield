@@ -1,3 +1,4 @@
+import { API_URL } from '../services/api'
 import { useState, useEffect } from 'react'
 import { Mail, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -56,7 +57,7 @@ export default function ForgotPassword({ theme, onNavigateLogin }) {
 
     try {
       const response = await fetch(
-        'http://localhost:8000/auth/forgot-password',
+        `${API_URL}/auth/forgot-password`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

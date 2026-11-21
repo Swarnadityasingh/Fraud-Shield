@@ -1,0 +1,114 @@
+FraudShield uses an empirical validation grid and does not 
+estimate business-optimal thresholds. 
+Calibration is a separate property from discrimination. 
+Carriero et al. investigate imbalance corrections and risk 
+calibration in a clinical/simulation setting [12], while Lin et al. 
+examine posterior -estimation effects of balancing strategies 
+[13]. Matsubara et al. propose calibration assessment designed 
+for imbalanced settings [14]. These studies justify stating 
+calibration as an unresolved evaluation question. They do not 
+prove that FraudShield is either calibrated or miscalibrated, and 
+no correction is applied here. 
+D. Financial explanations and study position 
+The financial explanation studies above also expose a 
+difference in explanatory scope. Local attribution, prototype 
+reasoning and interpretable additive structures ask different 
+questions from ranking a forest's global split importance [8], [9], 
+[11]. Frau dShield's impurity rankings can describe aggregate 
+fitted-model relevance but cannot be used as evidence that an 
+individual decision has been explained. The same separation 
+applies to calibration: work on balancing and posterior 
+estimation motivates a miss ing evaluation dimension, not an 
+explanation for the observed fraud reversal [12], [13], [14]. 
+The resulting positioning is a bounded empirical study with 
+supporting implementation documentation. It adds an explicitly 
+reported candidate/ threshold comparison and an unfavorable 
+selection-stability observation for these data; it does not 
+introduce an algorithm or claim a field -wide methodological 
+gap. This targeted literature synthesis identifies protocol 
+differences and unresolved comparison details rather than 
+constructing a cross-paper leaderboard or claiming a systematic 
+review. Bibliographic verification is not independent validation 
+of the cited experiments. [E08–E10, E22] 
+III. BOUNDED RESEARCH GAP, AIM AND QUESTIONS 
+A. Project-specific research gap 
+Fraud detection and borrower delinquency are established 
+imbalanced classification tasks, with existing weighting, 
+threshold-selection, calibration and explanation methods. The 
+unresolved empirical question within this implementation is 
+how the chosen fore st candidates behave at validation-selected 
+operating points and whether their validation ordering persists 
+on the designated holdouts. The project addresses that question 
+through preserved comparisons, retaining the unfavorable fraud 
+reversal rather than changing selection after seeing test results. 
+This is a contextual empirical contribution, not evidence that the 
+field lacks these methods. [E08, E09, E22] 
+Artifact/source traceability and global rankings provide 
+supporting context but do not complete the pending application-
+verification question. Class imbalance remains partially 
+addressed; exact historical weighted -fraud fit rows remain 
+unproven; global re levance is not local explanation; shared 
+application structure is not fused prediction; and no drift detector 
+or adaptation is demonstrated. [E01–E10, E15–E17, E20] 
+B. Research aim and current-study objectives 
+The research aim is to evaluate and document two 
+independent Random Forest pipelines for transaction fraud 
+and serious-delinquency prediction using explicit validation-
+based selection and preserved holdout evidence, and to 
+document their source -level integration within an 
+authenticated application while separating prior checks 
+from prospective live verification. 
+TABLE II. MEASURABLE CURRENT-STUDY OBJECTIVES AND EVIDENCE STATUS. COMPLETION AS SAVED EVIDENCE IS NOT INDEPENDENT REPLICATION. 
+PROSPECTIVE O8–O10 APPEAR ONLY IN SECTION X. 
+Objective Measurable criterion Evidence and current status 
+O1 Specify data and partitions Identify targets/schemas and report all six partition/
+class counts 
+E08, E09, E13, E15: saved statistics and previously checked structure; 
+official release/terms checks remain incomplete 
+O2 Specify independent fitted 
+pipelines 
+Document input counts, preprocessing, 
+configuration, hashes and reuse/refit boundaries 
+E07, E08, E15: implemented and inspected; exact historical weighted-
+fraud fit rows unproven 
+O3 Compare weighting and prior 
+baseline 
+Report all six candidate rows and validation 
+operating points 
+E08, E09: experimentally evaluated in saved outputs 
+O4 Document validation 
+selection 
+Specify grid/tie rules and forest selection separately 
+from holdout comparison 
+E08, E09, E15: implemented/saved; historical analyst non-use of 
+holdout not certified 
+O5 Characterize final errors Report metrics, sample/positive counts and TN/FP/
+FN/TP 
+E09, E10: experimentally evaluated in saved outputs 
+O6 Describe global feature 
+relevance 
+Provide both saved rankings and plots with 
+interpretation limits 
+E10: saved global impurity analysis only 
+O7 Document integration at 
+distinct evidence levels 
+O7a source-path inspection; O7b recorded-check 
+scope review; O7c prospective live reconciliation 
+E01–E06, E11, E16, E17: separate criteria/statuses defined below; no 
+aggregate live-success claim 
+O7 is operationalized through three separately measurable 
+criteria. O7a—source-level integration:  identify the active 
+forms, authentication boundary, pipeline -loading path, 
+successful history-write path and owner -filtered history/report 
+consumers in the cited files. These paths have been inspected, 
+but source presence does not demonstrate runtime suc cess. 
+O7b—previously documented limited checks:  identify the 
+recorded date, transport, database and asserted outcomes of the 
+prior audit and example workflow. Those records distinguish 
+direct pipeline replay, temporary -SQLite TestClient examples 
+and the earlier disposable-PostgreSQL checks; they are not new 
+tests or browser evidence. [E01–E06, E09, E11] 
+O7c—prospective live end -to-end verification:  after 
+separate approval, submit the four reviewed real holdout inputs 
+through an authorized session, reconcile returned history IDs 
+with persisted owned rows and dashboard/analytics counts, and 

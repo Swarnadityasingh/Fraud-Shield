@@ -25,6 +25,10 @@ if not JWT_SECRET_KEY:
         "JWT_SECRET_KEY is missing. Add it to Backend/.env"
     )
 
+if len(JWT_SECRET_KEY.encode("utf-8")) < 32:
+    raise RuntimeError("JWT_SECRET_KEY must contain at least 32 bytes.")
+
+
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 
@@ -78,7 +82,7 @@ def decode_access_token(token: str) -> dict[str, Any] | None:
 
 SCRYPT_N = 2**14
 SCRYPT_R = 8
-SCRYPT_P = 1
+SCRYPT_P = 5
 SCRYPT_DKLEN = 32
 
 

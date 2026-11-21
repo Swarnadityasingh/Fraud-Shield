@@ -1,3 +1,4 @@
+import { API_URL } from '../services/api'
 import { useState } from 'react'
 import {
   LockKeyhole,
@@ -109,7 +110,7 @@ export default function ResetPassword({ theme, token, onNavigateLogin }) {
     setErrorMessage('')
 
     try {
-      const response = await fetch('http://localhost:8000/auth/reset-password', {
+      const response = await fetch(`${API_URL}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

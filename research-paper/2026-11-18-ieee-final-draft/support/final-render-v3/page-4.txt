@@ -1,0 +1,96 @@
+inspect actual filtered CSV and saved/opened PDF outputs. This 
+criterion is pending and is not part of the answered empirical 
+questions. No outcome or successful count reconciliation is 
+inferred from the selection manifest. O7a and O7b must not be 
+used to mark O7c complete. [E16, E17] 
+C. Formal current-study research questions 
+RQ1: Within the saved protocols, how do weighted and 
+unweighted forests compare at validation -selected operating 
+points? 
+RQ2: What positive-class errors and ranking performance 
+characterize the selected models on their respective internal 
+holdouts? 
+RQ3: Which inputs rank highest in each fitted forest's global 
+impurity importance, and what does that evidence not explain? 
+RQ1 is answered descriptively by the saved weighting/
+threshold comparison in Section VII -B; the fraud ordering 
+reverses, whereas credit retains the unweighted advantage. RQ2 
+is answered by the saved operating/ ranking measures and 
+confusion counts in Section VII-A/C. RQ3 is answered only at 
+the level of saved global impurity rankings in Section VII -D, 
+with no local or causal inference. These are bounded answers 
+from preserved results, not newly reproduced experiments or 
+general superiority findings. [E09, E10] 
+The former RQ4 is removed from the formal current -study 
+question set. Its substance is retained as prospective systems -
+verification question PSQ1 in Section VIII, associated with 
+pending O7c. The present study does not present an unanswered 
+live-system question as a completed empirical result. [E11, E16, 
+E17] 
+IV. DATASETS AND PROBLEM FORMULATION 
+A. Separate targets and source files 
+For each task, a feature vector x is associated with a binary 
+label y. The fraud target is isFraud and the credit target is 
+SeriousDlqin2yrs. The project interprets the latter as serious 
+delinquency within two years; exact wording in the original XLS 
+dictionary remains to be confirmed. Source competitions are 
+cited in [15] and [16], while counts and schemas below come 
+from proj ect evidence rather than assumed quotations from 
+those pages. [E08, E13, E20] 
+IEEE-CIS preparation left -joins train_ transaction.csv and 
+train_identity.csv on TransactionID , validating a one -to-one 
+relationship. Transactions without identity matches retain 
+missing identity observations. The merged dataset contains 
+590,540 rows and 434 columns. The identifier and target are 
+excluded, and training-constant V107 is removed, lea ving 431 
+inputs. The fitted preprocessor treats 400 as numerical and 31 as 
+categorical. These are implementation groupings, not inferred 
+semantic meanings for anonymized fields. [E07, E08, E13, E15] 
+Credit research uses 150,000 labeled rows from cs-
+training.csv. It excludes Unnamed: 0 and the target, leaving ten 
+numerical predictors. Its original trainer's 80/ 20 validation 
+experiment is historical and separate from the final research 
+protocol. The competitions' unlabeled test files do not supply the 
+formal results reported in this paper. [E08, E12, E13] 
+B. Internal partitions and structural verification 
+The fraud split sorts by TransactionDT and TransactionID , 
+assigning the first 70% to training, the next 15% to validation 
+and the remainder to holdout. Credit uses a stratified 70/30 split 
+with seed 42, followed by an equally divided stratified 
+validation/holdout split with seed 42. [E08] 
+TABLE III. SAVED DATASET DISTRIBUTIONS. PREVALENCE STRINGS ARE RETAINED AS STORED; COUNTS AND PARTITIONS ARE NOT RECALCULATED. [E09] 
+Dataset Partition Rows Negative Positive Prevalence 
+IEEE-CIS train 413378 398840 14538 0.03516878014795175 
+IEEE-CIS validation 88581 85539 3042 0.03434145019812375 
+IEEE-CIS holdout 88581 85498 3083 0.03480430340592226 
+Credit train 105000 97982 7018 0.06683809523809524 
+Credit validation 22500 20996 1504 0.06684444444444444 
+Credit holdout 22500 20996 1504 0.06684444444444444 
+A previously documented read-only check compared current 
+saved fraud source -ID sequences with the prescribed slices of 
+the sorted merged file. They matched. Training relative times 
+range from 86,400 to 10,437,996; validation from 10,438,003 to 
+13,151,840; and holdout from 13,151,880 to 15,811,131. The 
+ranges are strictly separated, with unique/ disjoint partition IDs 
+checked in the prior preparation. These are dataset -relative 
+offsets, not calendar timestamps. Structural verification does not 
+independently reproduce model performance or prove which 
+rows historically entered the original forest fit. [E15, E16] 
+Credit membership was subsequently reconstructed using 
+the preserved CSV and split algorithm. Source -hash, 
+disjointness, complete coverage and saved class -count checks 
+support that reconstruction. No older membership manifest 
+exists for direct historical c omparison. Fraud's later same -
+dataset holdout and credit's random same -dataset holdout 
+answer different generalization questions; neither establishes 
+external validity. [E15, E16] 
+C. Provenance and data-access boundaries 
+Preserved source and processed -data hashes identify the 
+local files, not their authenticity against an independently 
+acquired official release. The retrieved IEEE -CIS rules permit 
+noncommercial academic use while imposing data -sharing 
+restrictions [17]. Access must not be equated with unrestricted 
+redistribution. Credit -specific sharing conditions and exact 
+attribution remain unresolved. The private preservation package 
+and real -record payloads are therefore not declared publicly 
+redistributable supplements. [E13, E14, E20, E22] 

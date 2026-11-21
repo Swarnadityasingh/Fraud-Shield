@@ -1,0 +1,32 @@
+[
+  {
+    "file": "figure-and-screenshot-placement-register.md",
+    "bytes": 11427,
+    "sha256": "6e60e22fd52a3f62dfcec7b9bb86153834a4f233602755150d430935642f589f"
+  },
+  {
+    "file": "FraudShield-IEEE-final-draft.docx",
+    "bytes": 410321,
+    "sha256": "804788a649b458dcf6261aaa53f8975496c87ed6baf29c11117666f2884db142"
+  },
+  {
+    "file": "FraudShield-IEEE-final-draft.pdf",
+    "bytes": 717153,
+    "sha256": "6e82d6adf96dd345c68924bffda54d0d76517d6172cf65c6de87f4c9bd7991db"
+  },
+  {
+    "file": "ieee-formatting-and-reference-verification-report.md",
+    "bytes": 13760,
+    "sha256": "5b974826892b97f9b9e5887087093c8a545c7de6c7ef7bfb9016865c29510fe2"
+  },
+  {
+    "file": "manuscript-ieee-final.md",
+    "bytes": 60973,
+    "sha256": "6d888476c8ff0af64624304dc1b41e55759638adc4e797173ee56d70398cb2ac"
+  },
+  {
+    "file": "remaining-publication-blockers.md",
+    "bytes": 5091,
+    "sha256": "2944794c284f70cf1931d2bd905d630599c48a8b0b37eb990884c1894a3361eb"
+  }
+]

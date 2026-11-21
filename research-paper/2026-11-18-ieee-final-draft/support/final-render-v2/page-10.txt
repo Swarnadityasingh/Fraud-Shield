@@ -1,0 +1,62 @@
+TABLE X. LEADING SAVED MEAN-DECREASE-IN-IMPURITY COEFFICIENTS. FEATURES ARE RANKED WITHIN THEIR OWN PIPELINE; THE TWO INPUT SPACES ARE NOT 
+INTERCHANGEABLE. [E10] 
+Rank Fraud feature Impurity importance Credit feature Impurity importance 
+1 V257 0.027260059642936887 RevolvingUtilizationOfUnsecuredLines 0.19060376073058197 
+2 V246 0.024274592426969752 NumberOfTimes90DaysLate 0.17848231510449422 
+3 C1 0.023659495946109298 DebtRatio 0.12722428267682898 
+4 V258 0.021396473042507486 MonthlyIncome 0.10757581177174427 
+5 C13 0.01988489563057585 age 0.10076011912659803 
+The leading fraud features are V257, V246 and C1; credit's 
+leading features are revolving utilization, number of times 90 
+days late and debt ratio. No unsupported behavioral meaning is 
+assigned to anonymized V -features. The coefficients 
+characterize the fitted forests, not causal effects or individual 
+reasons. Their relative scales should not be compared as a 
+common financial-risk quantity. [E10] 
+ 
+Fig. 4. (a) IEEE-CIS transaction fraud                                              (b) GMSC credit delinquency 
+Figure 5(a–b). Existing global impurity-importance plots. These support a limited answer to RQ3; they do not establish SHAP attribution, local explanation fidelity 
+or ranking stability across samples. [E10] 
+VIII. APPLICATION IMPLEMENTATION AND DEMONSTRATION 
+BOUNDARY 
+A. Source implementation and previously documented checks 
+The active fraud form accepts a complete 431 -key JSON 
+object, and the credit form renders ten numeric inputs. The 
+backend validates schema/ values, applies the appropriate 
+pipeline and commits a result owned by the authenticated user. 
+Its response contains class, score, threshold, model hash, display 
+risk, history ID and time. History -list and individual retrieval 
+enforce ownership. These facts are supported by source and 
+saved checks rather than by newly manufactured browser 
+outcomes. [E01–E06, E11] 
+The UI displays scores as percentages and labels them Low 
+below 0.30, Medium from 0.30 to below 0.70, and High at or 
+above 0.70. The display bands are independent of classification 
+thresholds and have not been validated as risk categories. A 
+positive classification with a Low band is possible by design. 
+Global importance is not returned as a per -case explanation. 
+[E02, E04] 
+Dashboard and Analytics aggregate loaded owned history. 
+Reports filters by model, creates CSV client -side and invokes 
+the browser print dialog. Source implementation does not prove 
+that downloaded bytes or printed layout are correct. The history 
+table has no individual -detail action despite the API endpoint, 
+and file management remains a placeholder. [E02–E04] 
+The prior audit documents a PostgreSQL migration/
+constraint check, 32 backend tests, two frontend tests and a 
+production build. Those outcomes have their own date and scope 
+and are not rerun or promoted to current browser success. The 
+full-holdout saved r eplay is also distinct from the temporary -
+SQLite TestClient example. [E09, E11] 
+B. Prospective systems verification, formerly RQ4 
+PSQ1—unanswered prospective systems question:  Can 
+reviewed real holdout examples pass through the actual 
+authenticated inference, persistence and reporting workflow 
+with consistent results? 
+PSQ1 is associated with O7c and is not a formal current -
+study research question or a completed contribution. The source 
+paths in O7a and the historical checks in O7b establish different 
+evidence levels; neither resolves this live question. 
+A prepared manifest identifies two real holdout examples per 
+task, one from each true class, selected by smallest source ID 
+rather than by favorable scores. It records source/ membership/

@@ -1,0 +1,7 @@
+ 
+(a) IEEE-CIS transaction fraud                                              (b) GMSC credit delinquency 
+Fig. 3(a–b). Existing selected-model ROC curves on the separate internal holdouts. Curves describe discrimination, not calibration or external validation. [E10] 
+ 
+(a) IEEE-CIS transaction fraud                                              (b) GMSC credit delinquency 
+Fig. 4(a–b). Existing selected -model precision–recall curves. Legends display rounded Average Precision; Table VIII separately retains full stored AP and 
+trapezoidal PR-AUC. [E09, E10] 

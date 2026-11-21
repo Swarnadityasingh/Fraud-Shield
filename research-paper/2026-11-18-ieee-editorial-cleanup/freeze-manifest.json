@@ -1,0 +1,45 @@
+{
+  "status": "frozen supervisor-review editorial baseline",
+  "date": "2026-11-18",
+  "scientific_source": "../2026-11-18-v2.1/manuscript-v2.1.md",
+  "scientific_source_sha256": "14699dc3ae64abd3de86f78184c9995d560238d88ef1769b9cebb2cb51b61002",
+  "previous_IEEE_draft": "../2026-11-18-ieee-final-draft/",
+  "scope": "Editorial changes only; no experiments or live application operations.",
+  "files": [
+    {
+      "path": "FraudShield-IEEE-editorial-cleanup.docx",
+      "bytes": 410355,
+      "sha256": "e7d71a68e1ca9e121e2e514611b8ed5bc6fdab302d44ec75319f6dc168b5803d"
+    },
+    {
+      "path": "FraudShield-IEEE-editorial-cleanup.pdf",
+      "bytes": 717332,
+      "sha256": "57d8a40bd44ac3894071c9b2e402b3a15e80f109e336c053e074b46b12f5e714"
+    },
+    {
+      "path": "manuscript-ieee-editorial-cleanup.md",
+      "bytes": 61014,
+      "sha256": "11265f4d0f44091d8ade2c8fb212b324145ac6767f6aa2abe9fbdd3a3edd0121"
+    },
+    {
+      "path": "editorial-cleanup-and-freeze-report.md",
+      "bytes": 6443,
+      "sha256": "062aa6da175b4163895527fa1c0b3056630252ea1beaf0856da85c3365aed84c"
+    },
+    {
+      "path": "figure-and-screenshot-placement-register.md",
+      "bytes": 11445,
+      "sha256": "cf6a75439afb71af29ed322eeea1598fcf4a8cc7e0fd9d0ee0443254af7592f8"
+    },
+    {
+      "path": "remaining-publication-blockers.md",
+      "bytes": 5091,
+      "sha256": "2944794c284f70cf1931d2bd905d630599c48a8b0b37eb990884c1894a3361eb"
+    },
+    {
+      "path": "assets/system-architecture.png",
+      "bytes": 80061,
+      "sha256": "d9dfecefb38d18226ca384850ad345d589face6fc1d6cd516b2742a1cbe987f2"
+    }
+  ]
+}

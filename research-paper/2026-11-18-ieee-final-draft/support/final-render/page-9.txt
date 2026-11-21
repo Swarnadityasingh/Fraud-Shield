@@ -1,0 +1,6 @@
+ 
+Figure 3(a–b). Existing selected-model ROC curves on the separate internal holdouts. Curves describe discrimination, not calibration or external validation. [E10] 
+ 
+Figure 4(a–b). Existing selected -model precision–recall curves. Legends display rounded Average Precision; Table VIII separately retains full stored AP and 
+trapezoidal PR-AUC. [E09, E10] 
+D. Global feature relevance and RQ3 

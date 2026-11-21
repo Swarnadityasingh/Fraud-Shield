@@ -1,0 +1,112 @@
+{
+  "source_sha256": "14699dc3ae64abd3de86f78184c9995d560238d88ef1769b9cebb2cb51b61002",
+  "reference_sha256": "4589779a1a74782dc5a7a657a9907f243c9dd54510cb6c154acaf24cc9079852",
+  "editable_template_sha256": "eeb6efc30afae7fb0571fcab5797b029e5dcda3f6c52eb611eed9f18981d90d1",
+  "citation_map": {
+    "4": 1,
+    "5": 2,
+    "6": 3,
+    "1": 4,
+    "2": 5,
+    "3": 6,
+    "11": 7,
+    "7": 8,
+    "8": 9,
+    "9": 10,
+    "10": 11,
+    "12": 12,
+    "13": 13,
+    "14": 14,
+    "15": 15,
+    "16": 16,
+    "17": 17
+  },
+  "tables": [
+    {
+      "label": "I",
+      "rows": 5,
+      "columns": 4
+    },
+    {
+      "label": "II",
+      "rows": 7,
+      "columns": 3
+    },
+    {
+      "label": "III",
+      "rows": 6,
+      "columns": 6
+    },
+    {
+      "label": "IV",
+      "rows": 9,
+      "columns": 3
+    },
+    {
+      "label": "V",
+      "rows": 8,
+      "columns": 3
+    },
+    {
+      "label": "VI",
+      "rows": 6,
+      "columns": 7
+    },
+    {
+      "label": "VII",
+      "rows": 6,
+      "columns": 8
+    },
+    {
+      "label": "VIII",
+      "rows": 6,
+      "columns": 5
+    },
+    {
+      "label": "IX",
+      "rows": 6,
+      "columns": 6
+    },
+    {
+      "label": "X",
+      "rows": 5,
+      "columns": 5
+    }
+  ],
+  "figures": [
+    {
+      "caption": "Figure 1. Source-derived application architecture. The pipelines share infrastructure and history presentation, not a prediction target or validated combined score. [E01\u2013E06]",
+      "paths": [
+        "C:\\Users\\Arpit Srivastava\\PycharmProjects\\Fraud-Shield\\research-paper\\2026-11-18-ieee-final-draft\\assets\\system-architecture.png"
+      ]
+    },
+    {
+      "caption": "Figure 2(a\u2013b). Existing selected-model confusion matrices for fraud and credit, respectively. Actual classes form rows and predicted classes form columns; thresholds are 0.21 and 0.23. These are original saved plots, not regenerated results. [E10]",
+      "paths": [
+        "C:\\Users\\Arpit Srivastava\\PycharmProjects\\Fraud-Shield\\Backend\\reports\\research\\fraud\\confusion_matrix.png",
+        "C:\\Users\\Arpit Srivastava\\PycharmProjects\\Fraud-Shield\\Backend\\reports\\research\\credit\\confusion_matrix.png"
+      ]
+    },
+    {
+      "caption": "Figure 3(a\u2013b). Existing selected-model ROC curves on the separate internal holdouts. Curves describe discrimination, not calibration or external validation. [E10]",
+      "paths": [
+        "C:\\Users\\Arpit Srivastava\\PycharmProjects\\Fraud-Shield\\Backend\\reports\\research\\fraud\\roc.png",
+        "C:\\Users\\Arpit Srivastava\\PycharmProjects\\Fraud-Shield\\Backend\\reports\\research\\credit\\roc.png"
+      ]
+    },
+    {
+      "caption": "Figure 4(a\u2013b). Existing selected-model precision\u2013recall curves. Legends display rounded Average Precision; Table VIII separately retains full stored AP and trapezoidal PR-AUC. [E09, E10]",
+      "paths": [
+        "C:\\Users\\Arpit Srivastava\\PycharmProjects\\Fraud-Shield\\Backend\\reports\\research\\fraud\\precision_recall.png",
+        "C:\\Users\\Arpit Srivastava\\PycharmProjects\\Fraud-Shield\\Backend\\reports\\research\\credit\\precision_recall.png"
+      ]
+    },
+    {
+      "caption": "Figure 5(a\u2013b). Existing global impurity-importance plots. These support a limited answer to RQ3; they do not establish SHAP attribution, local explanation fidelity or ranking stability across samples. [E10]",
+      "paths": [
+        "C:\\Users\\Arpit Srivastava\\PycharmProjects\\Fraud-Shield\\Backend\\reports\\research\\fraud\\feature_importance.png",
+        "C:\\Users\\Arpit Srivastava\\PycharmProjects\\Fraud-Shield\\Backend\\reports\\research\\credit\\feature_importance.png"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "inspection_date": "2026-11-18",
+  "scope": "Current inspection environment only; not a recovered historical training environment",
+  "python": "3.13.9",
+  "python_packages": {
+    "scikit-learn": "1.9.1",
+    "pandas": "3.1.0",
+    "numpy": "2.5.4",
+    "joblib": "1.6.0",
+    "pyarrow": "26.0.1",
+    "fastapi": "0.162.0",
+    "uvicorn": "0.54.0",
+    "SQLAlchemy": "2.1.6",
+    "alembic": "1.20.1",
+    "psycopg": "3.3.6",
+    "pytest": "9.2.0",
+    "httpx": "0.28.1",
+    "PyJWT": "2.15.1"
+  },
+  "frontend_lockfile_versions": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "vite": "6.4.5",
+    "tailwindcss": "4.3.3",
+    "recharts": "2.15.4",
+    "@react-oauth/google": "0.13.5"
+  },
+  "node_current": "v24.16.0",
+  "npm_current": "11.13.0",
+  "postgresql": "18.6 in saved Final-audit.md; not queried during this documentation task",
+  "hardware": "No verified experimental machine specification or measured minimum hardware requirement established",
+  "sources": [
+    "Backend/requirements.txt",
+    "Frontend/package.json",
+    "Frontend/package-lock.json",
+    "Backend/reports/research/Final-audit.md"
+  ]
+}

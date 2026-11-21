@@ -1,16 +1,7 @@
-# React + Vite
+# FraudShield frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Install packages with **npm ci** in this directory. Copy .env.example to .env on first setup, set the API URL and Google web client ID, and start the development server with **npm run dev**. The backend, Google client and browser must agree on the frontend origin.
 
-Currently, two official plugins are available:
+Run **node --test tests/reports.test.js** for the report filter and CSV regression checks. Use **npm run build** for the production bundle. The workspace uses JavaScript and JSX.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The [project README](../README.md) covers authentication, models, database migrations, example requests and the final verification evidence.

@@ -5,9 +5,12 @@ import base64
 import binascii
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi.responses import FileResponse
+from google.auth.exceptions import TransportError
 from google.auth.transport.requests import Request as GoogleRequest
 from google.oauth2 import id_token
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -42,14 +45,16 @@ load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID") or ""
 
-if not GOOGLE_CLIENT_ID:
-    raise RuntimeError(
-        "GOOGLE_CLIENT_ID is missing from Backend/.env"
-    )
+
 
 COOKIE_SECURE = (
     os.getenv("COOKIE_SECURE", "false").lower() == "true"
 )
+
+if os.getenv("APP_ENV", "").lower() == "production" and not COOKIE_SECURE:
+    raise RuntimeError("Production requires COOKIE_SECURE=true.")
+
+UPLOADS_DIR = Path(__file__).resolve().parents[1] / "uploads"
 
 REFRESH_COOKIE_NAME = "fraudshield_refresh_token"
 
@@ -317,6 +322,8 @@ def resend_verification(
 
 
 def verify_google_credential(credential: str):
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(503, "Google Sign-In is not configured.")
     try:
         google_user = id_token.verify_oauth2_token(
             credential,
@@ -324,6 +331,8 @@ def verify_google_credential(credential: str):
             GOOGLE_CLIENT_ID,
         )  # type: ignore[arg-type]
 
+    except TransportError:
+        raise HTTPException(503, "Google verification service is unavailable.") from None
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -586,6 +595,10 @@ def login(
             detail="Please verify your email before logging in.",
         )
 
+    # Upgrade credentials written by the original scrypt configuration after verification.
+    if password_identity.password_hash.startswith("scrypt$16384$8$1$"):
+        password_identity.password_hash = hash_password(request.password)
+
     access_token = create_access_token(user.id)
     refresh_token = generate_refresh_token()
 
@@ -732,10 +745,20 @@ def link_google_account(
         },
     }
 
+@router.get("/profile-picture")
+def get_profile_picture(current_user: User = Depends(get_current_user)):
+    stored_path = urlsplit(current_user.profile_picture or "").path
+    for extension, media_type in (("jpg", "image/jpeg"), ("png", "image/png"), ("webp", "image/webp")):
+        filename = f"profile-{current_user.id}.{extension}"
+        if stored_path == f"/uploads/{filename}" and (UPLOADS_DIR / filename).is_file():
+            return FileResponse(UPLOADS_DIR / filename, media_type=media_type,
+                                headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})
+    raise HTTPException(404, "Profile picture unavailable.")
+
+
 @router.put("/profile-picture")
 def update_profile_picture(
     payload: ProfilePictureRequest,
-    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -773,14 +796,17 @@ def update_profile_picture(
             detail="Profile image must be smaller than 2.5 MB.",
         )
 
-    uploads_dir = Path(__file__).resolve().parents[1] / "uploads"
-    uploads_dir.mkdir(parents=True, exist_ok=True)
-    filename = f"profile-{current_user.id}.{extension}"
-    (uploads_dir / filename).write_bytes(image_bytes)
+    if not (
+        (extension == "jpg" and image_bytes.startswith(b"\xff\xd8\xff"))
+        or (extension == "png" and image_bytes.startswith(b"\x89PNG\r\n\x1a\n"))
+        or (extension == "webp" and image_bytes[:4] == b"RIFF" and image_bytes[8:12] == b"WEBP")
+    ):
+        raise HTTPException(status_code=400, detail="Invalid image format.")
 
-    current_user.profile_picture = (
-        f"{str(request.base_url).rstrip('/')}/uploads/{filename}"
-    )
+    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    filename = f"profile-{current_user.id}.{extension}"
+    (UPLOADS_DIR / filename).write_bytes(image_bytes)
+    current_user.profile_picture = f"/uploads/{filename}"
     db.commit()
     db.refresh(current_user)
 
@@ -824,6 +850,7 @@ def refresh_access_token(
     session = (
         db.query(RefreshSession)
         .filter(RefreshSession.token_hash == token_hash)
+        .with_for_update()
         .first()
     )
 
@@ -835,7 +862,10 @@ def refresh_access_token(
 
     now = datetime.now(timezone.utc)
 
-    if session.expires_at <= now:
+    expires_at = session.expires_at
+    if expires_at.tzinfo is None:  # SQLite stores the supplied UTC timestamp without its offset.
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at <= now:
         session.revoked_at = now
         db.commit()
 

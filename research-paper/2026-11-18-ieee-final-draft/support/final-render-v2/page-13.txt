@@ -1,0 +1,50 @@
+[6] A. Dal Pozzolo, G. Boracchi, O. Caelen, C. Alippi, and G. Bontempi, 
+“Credit Card Fraud Detection: A Realistic Modeling and a Novel 
+Learning Strategy,” IEEE Transactions on Neural Networks and 
+Learning Systems, vol. 29, no. 8, pp. 3784–3797, 2018, doi: 10.1109/
+TNNLS.2017.2736643. Online publication: 2017; final issue: 2018. 
+[7] M. Lukashevich and S. Bairak, “Weighting Strategies for Tabular and 
+Image Data Classification,” IET Image Processing, vol. 20, no. 1, 
+e70365, 2026, doi: 10.1049/ipr2.70365. 
+[8] S. Han and H. Jung, “NATE: Non-pArameTric approach for Explainable 
+credit scoring on imbalanced class,” PLOS ONE, vol. 19, no. 12, 
+e0316454, 2024, doi: 10.1371/journal.pone.0316454. 
+[9] K. Soylu, B. E. Soylu, and M. S. Güzel, “An Explainable Hybrid Learning 
+Framework for Cost-Sensitive Credit-Risk Modeling,” Electronics, vol. 
+15, no. 20, 4622, 2026, doi: 10.3390/electronics15204622. 
+[10] J. Chen, Y. Liang, J. Liu, and M. Zhou, “Temporal Transformer with 
+Conditional Tabular GAN for Credit Card Fraud Detection: A Sequential 
+Deep Learning Approach,” Mathematics, vol. 14, no. 7, 1183, 2026, doi: 
+10.3390/math14071183. 
+[11] J. Kang and K. Kim, “Deployment-Oriented Interpretable Fraud 
+Detection via Hybrid Explainable Boosting Machines with Concept–Raw 
+Fusion on the IEEE-CIS Benchmark,” Applied Sciences, vol. 16, no. 12, 
+5809, 2026, doi: 10.3390/app16125809. 
+[12] A. Carriero, K. Luijken, A. de Hond, K. G. M. Moons, B. van Calster, 
+and M. van Smeden, “The Harms of Class Imbalance Corrections for 
+Machine Learning Based Prediction Models: A Simulation Study,” 
+Statistics in Medicine, vol. 44, nos. 3–4, e10320, 2025, doi: 10.1002/
+sim.10320. 
+[13] F. Lin, Y. Dai, and Y. Liu, “On Probability Estimation for Unbalanced 
+Classification,” Journal of Statistical Theory and Practice, vol. 20, art. 
+57, 2026, doi: 10.1007/s42519-026-00572-5. 
+[14] T. Matsubara, N. Tax, R. Mudd, and I. Guy, “TCE: A Test-Based 
+Approach to Measuring Calibration Error,” in Proceedings of the Thirty-
+Ninth Conference on Uncertainty in Artificial Intelligence, PMLR, vol. 
+216, pp. 1390–1400, 2023. Official proceedings; related preprint 
+arXiv:2306.14343. No separate publisher DOI is asserted. [Online]. 
+Available: https://proceedings.mlr.press/v216/matsubara23a.html 
+[Online]. Available: https://arxiv.org/abs/2306.14343 
+[15] “IEEE-CIS Fraud Detection,” Kaggle competition dataset, official data 
+page. Link/metadata reviewed Nov. 18, 2026; exact attribution and 
+release equivalence remain qualified. [Online]. Available: https://
+www.kaggle.com/competitions/ieee-fraud-detection/data 
+[16] “Give Me Some Credit,” Kaggle competition dataset, official data page. 
+Link reviewed Nov. 18, 2026; exact dictionary wording, attribution and 
+sharing conditions remain pending. [Online]. Available: https://
+www.kaggle.com/competitions/GiveMeSomeCredit/data 
+[17] “IEEE-CIS Fraud Detection: Competition Rules,” Kaggle, sec. 7, official 
+rules. Previously retrieved Nov. 18, 2026; academic-use permission is not 
+represented as unrestricted redistribution permission. [Online]. Available: 
+https://www.kaggle.com/c/ieee-fraud-detection/rules 
+ 

@@ -1,16 +1,22 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
+import os
+import logging
+from urllib.parse import urlsplit
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from app.database import engine, Base, get_db
-from app.database_models import PredictionHistory
+from app.database_models import PredictionHistory, User
+from app.security import get_current_user
 from app.auth import router as auth_router
 
+import hashlib
 import joblib
 import math
 import pandas as pd
 
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict
 from fastapi import FastAPI, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
@@ -19,8 +25,8 @@ from sqlalchemy.orm import Session
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "models"
 
-FRAUD_MODEL_PATH = MODEL_DIR / "ieee_cis_model.joblib"
-CREDIT_MODEL_PATH = MODEL_DIR / "credit_risk_model.joblib"
+FRAUD_MODEL_PATH = MODEL_DIR / "fraud_selected.joblib"
+CREDIT_MODEL_PATH = MODEL_DIR / "credit_selected.joblib"
 
 models: dict[str, Any] = {
     "fraud": None,
@@ -94,7 +100,17 @@ def load_model(name: str, path: Path):
         return None
 
     try:
-        loaded_model = joblib.load(path)
+        with path.open("rb") as artifact:
+            digest = hashlib.sha256()
+            for block in iter(lambda: artifact.read(1024 * 1024), b""):
+                digest.update(block)
+            artifact.seek(0)
+            loaded_model = joblib.load(artifact)
+        # Accumulate the 100 tree scores in tree order, independent of batch size.
+        loaded_model.named_steps["classifier"].set_params(n_jobs=1)
+        loaded_model.artifact_sha256_ = digest.hexdigest()
+        if not 0 < loaded_model.decision_threshold_ < 1:
+            raise ValueError("Invalid binary decision threshold.")
         print(f"{name} model loaded successfully.")
         return loaded_model
     except Exception as exc:
@@ -107,8 +123,9 @@ async def lifespan(_app: FastAPI):
     models["fraud"] = load_model("IEEE-CIS", FRAUD_MODEL_PATH)
     models["credit_risk"] = load_model("Credit Risk", CREDIT_MODEL_PATH)
 
-    Base.metadata.create_all(bind=engine)
-    print("Database tables initialized successfully.")
+    # PostgreSQL deployments apply Alembic before starting the service.
+    if engine.dialect.name == "sqlite":
+        Base.metadata.create_all(bind=engine)
 
     yield
 
@@ -122,20 +139,41 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+@app.exception_handler(RequestValidationError)
+async def validation_error(_request, exc):
+    # Validation errors can contain a submitted password, credential or feature vector.
+    return JSONResponse(status_code=422, content={"detail": [
+        {"loc": err["loc"], "type": err["type"], "msg": err["msg"]} for err in exc.errors()
+    ]})
+
+
+class RedactQueryString(logging.Filter):
+    def filter(self, record):
+        # Uvicorn access logs include the email-verification token in the request target.
+        if isinstance(record.args, tuple) and len(record.args) == 5:
+            client, method, target, protocol, status = record.args
+            record.args = (client, method, str(target).split("?", 1)[0], protocol, status)
+        return True
+
+
+logging.getLogger("uvicorn.access").addFilter(RedactQueryString())
 app.include_router(auth_router)
-UPLOADS_DIR = BASE_DIR.parent / "uploads"
-UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+origins = [origin.strip().rstrip("/") for origin in os.getenv(
+    "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
+).split(",") if origin.strip()]
+for origin in origins:
+    parsed = urlsplit(origin)
+    if parsed.scheme not in ("https", "http") or not parsed.netloc or parsed.path or parsed.query or parsed.fragment or parsed.username or "*" in origin:
+        raise RuntimeError("CORS_ORIGINS requires explicit HTTP(S) origins.")
+    if os.getenv("APP_ENV", "").lower() == "production" and parsed.scheme != "https":
+        raise RuntimeError("Production requires HTTPS CORS origins.")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 
@@ -163,6 +201,7 @@ def run_prediction(
     model_name: str,
     request: PredictionRequest,
     db: Session,
+    user_id: int,
 ):
     model = models[model_name]
 
@@ -198,11 +237,9 @@ def run_prediction(
         validate_feature_values(model, supplied_features)
 
         features = pd.DataFrame(
-            [supplied_features],
+            [{k: float("nan") if v is None else v for k, v in supplied_features.items()}],
             columns=expected_features,
         )
-
-        prediction = int(model.predict(features)[0])
 
         probabilities = model.predict_proba(features)[0]
         classes = list(model.classes_)
@@ -211,6 +248,8 @@ def run_prediction(
             raise ValueError("Positive class 1 is missing.")
 
         probability = float(probabilities[classes.index(1)])
+        threshold = model.decision_threshold_
+        prediction = int(probability >= threshold)
 
         risk_level = (
             "High" if probability >= 0.70
@@ -220,6 +259,7 @@ def run_prediction(
 
         try:
             history = PredictionHistory(
+                user_id=user_id,
                 model_type=model_name,
                 prediction=prediction,
                 probability=probability,
@@ -237,7 +277,9 @@ def run_prediction(
 
         return {
             "prediction": prediction,
-            "probability": round(probability, 4),
+            "probability": probability,
+            "decision_threshold": threshold,
+            "model_version": model.artifact_sha256_,
             "risk_level": risk_level,
             "model_connected": True,
             "history_id": history.id,
@@ -250,16 +292,28 @@ def run_prediction(
     except Exception as exc:
         raise HTTPException(
             status_code=422,
-            detail=f"Could not process prediction: {exc}",
+            detail="Could not process the supplied feature values.",
         ) from exc
+
+
+@app.get("/predict/{model_name}/schema")
+def feature_schema(model_name: str, current_user: User = Depends(get_current_user)):
+    key = {"fraud": "fraud", "credit-risk": "credit_risk"}.get(model_name)
+    if key is None:
+        raise HTTPException(404, "Unknown model.")
+    model = models[key]
+    if model is None:
+        raise HTTPException(503, "Model is unavailable.")
+    return {"features": list(model.feature_names_in_)}
 
 
 @app.post("/predict/fraud")
 def predict_fraud(
     request: PredictionRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    result = run_prediction("fraud", request, db)
+    result = run_prediction("fraud", request, db, current_user.id)
     return {
         **result,
         "prediction_label": (
@@ -273,9 +327,10 @@ def predict_fraud(
 @app.post("/predict/credit-risk")
 def predict_credit_risk(
     request: PredictionRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    result = run_prediction("credit_risk", request, db)
+    result = run_prediction("credit_risk", request, db, current_user.id)
     return {
         **result,
         "prediction_label": (
@@ -291,16 +346,17 @@ def get_prediction_history(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     model_type: str | None = None,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    query = db.query(PredictionHistory)
+    query = db.query(PredictionHistory).filter(PredictionHistory.user_id == current_user.id)
 
     if model_type:
         query = query.filter(PredictionHistory.model_type == model_type)
 
     total = query.count()
     records = (
-        query.order_by(PredictionHistory.created_at.desc())
+        query.order_by(PredictionHistory.created_at.desc(), PredictionHistory.id.desc())
         .offset(offset)
         .limit(limit)
         .all()
@@ -327,9 +383,11 @@ def get_prediction_history(
 @app.get("/history/{history_id}")
 def get_prediction_by_id(
     history_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     record = db.query(PredictionHistory).filter(
+        PredictionHistory.user_id == current_user.id,
         PredictionHistory.id == history_id
     ).first()
 

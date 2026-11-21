@@ -5,10 +5,28 @@ from fastapi.testclient import TestClient
 from app import main
 
 
-@pytest.fixture
-def client():
-    with TestClient(main.app) as test_client:
-        yield test_client
+@pytest.fixture(scope="module")
+def client(tmp_path_factory):
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from app import database
+    from app.database_models import User
+    from app.security import create_access_token
+
+    engine = create_engine("sqlite:///" + str(tmp_path_factory.mktemp("db") / "test.db"))
+    session = sessionmaker(bind=engine)
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(main, "engine", engine)
+        patch.setattr(database, "SessionLocal", session)
+        with TestClient(main.app) as test_client:
+            with session.begin() as db:
+                user = User(email="research@example.org", full_name="Research demo")
+                db.add(user)
+                db.flush()
+                token = create_access_token(user.id)
+            test_client.headers["Authorization"] = "Bearer " + token
+            yield test_client
+    engine.dispose()
 
 
 def make_payload(model_name):
@@ -38,6 +56,35 @@ def test_api_is_running(client):
     data = response.json()
     assert data["message"] == "FraudShield API is running"
     assert data["version"] == "2.0.0"
+
+
+@pytest.mark.parametrize("route,file_stem,changes,threshold,score", [
+    ("fraud", "fraud", {}, 0.21, 0.22790691867617516),
+    ("credit-risk", "credit_risk", {"NumberOfTimes90DaysLate": 1}, 0.23, 0.31020491822975454),
+    ("credit-risk", "credit_risk", {}, 0.23, 0.04155259649156279),
+])
+def test_research_serving_parity(client, route, file_stem, changes, threshold, score):
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parents[1] / f"{file_stem}_test_payload.json"
+    payload = json.loads(path.read_text())
+    payload["features"].update(changes)
+    response = client.post(f"/predict/{route}", json=payload)
+    response.raise_for_status()
+    result = response.json()
+    assert result["decision_threshold"] == threshold
+    assert result["probability"] == pytest.approx(score, abs=1e-12, rel=0)
+    assert result["prediction"] == int(score >= threshold)
+    expected_hash = {
+        "fraud": "d8c98d26d7458b13d79e6328c2f1ddd9c75dcdd175bc3cc12923732665f17f00",
+        "credit-risk": "607e7f0ba9ecfefa342ea25311c2e021123e5727d2459964fc45b0cf4778c90c",
+    }[route]
+    assert result["model_version"] == expected_hash
+    assert result["risk_level"] == ("High" if score >= 0.70 else "Medium" if score >= 0.30 else "Low")
+    record = client.get(f"/history/{result['history_id']}").json()
+    assert record["risk_level"] == result["risk_level"]
+    assert record["prediction"] == result["prediction"]
+    assert record["probability"] == pytest.approx(score, abs=1e-12, rel=0)
 
 
 def test_health_endpoint(client):
@@ -136,6 +183,8 @@ def test_missing_credit_model_returns_service_unavailable(
 
 
 def test_prediction_history_returns_records(client):
+    client.post("/predict/fraud", json=make_payload("fraud")).raise_for_status()
+    client.post("/predict/credit-risk", json=make_payload("credit_risk")).raise_for_status()
     response = client.get("/history")
 
     assert response.status_code == 200
@@ -184,6 +233,7 @@ def test_prediction_history_pagination(client):
 
 
 def test_get_prediction_by_id(client):
+    client.post("/predict/fraud", json=make_payload("fraud")).raise_for_status()
     history_response = client.get("/history")
 
     assert history_response.status_code == 200
@@ -380,3 +430,24 @@ def test_prediction_response_structure(
     assert isinstance(data["created_at"], str)
     assert data["model_connected"] is True
     assert 0.0 <= data["probability"] <= 1.0
+
+
+def test_private_history_and_schema(client):
+    from app.database import SessionLocal
+    from app.database_models import User
+    from app.security import create_access_token
+
+    for route, key in [("fraud", "fraud"), ("credit-risk", "credit_risk")]:
+        response = client.get(f"/predict/{route}/schema")
+        assert set(response.json()["features"]) == set(make_payload(key)["features"])
+        assert client.post(f"/predict/{route}", json=make_payload(key),
+                           headers={"Authorization": ""}).status_code == 401
+    assert client.get("/history", headers={"Authorization": ""}).status_code == 401
+    saved = client.post("/predict/fraud", json=make_payload("fraud")).json()
+    with SessionLocal.begin() as db:
+        user = User(email="second@example.org", full_name="Second user")
+        db.add(user)
+        db.flush()
+        headers = {"Authorization": "Bearer " + create_access_token(user.id)}
+    assert client.get("/history", headers=headers).json()["total"] == 0
+    assert client.get(f"/history/{saved['history_id']}", headers=headers).status_code == 404

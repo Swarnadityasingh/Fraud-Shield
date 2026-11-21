@@ -1,0 +1,72 @@
+{
+  "numeric_cells_checked_against_CSV": 146,
+  "selection_flags_checked": 12,
+  "all_tables": 10,
+  "original_body_lines_retained": 225,
+  "bibliographic_entries": 17,
+  "DOI_identifiers": 12,
+  "citation_first_appearance_order": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+  ],
+  "original_plot_hashes": [
+    {
+      "path": "Backend\\reports\\research\\fraud\\confusion_matrix.png",
+      "sha256": "30e24bd7742be1f58f4ab93fc713d99adee1a9609f2b9dfb6d1142315a132ce2"
+    },
+    {
+      "path": "Backend\\reports\\research\\fraud\\roc.png",
+      "sha256": "fa75864f73d1d22c04f1d66f9f867f3292fcb80cbb96ea3dd35b5d0a3552ae47"
+    },
+    {
+      "path": "Backend\\reports\\research\\fraud\\precision_recall.png",
+      "sha256": "080191ed1944af4c7c22df161c075f4d4408b5be04a6d9002be8ea8a766b6faa"
+    },
+    {
+      "path": "Backend\\reports\\research\\fraud\\feature_importance.png",
+      "sha256": "290519c616018857fa0c0eacce2c4320190c99c7fb7b7762ff6395f1f3a2dc4a"
+    },
+    {
+      "path": "Backend\\reports\\research\\credit\\confusion_matrix.png",
+      "sha256": "3ac43d111a0cb6e8f33b5f92efd776ba9598c03f305f900488c688149643528f"
+    },
+    {
+      "path": "Backend\\reports\\research\\credit\\roc.png",
+      "sha256": "0541b302b66b55a1b1f17cd824de25ef1487595a25ccf1a17cc4ffe24cc0160d"
+    },
+    {
+      "path": "Backend\\reports\\research\\credit\\precision_recall.png",
+      "sha256": "f4cb5034bfe185fd1edfc448b308d5d74af0ec8b0b58d10ad62e6edcd83b71af"
+    },
+    {
+      "path": "Backend\\reports\\research\\credit\\feature_importance.png",
+      "sha256": "ed447cb90b358ec232aabad9c339fc59f92317622a1d0101634b7f8c8bf91e57"
+    }
+  ],
+  "pdf_pages": 13,
+  "pdf_numeric_cell_strings_checked": 155,
+  "protected_files_checked": 240,
+  "protected_files_changed": [],
+  "git_diff_and_index_unchanged": true,
+  "new_paths_only_in_authorized_directory": true,
+  "source_sha256": "14699dc3ae64abd3de86f78184c9995d560238d88ef1769b9cebb2cb51b61002",
+  "template_sha256": "4589779a1a74782dc5a7a657a9907f243c9dd54510cb6c154acaf24cc9079852",
+  "docx_sha256": "804788a649b458dcf6261aaa53f8975496c87ed6baf29c11117666f2884db142",
+  "pdf_sha256": "6e82d6adf96dd345c68924bffda54d0d76517d6172cf65c6de87f4c9bd7991db",
+  "render_directory": "C:\\Users\\Arpit Srivastava\\PycharmProjects\\Fraud-Shield\\research-paper\\2026-11-18-ieee-final-draft\\support\\final-render-v3"
+}

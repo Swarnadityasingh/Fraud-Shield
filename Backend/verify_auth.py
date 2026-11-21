@@ -1,31 +1,11 @@
-from sqlalchemy import text
-from app.database import engine
+"""Show authentication table counts for local diagnostics."""
+from sqlalchemy import func, select
 
-with engine.connect() as connection:
+from app.database import SessionLocal
+from app.database_models import AuthIdentity, RefreshSession, User
 
-    users = connection.execute(
-        text("""
-            SELECT id, email, full_name, is_email_verified
-            FROM users
-        """)
-    ).fetchall()
 
-    identities = connection.execute(
-        text("""
-            SELECT provider, user_id
-            FROM auth_identities
-            WHERE provider = :provider
-        """),
-        {"provider": "google"},
-    ).fetchall()
-
-    sessions = connection.execute(
-        text("""
-            SELECT id, user_id, expires_at, revoked_at
-            FROM refresh_sessions
-        """)
-    ).fetchall()
-
-    print("\nUSERS:", users)
-    print("\nGOOGLE IDENTITIES:", identities)
-    print("\nREFRESH SESSIONS:", sessions)
+if __name__ == "__main__":
+    with SessionLocal() as db:
+        for entity in (User, AuthIdentity, RefreshSession):
+            print(entity.__tablename__, db.scalar(select(func.count()).select_from(entity)))

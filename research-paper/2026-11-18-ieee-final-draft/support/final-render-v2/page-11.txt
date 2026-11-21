@@ -1,0 +1,110 @@
+artifact/payload hashes and excludes targets and identifiers from 
+inputs. It documents membership preparation, not predictions, 
+actual users, saved history IDs or successful UI submissions. No 
+such live demonstration was executed for this manuscript. [E16, 
+E17] 
+Consequently, PSQ1 and O7c remain pending . A future 
+approved run must use an existing authorized account, submit 
+the reviewed inputs through the actual application, verify 
+committed rows and reconcile Dashboard/ Analytics/Reports 
+counts. Actual CSV contents and saved/ opened PDF output 
+require s eparate inspection. Unfavorable predictions must 
+remain visible as genuine outcomes. Four integration cases must 
+not become a new performance evaluation or alter frozen 
+research metrics. Publication permissions also need review 
+before real input screenshots or payloads are shared. [E16, E17] 
+[17] 
+No application screenshot is inserted or numbered as a 
+completed figure; the pending capture slots below are editorial 
+requests, not evidence. The existing experimental plots and 
+source-derived architecture schematic must not be mistaken for 
+live interface evidence. Real Google consent, SMTP delivery, 
+responsive browser layouts and logout/ session behavior 
+likewise remain outside a completed browser claim. [E11, E17] 
+C. Pending genuine application screenshot slots 
+The following text-only placeholders request evidence from 
+Sahej. They contain no screenshot, user, prediction or verified 
+runtime outcome. Retain pending status until separate approval, 
+real capture, privacy/ permission review and the stated checks 
+are complete. Final figure numbers will be assigned only when 
+genuine verified images are supplied. 
+S1 — SCREENSHOT PENDING: Dashboard overview. 
+Required view: Authenticated dashboard with genuinely 
+persisted, owner -scoped prediction totals. Proposed caption: 
+“FraudShield dashboard showing persisted prediction 
+summaries for an authorized account.” Intended evidence/
+check: Reconcile counts against  actual owned records; avoid 
+private account details. 
+S2 — SCREENSHOT PENDING: Transaction fraud 
+interface. Required view: Actual 431 -feature fraud input 
+interface using an approved public holdout payload. Proposed 
+caption: “Transaction-fraud input interface for the independent 
+431-feature pipeline.” Intended evidence/ check: Verify source 
+membership, target/ identifier exclusion and data -sharing 
+permission before revealing input values. 
+S3 — SCREENSHOT PENDING: Credit delinquency 
+interface. Required view: Actual ten-input credit interface with 
+an approved public holdout example. Proposed caption: “Credit-
+delinquency input interface for the independent ten -feature 
+pipeline.” Intended evidence/ check: Verify reconstructed 
+holdout membership and exclude target/source ID. 
+S4 — SCREENSHOT PENDING: Actual prediction 
+result. Required view: Genuine result returned after 
+authenticated inference and persistence, with score, class and 
+risk band visible. Proposed caption: “Persisted prediction result 
+displaying the model score, classification and interface risk 
+band.” Intended evidence/check: Retain unfavorable outcomes; 
+score is not demonstrated calibrated risk; bands differ from 
+classification thresholds. 
+S5 — SCREENSHOT PENDING: Prediction history.  
+Required view: Owner -scoped history containing real saved 
+demonstration records. Proposed caption: “Prediction history 
+for the authorized demonstration account.” Intended evidence/
+check: Reconcile returned IDs and owned rows; separately 
+verify isolation without exposing another user. 
+S6 — SCREENSHOT PENDING: Analytics and reports. 
+Required view: Actual analytics/ report view with counts 
+reconciled to persisted owned records and stated filters. 
+Proposed caption: “Analytics and report summaries reconciled 
+with persisted prediction records.” Intended evidence/ check: 
+Verify task/filter scope and counts; no fused predictive score is 
+implied. 
+S7 — SCREENSHOT PENDING: Verified export 
+interface. Required view: Report filters and CSV/print controls 
+only after actual file -content and saved/ opened PDF checks. 
+Proposed caption: “Report export interface after independent 
+inspection of CSV and printed/ PDF outputs.” Intended 
+evidence/check: Conditional capture: interface visibility alone 
+proves neither downloaded contents nor PDF correctness. 
+IX. DISCUSSION AND THREATS TO VALIDITY 
+A. Internal validity and historical provenance 
+The current scripts specify training -only preprocessing and 
+validation-based selection, while later checks confirm current 
+chronological partition structure and matching stored 
+preprocessing. However, source inspection is not proof that 
+every historical ex ecution followed the same data boundaries. 
+Exact historical weighted -fraud training -row identity remains 
+unproven, as does the full chronology of analyst decisions 
+concerning holdout information. These qualifications limit a 
+claim of a fully matched contro lled refit or independently 
+certified leakage-free historical experiment. [E08, E15] 
+Credit membership reconstruction follows the preserved 
+algorithm and matches saved counts, but no earlier ID manifest 
+exists for direct comparison. File hashes establish continuity, not 
+official-release authenticity, and equal model dimensions do not 
+prove training-label identity. Missing fit logs cannot be repaired 
+by asserting stronger prose. [E13–E16] 
+B. Statistical and external validity 
+The comparison evaluates one forest family, two weighting 
+settings and one research seed, without confidence intervals, 
+repeated-seed stability or significance testing. It does not 
+establish superiority over logistic regression, boosting, neural 
+models or other financial systems. External papers use different 
+splits, feature construction, tuning and refit policies; their 
+reported scores are not a matched leaderboard. [E08, E09] [5], 
+[8], [9], [10], [11] 
+Fraud's later internal period and credit's random internal 
+holdout have different temporal implications. Neither is an 
+external institution/population study. Chronological separation 
+does not guarantee entity-disjoint evaluation, and no subgroup/
+fairness analysis is provided. No latency, throughput, business-

@@ -1,0 +1,58 @@
+repository examples and temporary SQLite. Neither recorded 
+check is rerun for this formatting draft. [E04, E07–E09, E11] 
+VII. EXPERIMENTAL RESULTS 
+A. Selected-model final holdout performance 
+Tables V–IX reproduce stored strings from the preserved 
+experimental CSVs, including full stored precision. Narrative 
+values in the Abstract and discussion are rounded for readability. 
+The manuscript transcribes rather than recomputes metrics, and 
+the selected rows agree with the saved replay JSON. [E09] 
+TABLE V. SELECTED UNWEIGHTED-MODEL INTERNAL-HOLDOUT METRICS. DECISION THRESHOLDS AND METRIC DEFINITIONS ARE THOSE OF SECTION VI. [E09] 
+Measure IEEE-CIS Credit 
+Threshold 0.21 0.23 
+Accuracy 0.9522809631862363 0.9187111111111111 
+Precision 0.3433734939759036 0.4070897655803316 
+Recall 0.4067466753162504 0.4734042553191489 
+F1 0.3723830734966592 0.4377497694435905 
+ROC-AUC 0.8668835178151868 0.8572739792381933 
+Trapezoidal PR-AUC 0.43825041607034365 0.395204976726014 
+Average Precision 0.4382899898730803 0.3955324542960594 
+TABLE VI. CANDIDATE VALIDATION OPERATING POINTS. EACH ROW IS AN EXISTING SAVED VALIDATION ROW CHOSEN UNDER THE DOCUMENTED TIE RULES. 
+“SELECTED” REFERS TO FOREST SELECTION BY VALIDATION F1, NOT HOLDOUT SUPERIORITY. [E08, E09] 
+Dataset Candidate Selected Threshold Precision Recall F1 
+IEEE-CIS Weighted False 0.62 0.5176778699257966 0.3898750821827745 0.4447777986124133 
+IEEE-CIS Unweighted True 0.21 0.6221294363256785 0.3918474687705457 0.48083904800322713 
+IEEE-CIS Constant prior False 0.03 0.03434145019812375 1.0 0.06640254084673063 
+Credit Weighted False 0.54 0.36395939086294415 0.4767287234042553 0.41278065630397237 
+Credit Unweighted True 0.23 0.4161036036036036 0.4913563829787234 0.450609756097561 
+Credit Constant prior False 0.06 0.06684444444444444 1.0 0.12531244792534577 
+TABLE VII. CANDIDATE HOLDOUT OPERATING-POINT COMPARISON. CANDIDATE IDENTITIES, SELECTION FLAGS, THRESHOLDS AND STORED METRICS ARE 
+UNCHANGED. [E09] 
+Dataset Candidate Selected Threshold Accuracy Precision Recall F1 
+IEEE-CIS Weighted False 0.62 0.96486831261783 0.494234592445328 0.4031787220240026 0.44408717399071096 
+IEEE-CIS Unweighted True 0.21 0.9522809631862363 0.3433734939759036 0.4067466753162504 0.3723830734966592 
+IEEE-CIS Constant prior False 0.03 0.03480430340592226 0.03480430340592226 1.0 0.06726741141560481 
+Credit Weighted False 0.54 0.9090222222222222 0.36041131105398455 0.4660904255319149 0.40649463612641346 
+Credit Unweighted True 0.23 0.9187111111111111 0.4070897655803316 0.4734042553191489 0.4377497694435905 
+Credit Constant prior False 0.06 0.06684444444444444 0.06684444444444444 1.0 0.12531244792534577 
+TABLE VIII. CANDIDATE HOLDOUT RANKING COMPARISON. AP AND TRAPEZOIDAL PR-AUC ARE SEPARATE STORED MEASURES. [E09] 
+Dataset Candidate ROC-AUC Trapezoidal PR-AUC Average Precision 
+IEEE-CIS Weighted 0.8585286704784858 0.44589258864295134 0.4459642128127821 
+IEEE-CIS Unweighted 0.8668835178151868 0.43825041607034365 0.4382899898730803 
+IEEE-CIS Constant prior 0.5 0.5174021517029611 0.03480430340592226 
+Credit Weighted 0.8408046884816965 0.34111816650673765 0.34153582082006706 
+Credit Unweighted 0.8572739792381933 0.395204976726014 0.3955324542960594 
+Credit Constant prior 0.5 0.5334222222222222 0.06684444444444444 
+The selected forests exceed the prior baseline in saved F1 
+and AP, but do not solve the positive -case detection problem. 
+The prior predicts every observation positive at its chosen 
+operating point, obtaining recall one with precision equal to 
+prevalence. Its high trapezoidal PR areas in Table VIII must not 
+be interpreted as useful ranking performance. Its ROC -AUC is 
+0.5 and AP equals the saved holdout prevalence. [E09] 
+B. Validation-to-holdout comparison and RQ1 
+For IEEE -CIS, the unweighted forest's validation F1 is 
+0.480839, exceeding the weighted candidate's 0.444778. On the 
+later holdout, that ordering reverses: weighted F1 is 0.444087 
+and selected unweighted F1 is 0.372383. The selected model's 
+validation prec ision is 0.622129, compared with holdout 
