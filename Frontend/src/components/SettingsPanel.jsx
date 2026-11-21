@@ -36,12 +36,13 @@ function SettingsSection({ icon: Icon, title, description, children }) {
   )
 }
 
-function SettingsField({ label, value, onChange, type = 'text', min, max }) {
+function SettingsField({ label, value, onChange, type = 'text', min, max, readOnly = false }) {
   return (
     <label className="settings-field">
       <span>{label}</span>
       <input
         type={type}
+        readOnly={readOnly}
         value={value ?? ''}
         min={min}
         max={max}
@@ -323,7 +324,7 @@ export default function SettingsPanel({
             label="Email address"
             type="email"
             value={settings.email}
-            onChange={(value) => update('email', value)}
+            readOnly
           />
         </div>
 
